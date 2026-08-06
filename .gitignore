@@ -1,0 +1,18 @@
+# .gitignore for PrjWeb project
+# OS generated files
+.DS_Store
+
+# Environment files (keep safe)
+.env
+.env.*
+
+# AI‑related files (ignore documentation that may contain sensitive prompts)
+AI_GUIDELINE.md
+ProjectSpec.md
+
+# Hide all Markdown documentation from the repo (optional, adjust if needed)
+*.md
+
+# Add any other generated assets you do not want tracked
+node_modules/
+dist/
