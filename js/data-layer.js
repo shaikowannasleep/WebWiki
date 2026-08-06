@@ -35,20 +35,20 @@ const DataLayer = {
     { id: 'note', name: 'Note (Ghi Chú Đặc Biệt)', defaultVal: '' }
   ],
 
-  // Requirement Presets (Passive has 5 milestones: 1k, 10k, 25k/2.5v, 50k/5v, 100k/10v)
+  // Requirement Presets (Quy tắc áp dụng chung cho Hồn Kỹ, Bí Thuật & Bị Động):
+  // 10,000 năm (4 sao vàng) -> 25,000 năm (1 sao đỏ) -> 50,000 năm (3 sao đỏ) -> 100,000 năm (4 sao đỏ)
   RING_PRESETS: {
     SoulSkill: [
-      { year: '1,000 năm', bonus: 'Tăng 10% sát thương / hiệu quả.', requirements: [{ type: 'star', color: 'gold', count: 4 }] },
-      { year: '10,000 năm', bonus: 'Hồi 1 điểm Hồn Lực ({khoi_phuc_hon_luc}).', requirements: [{ type: 'star', color: 'gold', count: 5 }] },
-      { year: '50,000 năm', bonus: 'Giải trừ 1 hiệu ứng bất lợi.', requirements: [{ type: 'star', color: 'red', count: 1 }] },
-      { year: '100,000 năm', bonus: 'Nhận hiệu ứng {vo_dich_kim_than} trong 1 lượt.', requirements: [{ type: 'star', color: 'red', count: 2 }] }
+      { year: '10,000 năm', bonus: 'Hồi 1 điểm Hồn Lực ({khoi_phuc_hon_luc}).', requirements: [{ type: 'star', color: 'gold', count: 4 }] },
+      { year: '25,000 năm', bonus: 'Tăng 15% sát thương / hiệu quả.', requirements: [{ type: 'star', color: 'red', count: 1 }] },
+      { year: '50,000 năm', bonus: 'Giải trừ 1 hiệu ứng bất lợi.', requirements: [{ type: 'star', color: 'red', count: 3 }] },
+      { year: '100,000 năm', bonus: 'Nhận hiệu ứng {vo_dich_kim_than} trong 1 lượt.', requirements: [{ type: 'star', color: 'red', count: 4 }] }
     ],
     PassiveSkill: [
-      { year: '1,000 năm', bonus: 'Tăng 15% Tốc Độ hành động ban đầu.', requirements: [{ type: 'star', color: 'gold', count: 4 }] },
-      { year: '10,000 năm', bonus: 'Kích hoạt thêm hiệu ứng {thiem_quang}.', requirements: [{ type: 'star', color: 'gold', count: 5 }] },
-      { year: '25,000 năm (2.5 vạn)', bonus: 'Tăng 20% Kháng Khống Chế khi HP dưới 50%.', requirements: [{ type: 'star', color: 'red', count: 1 }] },
-      { year: '50,000 năm (5 vạn)', bonus: 'Nhận ngay {khien_than} hấp thụ sát thương.', requirements: [{ type: 'star', color: 'red', count: 2 }] },
-      { year: '100,000 năm (10 vạn)', bonus: 'Miễn nhiễm 100% Khống Chế lượt đầu.', requirements: [{ type: 'star', color: 'red', count: 5 }] }
+      { year: '10,000 năm', bonus: 'Khóa mục tiêu 1 lượt.', requirements: [{ type: 'star', color: 'gold', count: 4 }] },
+      { year: '25,000 năm', bonus: 'Tăng 20% kháng khống chế.', requirements: [{ type: 'star', color: 'red', count: 1 }] },
+      { year: '50,000 năm', bonus: 'Nhận ngay {khien_than} hấp thụ sát thương.', requirements: [{ type: 'star', color: 'red', count: 3 }] },
+      { year: '100,000 năm', bonus: 'Miễn nhiễm 100% khống chế lượt đầu.', requirements: [{ type: 'star', color: 'red', count: 4 }] }
     ]
   },
 
@@ -180,6 +180,37 @@ const DataLayer = {
       return data;
     } catch (error) {
       console.error(`DataLayer Error (getHeroById: ${id}):`, error);
+      // Fallback: search in heroesList summary if json detail file is not created yet
+      if (this.cache.heroesList) {
+        const summary = this.cache.heroesList.find(h => h.id === id);
+        if (summary) {
+          return {
+            id: summary.id,
+            name: summary.name,
+            title: summary.title || 'Hồn Sư Đối Quyết',
+            role: summary.role || 'Hỗ Trợ',
+            rarity: summary.rarity || 'SR',
+            wusoul: summary.wusoul || 'Chưa Xác Định',
+            avatar: summary.avatar || 'assets/heroes/default/avatar.webp',
+            banner: summary.banner || summary.avatar || 'assets/heroes/default/avatar.webp',
+            bio: summary.summary || 'Thông tin chi tiết kỹ năng đang được cập nhật.',
+            branches: [
+              {
+                branchId: 'branch_1',
+                branchName: 'Nhánh 1',
+                skills: [
+                  { group: 'normal', name: 'Đánh Thường', icon: '⚔️', type: 'Chủ động', cost: '0 Hồn Lực', description: 'Gây sát thương vật lý cơ bản.', ringUpgrades: [] },
+                  { group: 'tienco', name: 'Tiên Cơ', icon: '⚡', type: 'Đặc biệt', cost: '', description: 'Kỹ năng tiên cơ.', ringUpgrades: [] },
+                  { group: 'passive', name: 'Bị Động — Nhánh 1', icon: '🛡️', type: 'Bị động', cost: '', description: 'Kỹ năng bị động.', ringUpgrades: JSON.parse(JSON.stringify(this.RING_PRESETS.PassiveSkill)) },
+                  { group: 'honky', name: 'Hồn Kỹ — Nhánh 1', icon: '🔥', type: 'Chủ động', cost: '2 Hồn Lực', description: 'Chiêu thức hồn kỹ.', ringUpgrades: JSON.parse(JSON.stringify(this.RING_PRESETS.SoulSkill)) },
+                  { group: 'bithuat', name: 'Bí Thuật — Nhánh 1', icon: '🔮', type: 'Chủ động', cost: '3 Hồn Lực', description: 'Kỹ năng bí thuật.', ringUpgrades: JSON.parse(JSON.stringify(this.RING_PRESETS.SoulSkill)) }
+                ]
+              }
+            ],
+            tags: summary.tags || [summary.role, summary.rarity]
+          };
+        }
+      }
       return null;
     }
   },
@@ -187,7 +218,11 @@ const DataLayer = {
   saveHeroDraft(heroObj) {
     if (!heroObj || !heroObj.id) return;
     this.cache.heroDetails[heroObj.id] = heroObj;
-    localStorage.setItem(this.STORAGE_KEYS.HERO_DETAIL_PREFIX + heroObj.id, JSON.stringify(heroObj, null, 2));
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.HERO_DETAIL_PREFIX + heroObj.id, JSON.stringify(heroObj, null, 2));
+    } catch (e) {
+      console.warn('localStorage QuotaExceededError when saving hero draft:', e.message);
+    }
 
     if (this.cache.heroesList) {
       const idx = this.cache.heroesList.findIndex(h => h.id === heroObj.id);
@@ -209,7 +244,11 @@ const DataLayer = {
       } else {
         this.cache.heroesList.push(summaryItem);
       }
-      localStorage.setItem(this.STORAGE_KEYS.HEROES_INDEX, JSON.stringify(this.cache.heroesList, null, 2));
+      try {
+        localStorage.setItem(this.STORAGE_KEYS.HEROES_INDEX, JSON.stringify(this.cache.heroesList, null, 2));
+      } catch (e) {
+        console.warn('localStorage QuotaExceededError when saving heroes index:', e.message);
+      }
     }
   },
 
@@ -228,7 +267,7 @@ const DataLayer = {
 
   async writeDirectToLocalDisk(relativePath, contentString) {
     if (!this.projectDirHandle) {
-      throw new Error('Chưa kết nối thư mục project! Hãy bấm "📂 Kết Nối Thư Mục Local" trước.');
+      throw new Error('Chưa kết nối thư mục project! Hãy bấm "📂 Kết Nối Local Disk" trước.');
     }
     const parts = relativePath.split('/').filter(p => p.length > 0);
     let currentHandle = this.projectDirHandle;
@@ -242,6 +281,28 @@ const DataLayer = {
     await writable.write(contentString);
     await writable.close();
   },
+
+  async deleteHeroFromDisk(heroId) {
+    if (!this.projectDirHandle) {
+      throw new Error('Chưa kết nối thư mục project!');
+    }
+    try {
+      // Lấy handle thư mục data/heroes/
+      const dataDir = await this.projectDirHandle.getDirectoryHandle('data', { create: false });
+      const heroesDir = await dataDir.getDirectoryHandle('heroes', { create: false });
+      // Xóa file {heroId}.json
+      await heroesDir.removeEntry(`${heroId}.json`);
+    } catch (e) {
+      if (e.name === 'NotFoundError') {
+        // File không tồn tại trên disk — không sao
+        console.warn(`deleteHeroFromDisk: file ${heroId}.json không tồn tại trên disk.`);
+      } else {
+        throw e;
+      }
+    }
+  },
+
+
 
   async saveAllDirectToDisk() {
     if (!this.projectDirHandle) {
@@ -404,5 +465,80 @@ const DataLayer = {
     this.cache.keywords = null;
     this.cache.heroDetails = {};
     this.cache.websiteConfig = null;
+  },
+
+  deleteHero(id) {
+    if (!id) return;
+    // Remove hero detail from localStorage
+    localStorage.removeItem(this.STORAGE_KEYS.HERO_DETAIL_PREFIX + id);
+    // Remove from cache
+    if (this.cache.heroDetails) delete this.cache.heroDetails[id];
+    // Remove from index list
+    if (this.cache.heroesList) {
+      this.cache.heroesList = this.cache.heroesList.filter(h => h.id !== id);
+      localStorage.setItem(this.STORAGE_KEYS.HEROES_INDEX, JSON.stringify(this.cache.heroesList, null, 2));
+    }
+  },
+
+  async cloneHero(id) {
+    const original = await this.getHeroById(id);
+    if (!original) return null;
+    const newId = 'hero_clone_' + Date.now().toString().slice(-5);
+    const cloned = JSON.parse(JSON.stringify(original));
+    cloned.id = newId;
+    cloned.name = original.name + ' (Bản Sao)';
+    this.saveHeroDraft(cloned);
+    return cloned;
+  },
+
+  async createNewHero(slug, name) {
+    /**
+     * Cấu trúc đúng:
+     * - normal & tienco: skill phẳng, không có nhánh (đặt ở branch_1)
+     * - passive, honky, bithuat: mỗi nhóm có 2 nhánh riêng
+     *   → Nhánh 1 (branches[0]) và Nhánh 2 (branches[1]) đều chứa skill của cả 3 nhóm này
+     */
+    const P = JSON.parse(JSON.stringify(this.RING_PRESETS.PassiveSkill));
+    const S = JSON.parse(JSON.stringify(this.RING_PRESETS.SoulSkill));
+
+    const newHero = {
+      id: slug,
+      name: name,
+      title: 'Hồn Sư Mới',
+      role: 'Phụ Trợ',
+      rarity: 'SSR',
+      wusoul: 'Chưa Xác Định',
+      avatar: 'assets/heroes/default/avatar.webp',
+      banner: 'assets/heroes/default/avatar.webp',
+      bio: 'Chưa có tiểu sử.',
+      branches: [
+        {
+          branchId: 'branch_1',
+          branchName: 'Nhánh 1',
+          skills: [
+            // Phẳng - không có nhánh
+            { group: 'normal',  name: 'Đánh Thường',         icon: '⚔️', type: 'Chủ động', cost: '0 Hồn Lực',  description: 'Gây sát thương vật lý cơ bản cho 1 mục tiêu.', ringUpgrades: [] },
+            { group: 'tienco',  name: 'Tiên Cơ',             icon: '⚡', type: 'Đặc biệt',  cost: '',           description: 'Kỹ năng tiên cơ đặc biệt.', ringUpgrades: [] },
+            // Nhánh 1 của các nhóm có nhánh
+            { group: 'passive', name: 'Bị Động — Nhánh 1',   icon: '🛡️', type: 'Bị động',  cost: '',           description: 'Hiệu ứng bị động nhánh 1.', ringUpgrades: JSON.parse(JSON.stringify(P)) },
+            { group: 'honky',   name: 'Hồn Kỹ — Nhánh 1',   icon: '🔥', type: 'Chủ động', cost: '2 Hồn Lực', description: 'Kỹ năng hồn kỹ nhánh 1.', ringUpgrades: JSON.parse(JSON.stringify(S)) },
+            { group: 'bithuat', name: 'Bí Thuật — Nhánh 1',  icon: '🔮', type: 'Chủ động', cost: '3 Hồn Lực', description: 'Kỹ năng bí thuật nhánh 1.', ringUpgrades: JSON.parse(JSON.stringify(S)) }
+          ]
+        },
+        {
+          branchId: 'branch_2',
+          branchName: 'Nhánh 2',
+          skills: [
+            // Nhánh 2 của các nhóm có nhánh (normal & tienco không có ở đây)
+            { group: 'passive', name: 'Bị Động — Nhánh 2',   icon: '🛡️', type: 'Bị động',  cost: '',           description: 'Hiệu ứng bị động nhánh 2.', ringUpgrades: JSON.parse(JSON.stringify(P)) },
+            { group: 'honky',   name: 'Hồn Kỹ — Nhánh 2',   icon: '🔥', type: 'Chủ động', cost: '2 Hồn Lực', description: 'Kỹ năng hồn kỹ nhánh 2.', ringUpgrades: JSON.parse(JSON.stringify(S)) },
+            { group: 'bithuat', name: 'Bí Thuật — Nhánh 2',  icon: '🔮', type: 'Chủ động', cost: '3 Hồn Lực', description: 'Kỹ năng bí thuật nhánh 2.', ringUpgrades: JSON.parse(JSON.stringify(S)) }
+          ]
+        }
+      ],
+      tags: ['SSR', 'Phụ Trợ']
+    };
+    this.saveHeroDraft(newHero);
+    return newHero;
   }
 };

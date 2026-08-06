@@ -1,202 +1,204 @@
 {
   "id": "oscar",
   "name": "Áo Tư Tạp",
-  "title": "Thực Phẩm Chi Thần",
+  "title": "",
   "role": "Phụ Trợ",
   "rarity": "SSR",
   "wusoul": "Thực Phẩm Xúc Xích",
   "avatar": "assets/heroes/oscar/avatar.webp",
   "banner": "assets/heroes/oscar/banner.webp",
   "bio": "Oscar là Hồn Sư hệ Phụ Trợ thiên tài của Sử Lai Khắc Thất Quái. Với Võ Hồn Thực Phẩm độc nhất vô nhị, anh cung cấp lượng Hồn Lực dồi dào và hồi máu siêu tốc cho toàn đội.",
+  "stats": {
+    "attack": 65,
+    "defense": 70,
+    "health": 88,
+    "speed": 95
+  },
   "branches": [
     {
       "branchId": "branch1",
-      "branchName": "Nhánh 1 (Mãng Xà)",
+      "branchName": "Nhánh 1: Khôi Phục & Năng Lượng",
       "description": "Tập trung khôi phục Hồn Lực tức thì cho đồng đội và giải trừ hiệu ứng bất lợi.",
       "skills": [
         {
-          "id": "oscar_b1_s1",
-          "name": "Xúc Xích Đánh Thường",
-          "group": "normal",
+          "id": "oscar_b1_s4",
+          "name": "Đánh Thường Cơ Bản",
           "type": "Chủ động",
           "cost": "0 Hồn Lực",
-          "cooldown": "0 lượt",
-          "icon": "assets/heroes/oscar/avatar.webp",
-          "description": "Ném xúc xích tấn công 1 mục tiêu, gây sát thương cơ bản và kích hoạt hiệu ứng {xuc_xich_hoi_phuc}."
-        },
-        {
-          "id": "oscar_b1_s2",
-          "name": "Nấm Hương Bị Động",
-          "group": "passive",
-          "type": "Bị động",
-          "cost": "0 Hồn Lực",
-          "cooldown": "Bị động",
-          "icon": "assets/heroes/oscar/avatar.webp",
-          "description": "Khi bắt đầu trận đấu, Oscar giúp toàn bộ đồng đội nhận trạng thái {thiem_quang}, tăng tốc độ hành động đầu trận.",
+          "cooldown": "4 lượt",
+          "icon": "✨",
+          "description": "Gây sát thương cơ bản cho mục tiêu. ",
           "ringUpgrades": [
             {
               "year": "1,000 năm",
-              "bonus": "Tăng 15% Tốc Độ hành động ban đầu cho toàn bộ đồng đội.",
+              "bonus": "Tăng 15% Tốc Độ hành động ban đầu.",
               "requirements": [
-                { "type": "star", "color": "gold", "count": 4 }
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 4
+                }
               ]
             },
             {
               "year": "10,000 năm",
-              "bonus": "Kích hoạt thêm hiệu ứng {thiem_quang} duy trì 2 lượt.",
+              "bonus": "Kích hoạt thêm hiệu ứng {thiem_quang}.",
               "requirements": [
-                { "type": "star", "color": "gold", "count": 5 }
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 5
+                }
               ]
             },
             {
               "year": "25,000 năm (2.5 vạn)",
-              "bonus": "Tăng 20% Kháng Khống Chế khi máu đồng đội dưới 50%.",
+              "bonus": "Tăng 20% Kháng Khống Chế khi HP dưới 50%.",
               "requirements": [
-                { "type": "star", "color": "red", "count": 1 }
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 1
+                }
               ]
             },
             {
               "year": "50,000 năm (5 vạn)",
-              "bonus": "Nhận ngay hiệu ứng {khien_than} hấp thụ sát thương khi bắt đầu trận.",
+              "bonus": "Nhận ngay {khien_than} hấp thụ sát thương.",
               "requirements": [
-                { "type": "star", "color": "red", "count": 2 }
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 2
+                }
               ]
             },
             {
               "year": "100,000 năm (10 vạn)",
-              "bonus": "Miễn nhiễm 100% hiệu ứng Khống Chế trong lượt thi đấu đầu tiên.",
+              "bonus": "Miễn nhiễm 100% Khống Chế lượt đầu.",
               "requirements": [
-                { "type": "star", "color": "red", "count": 5 }
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 5
+                }
               ]
             }
-          ]
-        },
-        {
-          "id": "oscar_b1_s3",
-          "name": "Phục Vị Đại Hương Tràng",
-          "group": "honky",
-          "type": "Chủ động",
-          "cost": "2 Hồn Lực",
-          "cooldown": "2 lượt",
-          "icon": "assets/heroes/oscar/avatar.webp",
-          "description": "Oscar niệm khẩu quyết tạo ra hương tràng. Lập tức khôi phục 1 Hồn Lực cho toàn bộ đồng đội và ban cho hiệu ứng {xuc_xich_hoi_phuc}.",
-          "ringUpgrades": [
-            {
-              "year": "1,000 năm",
-              "bonus": "Tăng thêm 10% lượng HP khôi phục từ {xuc_xich_hoi_phuc}.",
-              "requirements": [
-                { "type": "star", "color": "gold", "count": 4 }
-              ]
-            },
-            {
-              "year": "10,000 năm",
-              "bonus": "Nếu Hồn Lực của đồng đội dưới 2, tăng thêm 1 Hồn Lực nữa ({khoi_phuc_hon_luc}).",
-              "requirements": [
-                { "type": "star", "color": "gold", "count": 5 }
-              ]
-            },
-            {
-              "year": "50,000 năm",
-              "bonus": "Xóa 1 hiệu ứng xấu ngẫu nhiên trên toàn đội trước khi hồi phục.",
-              "requirements": [
-                { "type": "star", "color": "red", "count": 1 },
-                { "type": "soulbone", "level": 2 }
-              ]
-            },
-            {
-              "year": "100,000 năm",
-              "bonus": "Giảm 1 lượt hồi chiêu của kỹ năng này ngay khi bắt đầu trận.",
-              "requirements": [
-                { "type": "star", "color": "red", "count": 2 }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "oscar_b1_s4",
-          "name": "Cương Nhanh Bí Thuật",
-          "group": "bithuat",
-          "type": "Chủ động",
-          "cost": "4 Hồn Lực",
-          "cooldown": "4 lượt",
-          "icon": "assets/heroes/oscar/avatar.webp",
-          "description": "Tuyệt kỹ tối thượng của Oscar: Tạo ra Xúc Xích Cương Nhanh giúp toàn đội hồi phục 100% {khoi_phuc_hon_luc} và nhận {khien_than} bảo vệ.",
-          "ringUpgrades": [
-            {
-              "year": "1,000 năm",
-              "bonus": "Khiên Thần tăng thêm 20% sức hấp thụ sát thương.",
-              "requirements": [
-                { "type": "star", "color": "gold", "count": 4 }
-              ]
-            },
-            {
-              "year": "10,000 năm",
-              "bonus": "Toàn đội nhận thêm 15% Kháng Khống Chế trong 2 lượt.",
-              "requirements": [
-                { "type": "star", "color": "red", "count": 1 }
-              ]
-            },
-            {
-              "year": "50,000 năm",
-              "bonus": "Hồi phục 1 điểm Hồn Lực dư thừa chuyển thành khiên ảo.",
-              "requirements": [
-                { "type": "star", "color": "red", "count": 3 }
-              ]
-            },
-            {
-              "year": "100,000 năm",
-              "bonus": "Đồng minh có HP dưới 30% được nhận trạng thái {vo_dich_kim_than} trong 1 lượt.",
-              "requirements": [
-                { "type": "star", "color": "red", "count": 5 },
-                { "type": "awakening", "level": 3 }
-              ]
-            }
-          ]
+          ],
+          "group": "normal"
         }
       ]
     },
     {
       "branchId": "branch2",
-      "branchName": "Nhánh 2 (Ma Chu)",
+      "branchName": "Nhánh 2: Kính Tượng & Tấn Công",
       "description": "Tập trung sao chép kỹ năng đồng đội và gia tăng sức mạnh tấn công đột biến.",
       "skills": [
         {
           "id": "oscar_b2_s1",
           "name": "Kính Tượng Hương Tràng",
-          "group": "honky",
           "type": "Chủ động",
           "cost": "3 Hồn Lực",
           "cooldown": "3 lượt",
-          "icon": "assets/heroes/oscar/avatar.webp",
-          "description": "Oscar sử dụng giọt máu đồng minh để tạo {kinh_tuong_phan_than}, sao chép 1 kỹ năng tấn công của chủ lực đội hình.",
+          "icon": "🪞",
+          "description": "Oscar sử dụng giọt máu đồng minh để tạo {Kính Tượng Phân Thân}, sao chép 1 kỹ năng tấn công của chủ lực đội hình.",
           "ringUpgrades": [
             {
               "year": "1,000 năm",
-              "bonus": "Sát thương của Phân Thân tăng lên 80%.",
-              "requirements": [
-                { "type": "star", "color": "gold", "count": 4 }
-              ]
+              "bonus": "Sát thương của Phân Thân tăng lên 80%."
             },
             {
               "year": "10,000 năm",
-              "bonus": "Phân Thân có 50% tỷ lệ gây hiệu ứng {bao_kich}.",
-              "requirements": [
-                { "type": "star", "color": "gold", "count": 5 }
-              ]
+              "bonus": "Phân Thân có 50% tỷ lệ gây hiệu ứng {Bạo Kích}."
             },
             {
               "year": "50,000 năm",
-              "bonus": "Oscar nhận 1 lượt hành động phụ ngay sau khi thi triển.",
-              "requirements": [
-                { "type": "star", "color": "red", "count": 2 }
-              ]
+              "bonus": "Oscar nhận 1 lượt hành động phụ ngay sau khi thi triển."
             },
             {
               "year": "100,000 năm",
-              "bonus": "Phân thân kế thừa 100% thuộc tính của bản thể trong 2 lượt.",
-              "requirements": [
-                { "type": "star", "color": "red", "count": 5 }
-              ]
+              "bonus": "Phân thân kế thừa 100% thuộc tính của bản thể trong 2 lượt."
+            }
+          ]
+        },
+        {
+          "id": "oscar_b2_s2",
+          "name": "Hồ Tiêu Hương Tràng",
+          "type": "Bị động",
+          "cost": "0 Hồn Lực",
+          "cooldown": "Bị động",
+          "icon": "🌶️",
+          "description": "Mỗi khi đồng minh thi triển kỹ năng gây sát thương {Bạo Kích}, Oscar tự động tăng 5% Sức Công cho toàn đội.",
+          "ringUpgrades": [
+            {
+              "year": "1,000 năm",
+              "bonus": "Hiệu ứng cộng dồn tối đa 6 tầng."
+            },
+            {
+              "year": "10,000 năm",
+              "bonus": "Khi đạt đủ 6 tầng, lập tức ban hiệu ứng {Khôi Phục Hồn Lực} cho chủ lực."
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Tăng thêm 15% Sát Thương Bạo Kích cho toàn đội."
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Không thể bị xóa bỏ các tầng hiệu ứng này."
+            }
+          ]
+        },
+        {
+          "id": "oscar_b2_s3",
+          "name": "Hạch Hương Tràng",
+          "type": "Chủ động",
+          "cost": "2 Hồn Lực",
+          "cooldown": "2 lượt",
+          "icon": "🌰",
+          "description": "Bắn xúc xích nổ về phía kẻ địch, gây sát thương và gắn trạng thái suy yếu, khiến mục tiêu dễ bị nhận sát thương {Bạo Kích}.",
+          "ringUpgrades": [
+            {
+              "year": "1,000 năm",
+              "bonus": "Gây thêm 25% sát thương lên kẻ địch bị khống chế."
+            },
+            {
+              "year": "10,000 năm",
+              "bonus": "Có 40% tỷ lệ gây hiệu ứng {Choáng} cho mục tiêu chính."
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Giảm 20% Phòng Thủ của đối phương trong 2 lượt."
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Phá hủy toàn bộ lớp {Khiên Thần} của kẻ địch trúng đòn."
+            }
+          ]
+        },
+        {
+          "id": "oscar_b2_s4",
+          "name": "Hương Tràng Hóa Thần",
+          "type": "Chủ động",
+          "cost": "4 Hồn Lực",
+          "cooldown": "4 lượt",
+          "icon": "👑",
+          "description": "Biến hình thành trạng thái Thực Phẩm Thần Chi, cường hóa toàn bộ kỹ năng đồng minh và lập tức bù đắp 2 Hồn Lực cho toàn đội.",
+          "ringUpgrades": [
+            {
+              "year": "1,000 năm",
+              "bonus": "Tăng 20% tỷ lệ bạo kích cho toàn đội trong 2 lượt."
+            },
+            {
+              "year": "10,000 năm",
+              "bonus": "Kích hoạt hiệu ứng {Thiểm Quang} cho toàn bộ Hồn Sư hàng trên."
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Tất cả đồng đội lập tức được khôi phục 30% HP tối đa."
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Giảm 1 lượt hồi chiêu toàn bộ kỹ năng cho đồng minh."
             }
           ]
         }

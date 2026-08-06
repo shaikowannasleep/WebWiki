@@ -15,19 +15,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!panelHeroProfile) return;
 
   const urlParams = new URLSearchParams(window.location.search);
-  const heroId = urlParams.get('id') || 'oscar';
+  let heroId = urlParams.get('id');
 
-  const [heroData, keywordsDict, websiteConfig] = await Promise.all([
-    DataLayer.getHeroById(heroId),
+  let [heroData, keywordsDict, websiteConfig] = await Promise.all([
+    heroId ? DataLayer.getHeroById(heroId) : null,
     DataLayer.getKeywords(),
     DataLayer.getWebsiteConfig()
   ]);
+
+  // Fallback: If specified heroId is invalid or missing, load the first available hero from heroes index
+  if (!heroData) {
+    const heroesList = await DataLayer.getHeroesList();
+    if (heroesList && heroesList.length > 0) {
+      heroId = heroesList[0].id;
+      heroData = await DataLayer.getHeroById(heroId);
+    }
+  }
 
   if (!heroData) {
     panelHeroProfile.innerHTML = `
       <div style="text-align: center; padding: 2rem; color: var(--text-sub);">
         <h2>⚠️ Không tìm thấy Hồn Sư</h2>
-        <p>Hồn Sư mã "${heroId}" không tồn tại.</p>
+        <p>Hiện chưa có dữ liệu Hồn Sư nào trong hệ thống.</p>
         <a href="index.html" class="btn-view-detail" style="margin-top:1rem;"> Quay về Trang Chủ</a>
       </div>
     `;

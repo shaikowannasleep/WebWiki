@@ -12,33 +12,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnDeleteHero = document.getElementById('btnDeleteHero');
 
   const viewDesktop = document.getElementById('viewDesktop');
-  const viewTablet = document.getElementById('viewTablet');
   const viewPhone = document.getElementById('viewPhone');
   const editorPreviewContainer = document.getElementById('editorPreviewContainer');
 
   const btnConnectFolder = document.getElementById('btnConnectFolder');
   const btnSaveDirectToDisk = document.getElementById('btnSaveDirectToDisk');
   const folderStatusBadge = document.getElementById('folderStatusBadge');
-  const btnExportZip = document.getElementById('btnExportZip');
   const btnResetDraft = document.getElementById('btnResetDraft');
 
-  // Module Tabs
-  const moduleTabBtns = document.querySelectorAll('.module-tab-btn');
+  // Hero info form
+  const editHeroName   = document.getElementById('editHeroName');
+  const editHeroWusoul = document.getElementById('editHeroWusoul');
+  const editHeroRole   = document.getElementById('editHeroRole');
+  const editHeroTitle  = document.getElementById('editHeroTitle');
+  const editHeroRarity = document.getElementById('editHeroRarity');
+  const editHeroBio    = document.getElementById('editHeroBio');
 
-  // Section Visibility Checkboxes (Module 1 Layout Builder)
-  const chkShowAvatar = document.getElementById('chkShowAvatar');
-  const chkShowBanner = document.getElementById('chkShowBanner');
-  const chkShowTitle = document.getElementById('chkShowTitle');
-  const chkShowBio = document.getElementById('chkShowBio');
-  const chkShowRadial = document.getElementById('chkShowRadial');
-  const chkShowRings = document.getElementById('chkShowRings');
+  // Asset paste zone
+  const assetPasteZone   = document.getElementById('assetPasteZone');
+  const assetFileInput   = document.getElementById('assetFileInput');
+  const assetPreviewBox  = document.getElementById('assetPreviewBox');
+  const assetPreviewImg  = document.getElementById('assetPreviewImg');
+  const assetPreviewLabel= document.getElementById('assetPreviewLabel');
+  const assetPasteTarget = document.getElementById('assetPasteTarget');
+  const btnApplyAsset    = document.getElementById('btnApplyAsset');
+  const btnCancelAsset   = document.getElementById('btnCancelAsset');
+  let currentAssetTarget = 'avatar'; // 'avatar' | 'banner' | 'icon'
+  let pendingAssetDataUrl = null;
 
-  // Left Explorer Elements
-  const btnAssetAvatar = document.getElementById('btnAssetAvatar');
-  const btnAssetBanner = document.getElementById('btnAssetBanner');
+  // Left Group Buttons
   const btnRuleHonky = document.getElementById('btnRuleHonky');
   const btnRulePassive = document.getElementById('btnRulePassive');
   const btnRuleNormal = document.getElementById('btnRuleNormal');
+  const btnRuleTienco = document.getElementById('btnRuleTienco');
+  const btnRuleBithuat = document.getElementById('btnRuleBithuat');
+  const skillTypeCostRow = document.getElementById('skillTypeCostRow');
 
   // Right Inspector Panel Form Fields
   const inspectorTargetName = document.getElementById('inspectorTargetName');
@@ -125,6 +133,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!currentHero) return;
 
     heroSelect.value = id;
+
+    // Populate hero info form
+    if (editHeroName)   editHeroName.value   = currentHero.name   || '';
+    if (editHeroWusoul) editHeroWusoul.value = currentHero.wusoul || '';
+    if (editHeroRole)   editHeroRole.value   = currentHero.role   || 'Hỗ Trợ';
+    if (editHeroTitle)  editHeroTitle.value  = currentHero.title  || '';
+    if (editHeroRarity) editHeroRarity.value = currentHero.rarity || 'SR';
+    if (editHeroBio)    editHeroBio.value    = currentHero.bio    || '';
+
     loadSkillToInspector();
     renderLivePreviewCanvas();
   }
@@ -135,21 +152,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     const skillGroupRules = websiteConfig.skillGroupRules || DataLayer.SKILL_GROUP_RULES;
     const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
 
+    // Show/hide Niên Hạn section
     if (groupRule.hasRingUpgrades) {
       ringUpgradesEditSection.style.display = 'block';
     } else {
       ringUpgradesEditSection.style.display = 'none';
     }
 
+    // Show/hide Loại kỹ năng & Tiêu Hao rows for Tiên Cơ and Đánh Thường
+    const hideTypeCost = (activeGroupId === 'tienco' || activeGroupId === 'normal');
+    if (skillTypeCostRow) skillTypeCostRow.style.display = hideTypeCost ? 'none' : 'grid';
+
+    // Highlight active group button
+    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active-group'));
+    const activeBtn = document.getElementById('btnRule' + activeGroupId.charAt(0).toUpperCase() + activeGroupId.slice(1));
+    if (activeBtn) activeBtn.classList.add('active-group');
+
+    // Get skills filtered by current group from the appropriate branch
     let availableSkills = [];
     const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
-    if (branch && branch.skills) availableSkills = branch.skills;
+    if (branch && branch.skills) {
+      availableSkills = branch.skills.filter(s => s.group === activeGroupId);
+    }
+    // Fallback: search all branches if not found in current branch (for non-branched groups)
+    if (availableSkills.length === 0) {
+      currentHero.branches.forEach(b => {
+        const found = (b.skills || []).filter(s => s.group === activeGroupId);
+        availableSkills.push(...found);
+      });
+    }
 
     if (currentSkillIdx >= availableSkills.length) currentSkillIdx = 0;
     const skill = availableSkills[currentSkillIdx] || availableSkills[0];
 
     if (skill) {
-      inspectorTargetName.textContent = `Target: ${skill.name}`;
+      // Update inspector target label
+      const groupNames = { normal: 'Đánh Thường', tienco: 'Tiên Cơ', passive: 'Bị Động', honky: 'Hồn Kỹ', bithuat: 'Bí Thuật' };
+      const inspectorTargetName = document.getElementById('inspectorTargetName');
+      if (inspectorTargetName) inspectorTargetName.textContent = `${groupNames[activeGroupId] || activeGroupId} — ${skill.name}`;
+
       editSkillName.value = skill.name || '';
       editSkillIcon.value = skill.icon || '';
       editSkillType.value = skill.type || 'Chủ động';
@@ -157,13 +198,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       editSkillDesc.value = skill.description || '';
 
       renderRingMilestonesForm(skill);
+    } else {
+      const inspectorTargetName = document.getElementById('inspectorTargetName');
+      if (inspectorTargetName) inspectorTargetName.textContent = 'Không tìm thấy kỹ năng';
+      editSkillName.value = '';
+      editSkillIcon.value = '';
+      editSkillDesc.value = '';
     }
   }
 
   function renderRingMilestonesForm(skill) {
     if (!skill || !ringMilestonesContainer) return;
     const upgrades = skill.ringUpgrades || [
-      { year: '1,000 năm', bonus: '', requirements: [{ type: 'star', color: 'gold', count: 4 }] }
+      { year: '10,000 năm', bonus: '', requirements: [{ type: 'star', color: 'gold', count: 4 }] }
     ];
 
     ringMilestonesContainer.innerHTML = upgrades.map((u, mIdx) => `
@@ -270,18 +317,38 @@ document.addEventListener('DOMContentLoaded', async () => {
   function syncInspectorToMemory() {
     if (!currentHero) return;
 
+    // Sync hero info fields
+    if (editHeroName   && editHeroName.value)   currentHero.name   = editHeroName.value;
+    if (editHeroWusoul && editHeroWusoul.value) currentHero.wusoul = editHeroWusoul.value;
+    if (editHeroRole)   currentHero.role   = editHeroRole.value;
+    if (editHeroTitle)  currentHero.title  = editHeroTitle.value;
+    if (editHeroRarity) currentHero.rarity = editHeroRarity.value;
+    if (editHeroBio)    currentHero.bio    = editHeroBio.value;
+
+    // Sync skill fields: find skill by group in current branch
     const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
     if (branch && branch.skills) {
-      const skill = branch.skills[currentSkillIdx];
+      let skill = branch.skills.find(s => s.group === activeGroupId);
+      // Fallback: find in any branch (for non-branched groups)
+      if (!skill) {
+        for (const b of currentHero.branches) {
+          skill = (b.skills || []).find(s => s.group === activeGroupId);
+          if (skill) break;
+        }
+      }
       if (skill) {
         skill.name = editSkillName.value;
         skill.icon = editSkillIcon.value;
-        skill.type = editSkillType.value;
-        skill.cost = editSkillCost.value;
+        skill.type = editSkillType?.value || skill.type;
+        skill.cost = editSkillCost?.value || skill.cost;
         skill.group = activeGroupId;
         skill.description = editSkillDesc.value;
       }
     }
+
+    // Update dropdown label
+    populateHeroSelect();
+    heroSelect.value = currentHero.id;
 
     DataLayer.saveHeroDraft(currentHero);
     renderLivePreviewCanvas();
@@ -298,16 +365,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let availableSkills = [];
     if (groupRule.hasBranch) {
+      // For branched groups: get skills from current branch, filtered by group
       const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
-      if (branch) availableSkills = branch.skills;
+      if (branch) availableSkills = (branch.skills || []).filter(s => s.group === activeGroupId);
     } else {
+      // For non-branched groups (normal, tienco): search all branches for matching group
       currentHero.branches.forEach(b => {
-        const matching = b.skills.filter(s => s.group === activeGroupId);
+        const matching = (b.skills || []).filter(s => s.group === activeGroupId);
         availableSkills.push(...matching);
       });
-      if (availableSkills.length === 0 && currentHero.branches[0]) {
-        availableSkills = [currentHero.branches[0].skills[0]];
-      }
     }
 
     const skill = availableSkills[currentSkillIdx] || availableSkills[0];
@@ -464,36 +530,91 @@ document.addEventListener('DOMContentLoaded', async () => {
   function setupEventListeners() {
     heroSelect.addEventListener('change', (e) => selectHero(e.target.value));
 
-    // Module Nav Tabs
-    moduleTabBtns.forEach(btn => {
+    // Viewport Simulator (Desktop / Mobile only)
+    viewDesktop.addEventListener('click', () => {
+      viewDesktop.classList.add('active'); viewPhone.classList.remove('active');
+      editorPreviewContainer.className = 'studio-center-canvas';
+    });
+    viewPhone.addEventListener('click', () => {
+      viewPhone.classList.add('active'); viewDesktop.classList.remove('active');
+      editorPreviewContainer.className = 'studio-center-canvas viewport-phone';
+    });
+
+    // Hero info form reactive
+    const heroInfoFields = [editHeroName, editHeroWusoul, editHeroRole, editHeroTitle, editHeroRarity, editHeroBio];
+    heroInfoFields.forEach(inp => { if (inp) inp.addEventListener('input', syncInspectorToMemory); inp?.addEventListener('change', syncInspectorToMemory); });
+
+    // Asset target selector buttons
+    const assetTargetLabels = { avatar: 'Avatar', banner: 'Banner', icon: 'Skill Icon' };
+    document.querySelectorAll('.asset-target-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        moduleTabBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        showToast(`Đã chuyển sang ${btn.textContent.trim()}`, 'info');
+        document.querySelectorAll('.asset-target-btn').forEach(b => b.classList.remove('active-group'));
+        btn.classList.add('active-group');
+        if (btn.id === 'assetTargetAvatar') currentAssetTarget = 'avatar';
+        else if (btn.id === 'assetTargetBanner') currentAssetTarget = 'banner';
+        else if (btn.id === 'assetTargetIcon') currentAssetTarget = 'icon';
+        if (assetPasteTarget) assetPasteTarget.innerHTML = `→ Đang nhắm: <strong style="color:var(--accent-cyan);">${assetTargetLabels[currentAssetTarget]}</strong>`;
+        // Reset preview
+        if (assetPreviewBox) assetPreviewBox.style.display = 'none';
+        pendingAssetDataUrl = null;
       });
     });
 
-    // Module 1: Section Visibility Checkboxes
-    chkShowAvatar.addEventListener('change', (e) => { layoutVisibility.avatar = e.target.checked; renderLivePreviewCanvas(); });
-    chkShowBanner.addEventListener('change', (e) => { layoutVisibility.banner = e.target.checked; renderLivePreviewCanvas(); });
-    chkShowTitle.addEventListener('change', (e) => { layoutVisibility.title = e.target.checked; renderLivePreviewCanvas(); });
-    chkShowBio.addEventListener('change', (e) => { layoutVisibility.bio = e.target.checked; renderLivePreviewCanvas(); });
-    chkShowRadial.addEventListener('change', (e) => { layoutVisibility.radial = e.target.checked; renderLivePreviewCanvas(); });
-    chkShowRings.addEventListener('change', (e) => { layoutVisibility.rings = e.target.checked; renderLivePreviewCanvas(); });
+    // Asset paste zone file input
+    if (assetFileInput) {
+      assetFileInput.addEventListener('change', e => {
+        if (e.target.files && e.target.files[0]) showAssetPreview(e.target.files[0]);
+      });
+    }
 
-    // Viewport Simulator
-    viewDesktop.addEventListener('click', () => {
-      viewDesktop.classList.add('active'); viewTablet.classList.remove('active'); viewPhone.classList.remove('active');
-      editorPreviewContainer.className = 'studio-center-canvas';
-    });
-    viewTablet.addEventListener('click', () => {
-      viewTablet.classList.add('active'); viewDesktop.classList.remove('active'); viewPhone.classList.remove('active');
-      editorPreviewContainer.className = 'studio-center-canvas viewport-tablet';
-    });
-    viewPhone.addEventListener('click', () => {
-      viewPhone.classList.add('active'); viewDesktop.classList.remove('active'); viewTablet.classList.remove('active');
-      editorPreviewContainer.className = 'studio-center-canvas viewport-phone';
-    });
+    // Apply asset
+    if (btnApplyAsset) {
+      btnApplyAsset.addEventListener('click', () => {
+        if (!pendingAssetDataUrl || !currentHero) return;
+        if (currentAssetTarget === 'avatar') { currentHero.avatar = pendingAssetDataUrl; }
+        else if (currentAssetTarget === 'banner') { currentHero.banner = pendingAssetDataUrl; }
+        else if (currentAssetTarget === 'icon') { editSkillIcon.value = pendingAssetDataUrl; }
+        DataLayer.saveHeroDraft(currentHero);
+        renderLivePreviewCanvas();
+        pendingAssetDataUrl = null;
+        if (assetPreviewBox) assetPreviewBox.style.display = 'none';
+        showToast(`Đã cập nhật ${assetTargetLabels[currentAssetTarget]}!`, 'success');
+      });
+    }
+    if (btnCancelAsset) btnCancelAsset.addEventListener('click', () => { if (assetPreviewBox) assetPreviewBox.style.display = 'none'; pendingAssetDataUrl = null; });
+
+    function showAssetPreview(file) {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        pendingAssetDataUrl = ev.target.result;
+        if (assetPreviewImg) assetPreviewImg.src = pendingAssetDataUrl;
+        const labels = { avatar: 'Avatar', banner: 'Banner', icon: 'Skill Icon' };
+        if (assetPreviewLabel) assetPreviewLabel.textContent = `Sắp áp dụng: ${labels[currentAssetTarget]}`;
+        if (assetPreviewBox) { assetPreviewBox.style.display = 'flex'; }
+        // Hover feedback on paste zone
+        if (assetPasteZone) { assetPasteZone.style.borderColor = 'var(--accent-cyan)'; setTimeout(() => assetPasteZone.style.borderColor = '', 1500); }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Paste Skill Icon from Clipboard
+    const btnPasteSkillIcon = document.getElementById('btnPasteSkillIcon');
+    if (btnPasteSkillIcon) {
+      btnPasteSkillIcon.addEventListener('click', async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            editSkillIcon.value = text;
+            syncInspectorToMemory();
+            showToast('Đã dán URL icon từ Clipboard!', 'success');
+          } else {
+            showToast('Clipboard không có văn bản/URL!', 'info');
+          }
+        } catch (err) {
+          showToast('Không thể đọc Clipboard: ' + err.message, 'danger');
+        }
+      });
+    }
 
     // Inspector Reactive Inputs
     const inputsToTrack = [editSkillName, editSkillIcon, editSkillType, editSkillCost, editSkillDesc];
@@ -539,42 +660,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Bottom Console Drawer Toggle
-    btnToggleConsole.addEventListener('click', () => {
-      if (consoleBodyContent.style.display === 'none') {
-        consoleBodyContent.style.display = 'block';
-        btnToggleConsole.textContent = '▼ Toggle Console Drawer';
-      } else {
-        consoleBodyContent.style.display = 'none';
-        btnToggleConsole.textContent = '▲ Open Console Drawer';
-      }
-    });
+    // OCR Console Toggle is handled by inline toggleOcrDrawer() in HTML
+    // (btnToggleConsole no longer exists as a DOM element, toggle is via onclick on header)
 
-    // Asset Explorer Actions
-    btnAssetAvatar.addEventListener('click', () => {
-      const newPath = prompt('Nhập URL ảnh hoặc dán ảnh vào Console:', currentHero?.avatar || '');
-      if (newPath) {
-        currentHero.avatar = newPath;
-        DataLayer.saveHeroDraft(currentHero);
-        renderLivePreviewCanvas();
-        showToast('Đã cập nhật Avatar!', 'success');
-      }
-    });
-
-    btnAssetBanner.addEventListener('click', () => {
-      const newPath = prompt('Nhập URL banner:', currentHero?.banner || '');
-      if (newPath) {
-        currentHero.banner = newPath;
-        DataLayer.saveHeroDraft(currentHero);
-        renderLivePreviewCanvas();
-        showToast('Đã cập nhật Banner!', 'success');
-      }
-    });
+    // Asset Explorer — old prompt-based buttons are removed, now handled by asset paste zone
+    // (btnAssetAvatar and btnAssetBanner no longer exist in DOM)
 
     // Rule Config Tree Triggers
-    btnRuleHonky.addEventListener('click', () => { activeGroupId = 'honky'; loadSkillToInspector(); renderLivePreviewCanvas(); });
-    btnRulePassive.addEventListener('click', () => { activeGroupId = 'passive'; loadSkillToInspector(); renderLivePreviewCanvas(); });
-    btnRuleNormal.addEventListener('click', () => { activeGroupId = 'normal'; loadSkillToInspector(); renderLivePreviewCanvas(); });
+    btnRuleNormal.addEventListener('click', () => { activeGroupId = 'normal'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
+    btnRulePassive.addEventListener('click', () => { activeGroupId = 'passive'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
+    btnRuleHonky.addEventListener('click', () => { activeGroupId = 'honky'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
+    if (btnRuleTienco) btnRuleTienco.addEventListener('click', () => { activeGroupId = 'tienco'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
+    if (btnRuleBithuat) btnRuleBithuat.addEventListener('click', () => { activeGroupId = 'bithuat'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
 
     // OCR Events
     ocrDropzone.addEventListener('click', () => ocrFileInput.click());
@@ -582,13 +679,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (e.target.files && e.target.files[0]) processOcrScreenshot(e.target.files[0]);
     });
 
+    // Global paste: route to asset zone if OCR is closed, else to OCR
     window.addEventListener('paste', (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
+      const ocrOpen = document.getElementById('consoleBodyContent')?.style.display !== 'none';
       for (let item of items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          if (file) processOcrScreenshot(file);
+          if (!file) continue;
+          if (ocrOpen) {
+            processOcrScreenshot(file); // paste into OCR
+          } else {
+            showAssetPreview(file); // paste into asset zone
+            showToast('🖼️ Đã nhận ảnh → Kiểm tra khu vực "Thay Đổi Ảnh"', 'info');
+          }
         }
       }
     });
@@ -662,25 +767,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       btnConnectFolder.addEventListener('click', async () => {
         try {
           await DataLayer.connectLocalProjectDirectory();
-          folderStatusBadge.textContent = '🟢 Đã kết nối!';
-          folderStatusBadge.style.color = '#34d399';
-          folderStatusBadge.style.background = 'rgba(52, 211, 153, 0.2)';
-          showToast('Đã kết nối thành công với thư mục project local!', 'success');
+          if (folderStatusBadge) {
+            folderStatusBadge.textContent = '🟢 Đã kết nối disk!';
+            folderStatusBadge.style.color = '#34d399';
+            folderStatusBadge.style.background = 'rgba(52, 211, 153, 0.15)';
+          }
+          showToast('📂 Đã kết nối thư mục project local! Bây giờ bạn có thể lưu JSON trực tiếp.', 'success');
         } catch (err) {
-          showToast(err.message, 'danger');
+          if (err.name === 'AbortError') {
+            showToast('Huỷ kết nối.', 'info');
+          } else {
+            showToast('⚠️ ' + err.message, 'danger');
+          }
         }
       });
     }
 
     if (btnSaveDirectToDisk) {
       btnSaveDirectToDisk.addEventListener('click', async () => {
+        if (!DataLayer.projectDirHandle) {
+          showToast('⚠️ Chưa kết nối Local Disk! Bấm "📂 Kết Nối" trước.', 'danger');
+          return;
+        }
         try {
-          showToast('Đang lưu trực tiếp vào đĩa...', 'info');
+          showToast('⏳ Đang lưu vào đĩa...', 'info');
           syncInspectorToMemory();
           await DataLayer.saveAllDirectToDisk();
-          showToast('🎉 ĐÃ LƯU TRỰC TIẾP VÀO DISK JSON THÀNH CÔNG!', 'success');
+          showToast('🎉 Lưu đĩa JSON thành công!', 'success');
         } catch (err) {
-          showToast(`Lỗi: ${err.message}`, 'danger');
+          showToast(`Lỗi lưu đĩa: ${err.message}`, 'danger');
         }
       });
     }
@@ -708,13 +823,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     btnDeleteHero.addEventListener('click', async () => {
-      if (!currentHero) return;
-      if (confirm(`Xóa Hồn Sư "${currentHero.name}"?`)) {
-        DataLayer.deleteHero(currentHero.id);
-        heroesList = await DataLayer.getHeroesList();
+      if (!currentHero) { showToast('Chưa chọn Hồn Sư nào!', 'danger'); return; }
+
+      // Nâng cao: Nếu chưa kết nối thư mục Local Disk, tự động hỏi người dùng kết nối ngay để xóa sạch file JSON dưới đĩa
+      if (!DataLayer.projectDirHandle) {
+        if (confirm(`Bạn chưa kết nối Thư Mục Local Disk!\nĐể xóa triệt để file JSON của "${currentHero.name}" dưới đĩa cứng local, bạn có muốn bấm kết nối thư mục ngay bây giờ không?`)) {
+          try {
+            await DataLayer.connectLocalProjectDirectory();
+            if (folderStatusBadge) {
+              folderStatusBadge.textContent = '🟢 Đã kết nối disk!';
+              folderStatusBadge.style.color = '#34d399';
+              folderStatusBadge.style.background = 'rgba(52, 211, 153, 0.15)';
+            }
+          } catch (e) {
+            console.warn('User canceled or error connecting directory:', e);
+          }
+        }
+      }
+
+      if (confirm(`Xác nhận xóa Hồn Sư "${currentHero.name}"?
+
+• Draft trong trình duyệt (localStorage) sẽ bị xóa ngay.
+${DataLayer.projectDirHandle ? '• File data/heroes/' + currentHero.id + '.json và dữ liệu trong data/heroes.json sẽ bị XÓA VĨNH VIỄN khỏi đĩa cứng.' : '• Cảnh báo: Chưa kết nối Local Disk nên file JSON dưới ổ cứng chưa bị xóa.'}
+
+Thao tác này không thể hoàn tác.`)) {
+        const deletedId = currentHero.id;
+
+        // 1. Xóa file {heroId}.json trên disk nếu đã kết nối
+        if (DataLayer.projectDirHandle) {
+          try {
+            await DataLayer.deleteHeroFromDisk(deletedId);
+            showToast(`🗑️ Đã xóa file data/heroes/${deletedId}.json khỏi đĩa cứng!`, 'danger');
+          } catch (e) {
+            showToast(`⚠️ Không xóa được file JSON: ${e.message}`, 'danger');
+          }
+        }
+
+        // 2. Xóa khỏi localStorage và cache trong bộ nhớ
+        DataLayer.deleteHero(deletedId);
+        heroesList = heroesList.filter(h => h.id !== deletedId);
+        try {
+          localStorage.setItem(DataLayer.STORAGE_KEYS.HEROES_INDEX, JSON.stringify(heroesList, null, 2));
+        } catch (e) {
+          console.warn('localStorage Quota error:', e);
+        }
+        currentHero = null;
+
+        // 3. Cập nhật lại file danh sách tổng data/heroes.json trên disk
+        if (DataLayer.projectDirHandle) {
+          try {
+            await DataLayer.writeDirectToLocalDisk('data/heroes.json', JSON.stringify(heroesList, null, 2));
+            showToast(`💾 Đã cập nhật lại file data/heroes.json trên đĩa cứng!`, 'success');
+          } catch (e) {
+            console.warn('Error updating heroes.json on disk:', e);
+          }
+        }
+
         populateHeroSelect();
         if (heroesList.length > 0) await selectHero(heroesList[0].id);
-        showToast('Đã xóa Hồn Sư.', 'danger');
+        else editorLivePreviewFrame.innerHTML = '<div style="color:var(--text-muted); padding:2rem; text-align:center;">👤 Chưa có Hồn Sư nào. Bấm "➕ Thêm Hồn Sư" để bắt đầu.</div>';
+        showToast('Đã xóa Hồn Sư thành công.', 'danger');
       }
     });
   }
