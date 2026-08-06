@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi Tiết Hồn Sư - Douluo MMO Wiki</title>
+  <meta name="description" content="Chi tiết 2 nhánh Hồn Hoàn, Kỹ Năng và Từ Khóa Hồn Sư Đấu La Đại Lục MMO.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- System Modules Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <span class="logo-icon">🐉</span>
+        <span>DOULUO WIKI</span>
+      </a>
+      <nav class="nav-links" id="mainNavLinks">
+        <a href="index.html" class="nav-link">Trang Chủ</a>
+        <a href="index.html" class="nav-link active">Hồn Sư</a>
+        <a href="#" class="nav-link" onclick="alert('Module Hồn Hạch đang được phát triển.'); return false;">Hồn Hạch</a>
+        <a href="#" class="nav-link" onclick="alert('Module Hồn Cốt đang được phát triển.'); return false;">Hồn Cốt</a>
+        <a href="#" class="nav-link" onclick="alert('Module Phù Văn đang được phát triển.'); return false;">Phù Văn</a>
+        <a href="edit.html" class="nav-link editor-badge">🛠️ Editor Mode</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Non-Fullscreen Side-by-Side 3-Panel Layout with Radial Menu -->
+  <main class="container hero-detail-section">
+    <div class="hero-3panel-grid">
+
+      <!-- Panel 1: Hero Profile (Clean, no 1-100 stats) -->
+      <aside class="panel-hero-profile" id="panelHeroProfile">
+        <!-- Dynamically rendered by hero.js -->
+      </aside>
+
+      <!-- Panel 2: Radial Navigation Menu & Skill Items List -->
+      <section class="panel-skills-list">
+        
+        <!-- AAA Game Style Radial Navigation Menu Container -->
+        <div class="radial-menu-wrapper" id="radialMenuWrapper">
+          <!-- SVG Orbital Ring Overlay -->
+          <svg class="radial-orbital-svg" viewBox="0 0 320 320">
+            <circle cx="160" cy="160" r="110" fill="none" stroke="rgba(6, 182, 212, 0.25)" stroke-width="1.5" stroke-dasharray="4,4" />
+            <circle cx="160" cy="160" r="50" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
+            <!-- Connection Lines -->
+            <line x1="160" y1="160" x2="70" y2="70" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
+            <line x1="160" y1="160" x2="250" y2="70" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
+            <line x1="160" y1="160" x2="70" y2="250" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
+            <line x1="160" y1="160" x2="250" y2="250" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
+          </svg>
+
+          <!-- Center Node: Bí Thuật -->
+          <button class="radial-node radial-node-center active" data-group-id="bithuat">
+            <span class="node-icon">🔮</span>
+            <span class="node-label">Bí Thuật</span>
+          </button>
+
+          <!-- 10h Node (Top-Left): Hồn Kỹ -->
+          <button class="radial-node radial-node-tl" data-group-id="honky">
+            <span class="node-icon">🔥</span>
+            <span class="node-label">Hồn Kỹ</span>
+          </button>
+
+          <!-- 2h Node (Top-Right): Bị Động -->
+          <button class="radial-node radial-node-tr" data-group-id="passive">
+            <span class="node-icon">🛡️</span>
+            <span class="node-label">Bị Động</span>
+          </button>
+
+          <!-- 8h Node (Bottom-Left): Tiên Cơ -->
+          <button class="radial-node radial-node-bl" data-group-id="tienco">
+            <span class="node-icon">⚡</span>
+            <span class="node-label">Tiên Cơ</span>
+          </button>
+
+          <!-- 4h Node (Bottom-Right): Đánh Thường -->
+          <button class="radial-node radial-node-br" data-group-id="normal">
+            <span class="node-icon">⚔️</span>
+            <span class="node-label">Đánh Thường</span>
+          </button>
+        </div>
+
+        <!-- Level 2: Branch Toggle -->
+        <div class="branch-toggle-container" id="branchToggleContainer" style="display: none;">
+          <!-- Branch Switcher Buttons populated by hero.js -->
+        </div>
+
+        <!-- Skill Items List for Active Group/Branch -->
+        <div class="skill-items-container" id="skillItemsContainer">
+          <!-- Skill Items populated by hero.js -->
+        </div>
+      </section>
+
+      <!-- Panel 3: Selected Skill Description & Requirement Display -->
+      <section class="panel-skill-display" id="panelSkillDisplay">
+        <!-- Dynamically rendered by hero.js -->
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Global Keyword Floating Tooltip Cursor Popup -->
+  <div id="global-keyword-popup" class="global-keyword-popup" style="display: none;">
+    <div class="popup-header">
+      <span class="popup-icon" id="popKwIcon">✨</span>
+      <div>
+        <h4 class="popup-title" id="popKwTitle">Tên Từ Khóa</h4>
+        <span class="popup-type" id="popKwType">Buff</span>
+      </div>
+    </div>
+    <p class="popup-body" id="popKwDesc">Mô tả tác dụng từ khóa...</p>
+  </div>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 Douluo MMO Wiki - Hồn Sư Đối Quyết. Static Site powered by GitHub Pages.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/data-layer.js"></script>
+  <script src="js/hero.js"></script>
+</body>
+</html>

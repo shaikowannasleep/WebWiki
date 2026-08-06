@@ -1,0 +1,114 @@
+{
+  "xuc_xich_hoi_phuc": {
+    "id": "xuc_xich_hoi_phuc",
+    "name": "Xúc Xích Hồi Phục",
+    "type": "Buff",
+    "category": "Hồi phục",
+    "icon": "🧪",
+    "description": "Khi nhận hiệu ứng này, đồng minh lập tức khôi phục HP bằng 25% Sức Công của Oscar, liên tục trong 2 lượt."
+  },
+  "khoi_phuc_hon_luc": {
+    "id": "khoi_phuc_hon_luc",
+    "name": "Khôi Phục Hồn Lực",
+    "type": "Buff",
+    "category": "Tăng năng lượng",
+    "icon": "⚡",
+    "description": "Hồn Lực của mục tiêu tăng thêm 1-2 điểm, giúp thi triển Kỹ Năng Hồn Hoàn nhanh hơn."
+  },
+  "giai_doc": {
+    "id": "giai_doc",
+    "name": "Giải Độc",
+    "type": "Buff",
+    "category": "Hỗ trợ",
+    "icon": "✨",
+    "description": "Xóa bỏ toàn bộ hiệu ứng Tương Tác Xấu hoặc Độc Tố đang gánh chịu trên người đồng đội."
+  },
+  "thiem_quang": {
+    "id": "thiem_quang",
+    "name": "Thiểm Quang",
+    "type": "Buff",
+    "category": "Tăng tốc & Né",
+    "icon": "🌟",
+    "description": "Tăng 30% Tốc Độ đánh và 20% Tỷ Lệ Né Tránh trong 2 lượt thi đấu."
+  },
+  "lam_ngan_tu_long": {
+    "id": "lam_ngan_tu_long",
+    "name": "Lam Ngân Tù Lồng",
+    "type": "Debuff",
+    "category": "Khống chế",
+    "icon": "🌿",
+    "description": "Giam cầm kẻ địch trong măng lam ngân, khiến kẻ địch không thể hành động trong 1 lượt."
+  },
+  "choang": {
+    "id": "choang",
+    "name": "Choáng",
+    "type": "Debuff",
+    "category": "Khống chế",
+    "icon": "💫",
+    "description": "Mục tiêu rơi vào trạng thái choáng váng, hoàn toàn bất động và không thể tích lũy Hồn Lực."
+  },
+  "kinh_tuong_phan_than": {
+    "id": "kinh_tuong_phan_than",
+    "name": "Kính Tượng Phân Thân",
+    "type": "Mechanism",
+    "category": "Triệu hồi",
+    "icon": "🪞",
+    "description": "Tạo ra bản sao có 70% thuộc tính của bản thể, có khả năng kế thừa 1 kỹ năng Hồn Hoàn bất kỳ."
+  },
+  "bao_kich": {
+    "id": "bao_kich",
+    "name": "Bạo Kích",
+    "type": "Buff",
+    "category": "Sát thương",
+    "icon": "💥",
+    "description": "Đòn đánh tiếp theo chắc chắn gây ra Sát Thương Bạo Kích x200% so với thông thường."
+  },
+  "nhu_than_quyen": {
+    "id": "nhu_than_quyen",
+    "name": "Nhu Thần Quyền",
+    "type": "Debuff",
+    "category": "Giảm giáp",
+    "icon": "🥋",
+    "description": "Phá vỡ phòng thủ mục tiêu, giảm 35% Giáp và Kháng Phép trong 3 lượt."
+  },
+  "bao_thap_gia_tri": {
+    "id": "bao_thap_gia_tri",
+    "name": "Bảo Tháp Gia Trì",
+    "type": "Buff",
+    "category": "Tăng chỉ số",
+    "icon": "🏰",
+    "description": "Cốt Tháp gia trì cho toàn đội: Tăng 30% Sát Thương Đầu Ra và 25% Kháng Sát Thương."
+  },
+  "vo_dich_kim_than": {
+    "id": "vo_dich_kim_than",
+    "name": "Vô Địch Kim Thân",
+    "type": "Buff",
+    "category": "Miễn nhiễm",
+    "icon": "🛡️",
+    "description": "Miễn nhiễm 100% mọi loại Sát Thương và Hiệu Ứng Khống Chế nhận vào trong 1 lượt."
+  },
+  "that_sat_kiem_y": {
+    "id": "that_sat_kiem_y",
+    "name": "Thất Sát Kiếm Ý",
+    "type": "Mechanism",
+    "category": "Tăng dồn sát thương",
+    "icon": "⚔️",
+    "description": "Tích lũy Kiếm Ý qua mỗi lần tấn công. Mỗi tầng Kiếm Ý tăng 15% Sát Thương Bạo Kích (Tối đa 5 tầng)."
+  },
+  "doc_to": {
+    "id": "doc_to",
+    "name": "Độc Tố",
+    "type": "Debuff",
+    "category": "Sát thương theo thời gian",
+    "icon": "☠️",
+    "description": "Khiến đối phương nhận sát thương Độc mỗi khi bắt đầu lượt đánh. Tích lũy tối đa 10 tầng."
+  },
+  "khien_than": {
+    "id": "khien_than",
+    "name": "Khiên Thần",
+    "type": "Buff",
+    "category": "Bảo vệ",
+    "icon": "🔮",
+    "description": "Tạo lớp giáp ảo có lượng máu bằng 40% Tối Đa HP của Hồn Sư, hấp thụ mọi loại tổn hại."
+  }
+}

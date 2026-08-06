@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Douluo Wiki Studio V3.1 - Môi Trường Thiết Kế & Quản Trị Website</title>
+  <meta name="description" content="Douluo Wiki Studio V3.1 - 8 Modules Studio Dashboard, Game Midnight Navy Palette (#0B1120).">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- System Modules Navigation Header -->
+  <header class="site-header">
+    <div class="container-fluid nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <span class="logo-icon">🐉</span>
+        <span>DOULUO WIKI</span>
+        <span style="font-size: 0.75rem; color: var(--accent-gold); padding: 0.1rem 0.5rem; border: 1px solid var(--accent-gold); border-radius: 4px; font-family: var(--font-body);">WIKI STUDIO V3.1</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">Trang Chủ (Viewer)</a>
+        <a href="hero.html?id=oscar" class="nav-link">Trang Hero</a>
+        <a href="edit.html" class="nav-link editor-badge active">🛠️ Studio Dashboard Mode</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Douluo Studio Main Area -->
+  <main class="container-fluid studio-wrapper">
+
+    <!-- Studio Top Bar -->
+    <div class="studio-top-bar">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <label for="heroSelect" style="font-weight: 700; color: #fff; font-size: 0.9rem;">Hồn Sư:</label>
+        <select id="heroSelect" class="editor-select">
+          <!-- Dynamically filled by editor.js -->
+        </select>
+        <button id="btnAddHero" class="btn-editor btn-editor-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">➕ Thêm Hồn Sư</button>
+        <button id="btnCloneHero" class="btn-editor btn-editor-ghost" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">📋 Nhân Bản</button>
+        <button id="btnDeleteHero" class="btn-editor btn-editor-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">🗑️ Xóa</button>
+      </div>
+
+      <!-- Viewport Simulator Controls -->
+      <div style="display: flex; gap: 0.35rem; background: var(--bg-surface); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border-glass);">
+        <button id="viewDesktop" class="btn-editor btn-editor-ghost active" title="Desktop View (1280px)">🖥️ Desktop</button>
+        <button id="viewTablet" class="btn-editor btn-editor-ghost" title="Tablet View (768px)">💻 Tablet</button>
+        <button id="viewPhone" class="btn-editor btn-editor-ghost" title="Phone View (390px)">📱 Phone</button>
+      </div>
+
+      <div class="btn-group">
+        <button id="btnConnectFolder" class="btn-editor btn-editor-success" title="Chọn thư mục PrjWeb để lưu trực tiếp">📂 Kết Nối Local Disk</button>
+        <button id="btnSaveDirectToDisk" class="btn-editor btn-editor-gold" title="Lưu trực tiếp vào file JSON trên đĩa cứng">💾 Lưu Disk JSON</button>
+        <button id="btnExportZip" class="btn-editor btn-editor-ghost" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">📦 Export ZIP</button>
+        <button id="btnResetDraft" class="btn-editor btn-editor-ghost" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">🔄 Reset</button>
+      </div>
+    </div>
+
+    <!-- 8 Studio Modules Top Navigation Bar -->
+    <div class="studio-modules-tab-bar">
+      <button class="module-tab-btn active" data-module="m1-layout">🌐 Module 1: Website Layout Builder</button>
+      <button class="module-tab-btn" data-module="m2-data">📊 Module 2: Data Manager</button>
+      <button class="module-tab-btn" data-module="m3-ocr">🤖 Module 3: Vision OCR Assistant</button>
+      <button class="module-tab-btn" data-module="m4-assets">🖼️ Module 4: Asset Studio</button>
+      <button class="module-tab-btn" data-module="m5-rules">⚙️ Module 5: Rule & Schema Engine</button>
+      <button class="module-tab-btn" data-module="m6-theme">🎨 Module 6: Theme Tokens</button>
+      <button class="module-tab-btn" data-module="m7-preview">📱 Module 7: Preview Studio</button>
+      <button class="module-tab-btn" data-module="m8-publish">💾 Module 8: Publish & Backup</button>
+    </div>
+
+    <!-- Status Banner for Folder Connection -->
+    <div id="folderStatusBanner" style="background: rgba(16, 185, 129, 0.12); border: 1px solid var(--accent-green); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; color: #a7f3d0; display: flex; align-items: center; justify-content: space-between;">
+      <span>💡 <strong>Game Midnight Navy Palette (#0B1120):</strong> Giao diện tông xanh đen sâu dịu mắt, độ tương phản vừa phải, tích hợp 8 Modules Studio Dashboard.</span>
+      <span id="folderStatusBadge" style="font-weight: 700; color: #fef08a; background: var(--bg-surface); padding: 0.2rem 0.6rem; border-radius: 4px;">Chưa kết nối</span>
+    </div>
+
+    <!-- IDE 3-Column Studio Layout -->
+    <div class="studio-layout">
+
+      <!-- Column 1: Left Explorer Sidebar -->
+      <aside class="studio-left-sidebar">
+        <!-- Module 1: Website Layout Builder Controls -->
+        <div class="tree-explorer-section" id="moduleLayoutSection">
+          <div class="tree-section-header">🌐 Page Section Visibility</div>
+          <label style="font-size:0.8rem; color:var(--text-sub); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="chkShowAvatar" checked> 👤 Section Avatar
+          </label>
+          <label style="font-size:0.8rem; color:var(--text-sub); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="chkShowBanner" checked> 🖼️ Section Banner
+          </label>
+          <label style="font-size:0.8rem; color:var(--text-sub); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="chkShowTitle" checked> ✨ Danh Hiệu & Võ Hồn
+          </label>
+          <label style="font-size:0.8rem; color:var(--text-sub); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="chkShowBio" checked> 📖 Bio & Tiểu Sử
+          </label>
+          <label style="font-size:0.8rem; color:var(--text-sub); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="chkShowRadial" checked> 🎯 Radial Skill Menu (Center)
+          </label>
+          <label style="font-size:0.8rem; color:var(--text-sub); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+            <input type="checkbox" id="chkShowRings" checked> ⭕ Niên Hạn & Star Requirements
+          </label>
+        </div>
+
+        <!-- Module 4: Asset Explorer -->
+        <div class="tree-explorer-section">
+          <div class="tree-section-header">🖼️ Asset Explorer</div>
+          <div class="tree-item" id="btnAssetAvatar">
+            <span>👤 Hero Avatar</span>
+            <span style="font-size: 0.7rem; color: var(--accent-gold);">Paste / Upload</span>
+          </div>
+          <div class="tree-item" id="btnAssetBanner">
+            <span>🖼️ Hero Banner</span>
+            <span style="font-size: 0.7rem; color: var(--accent-gold);">Paste / Upload</span>
+          </div>
+          <div class="tree-item" id="btnAssetIcon">
+            <span>⭐ Star Assets (Gold/Red)</span>
+            <span style="font-size: 0.7rem; color: var(--accent-green);">SVG Assets</span>
+          </div>
+        </div>
+
+        <!-- Module 5: Rule Config Tree -->
+        <div class="tree-explorer-section">
+          <div class="tree-section-header">⚙️ Rule Engine Config</div>
+          <div class="tree-item" id="btnRuleHonky">
+            <span>🔥 Hồn Kỹ (Branches + Ring)</span>
+          </div>
+          <div class="tree-item" id="btnRulePassive">
+            <span>🛡️ Bị Động (5 Milestones)</span>
+          </div>
+          <div class="tree-item" id="btnRuleNormal">
+            <span>⚔️ Đánh Thường (Single)</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Column 2: Center Interactive Live Preview Canvas -->
+      <section class="studio-center-canvas" id="editorPreviewContainer">
+        <div class="preview-badge-header">
+          <div style="font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+            <span>👁️ LIVE INTERACTIVE CANVAS</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">(Click bất kỳ component nào để sửa ở Inspector)</span>
+          </div>
+          <span class="preview-status-pill">⚡ Direct Sync</span>
+        </div>
+
+        <div id="editorLivePreviewFrame">
+          <!-- Rendered live interactive component canvas -->
+        </div>
+      </section>
+
+      <!-- Column 3: Right Inspector Panel (Properties & Generators) -->
+      <aside class="studio-right-inspector">
+        <div class="inspector-header">
+          <span>🛠️ INSPECTOR PANEL</span>
+          <span style="font-size: 0.75rem; color: var(--accent-gold);" id="inspectorTargetName">Target: Skill</span>
+        </div>
+
+        <!-- Skill Type Generator Templates -->
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 8px; padding: 0.75rem;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.4rem;">⚡ Skill Type Generators:</div>
+          <div style="display: flex; gap: 0.3rem;">
+            <button id="btnTemplateNormal" class="btn-editor btn-editor-ghost" style="flex:1; font-size:0.72rem; padding:0.35rem;">⚔️ Normal</button>
+            <button id="btnTemplatePassive" class="btn-editor btn-editor-ghost" style="flex:1; font-size:0.72rem; padding:0.35rem;">🛡️ Passive (5)</button>
+            <button id="btnTemplateSoul" class="btn-editor btn-editor-gold" style="flex:1; font-size:0.72rem; padding:0.35rem;">🔥 Soul Skill</button>
+          </div>
+        </div>
+
+        <!-- Selected Element Inspector Form -->
+        <div class="form-group">
+          <label class="form-label">Tên Kỹ Năng:</label>
+          <input type="text" id="editSkillName" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Icon Image (Asset Explorer / Paste):</label>
+          <input type="text" id="editSkillIcon" class="form-input" placeholder="assets/icons/skill.webp">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Loại Kỹ Năng:</label>
+            <select id="editSkillType" class="form-select">
+              <option value="Chủ động">Chủ động</option>
+              <option value="Bị động">Bị động</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tiêu Hao Hồn Lực:</label>
+            <input type="text" id="editSkillCost" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label class="form-label" style="margin-bottom: 0;">Mô Tả ({TênTừKhóa}):</label>
+            <button id="btnQuickInsertKw" class="btn-editor btn-editor-ghost" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;">✨ Insert (@)</button>
+          </div>
+          <textarea id="editSkillDesc" class="form-textarea" style="min-height: 90px;"></textarea>
+        </div>
+
+        <!-- Dynamic Niên Hạn & Typed Requirements Inspector -->
+        <div id="ringUpgradesEditSection">
+          <div style="font-weight: 700; color: #fff; margin: 1rem 0 0.6rem; border-top: 1px solid var(--border-glass); padding-top: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem;">⭕ Niên Hạn & Star Requirements</span>
+            <button id="btnAddRingMilestone" class="btn-editor btn-editor-primary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">+ Mốc</button>
+          </div>
+
+          <div id="ringMilestonesContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <!-- Dynamically populated ring upgrade milestone cards -->
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- Module 3: Vision OCR Rich Text Buffer Console -->
+    <section class="studio-bottom-console">
+      <div class="console-drawer-header">
+        <div style="font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
+          <span>🤖 MODULE 3: VISION OCR RICH TEXT BUFFER CONSOLE</span>
+          <span style="font-size: 0.75rem; color: var(--accent-cyan);">(Độc Lập - Không tự ghi đè Data)</span>
+        </div>
+        <button id="btnToggleConsole" class="btn-editor btn-editor-ghost" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">▼ Toggle Console Drawer</button>
+      </div>
+
+      <div id="consoleBodyContent" style="display: block;">
+        <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1rem;">
+          
+          <div>
+            <div class="image-paste-zone" id="ocrDropzone" style="padding: 1rem; margin-bottom: 0.75rem; background: var(--bg-surface);">
+              <div style="font-size: 1.8rem;">📋</div>
+              <div style="font-weight: 700; color: #fff; font-size: 0.85rem;">Dán ảnh Kỹ năng (Ctrl + V)</div>
+              <input type="file" id="ocrFileInput" accept="image/*" style="display: none;">
+            </div>
+
+            <div id="imageAssistantBox" style="display: none; background: var(--bg-surface); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-glass);">
+              <div style="font-weight: 700; color: var(--accent-gold); font-size: 0.78rem; margin-bottom: 0.4rem;">🔍 Cropped Regions:</div>
+              <div style="display: flex; gap: 0.5rem;">
+                <img id="cropIconPreview" style="height: 48px; border-radius: 4px;" src="">
+                <button id="btnApplyCropIcon" class="btn-editor btn-editor-ghost" style="font-size: 0.7rem; padding: 0.3rem;">✅ Dùng làm Icon</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+              <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-sub);">Rich Text Output Buffer:</span>
+              <div style="display: flex; gap: 0.3rem;">
+                <button id="btnConvertKeywords" class="btn-editor btn-editor-primary" style="padding: 0.15rem 0.4rem; font-size: 0.72rem;">✨ Convert [Name] ➔ {Name}</button>
+                <button id="btnAnalyzeKeywords" class="btn-editor btn-editor-gold" style="padding: 0.15rem 0.4rem; font-size: 0.72rem;">🔍 Phân Tích Keywords</button>
+                <button id="btnCopyOcrText" class="btn-editor btn-editor-ghost" style="padding: 0.15rem 0.4rem; font-size: 0.72rem;">📋 Copy All</button>
+              </div>
+            </div>
+            <textarea id="ocrRichTextOutput" class="form-textarea" style="min-height: 100px; font-family: monospace; font-size: 0.82rem;" placeholder="Text OCR trích xuất sẽ hiển thị ở đây..."></textarea>
+
+            <div id="keywordAnalyzerBox" style="display: none; margin-top: 0.5rem; background: var(--bg-surface); padding: 0.6rem; border-radius: 6px;">
+              <div style="font-size: 0.75rem; color: var(--accent-green); font-weight: 600;">✓ Từ Khóa Đã Tồn Tại: <span id="existingKwList"></span></div>
+              <div style="font-size: 0.75rem; color: var(--accent-gold); font-weight: 600; margin-top: 0.2rem;">+ Từ Khóa Mới Chưa Có: <span id="missingKwList"></span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Keyword Floating Tooltip Cursor Popup -->
+  <div id="global-keyword-popup" class="global-keyword-popup" style="display: none;">
+    <div class="popup-header">
+      <span class="popup-icon" id="popKwIcon">✨</span>
+      <div>
+        <h4 class="popup-title" id="popKwTitle">Tên Từ Khóa</h4>
+        <span class="popup-type" id="popKwType">Buff</span>
+      </div>
+    </div>
+    <p class="popup-body" id="popKwDesc">Mô tả tác dụng từ khóa...</p>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="js/data-layer.js"></script>
+  <script src="js/editor.js"></script>
+</body>
+</html>
