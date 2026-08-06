@@ -1,0 +1,371 @@
+{
+  "id": "hero_9013",
+  "name": "Bỉ Bỉ Đông ",
+  "title": "Nhện Béo",
+  "role": "Cường Công",
+  "rarity": "SSR",
+  "wusoul": "Chưa Xác Định",
+  "avatar": "assets/heroes/default/avatar.webp",
+  "banner": "assets/heroes/default/avatar.webp",
+  "bio": "Chưa có tiểu sử.",
+  "branches": [
+    {
+      "branchId": "branch_1",
+      "branchName": "Nhánh 1",
+      "skills": [
+        {
+          "group": "normal",
+          "name": "Đánh Thường",
+          "icon": "⚔️",
+          "type": "Chủ động",
+          "cost": "0 Hồn Lực",
+          "description": "Gây sát thương vật lý cơ bản cho 1 mục tiêu.",
+          "ringUpgrades": []
+        },
+        {
+          "group": "tienco",
+          "name": "Tiên Cơ",
+          "icon": "⚡",
+          "type": "Đặc biệt",
+          "cost": "",
+          "description": "Kỹ năng tiên cơ đặc biệt.",
+          "ringUpgrades": []
+        },
+        {
+          "group": "passive",
+          "name": "Bị Động — Nhánh 1",
+          "icon": "🛡️",
+          "type": "Bị động",
+          "cost": "",
+          "description": "Hiệu ứng bị động nhánh 1.",
+          "ringUpgrades": [
+            {
+              "year": "10,000 năm",
+              "bonus": "Khóa mục tiêu 1 lượt.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 4
+                }
+              ]
+            },
+            {
+              "year": "25,000 năm",
+              "bonus": "Tăng 20% kháng khống chế.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Nhận ngay {khien_than} hấp thụ sát thương.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 3
+                }
+              ]
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Miễn nhiễm 100% khống chế lượt đầu.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "group": "honky",
+          "name": "Hồn Kỹ — Nhánh 1",
+          "icon": "🔥",
+          "type": "Chủ động",
+          "cost": "2 Hồn Lực",
+          "description": "Kỹ năng hồn kỹ nhánh 1.",
+          "ringUpgrades": [
+            {
+              "year": "10,000 năm",
+              "bonus": "Hồi 1 điểm Hồn Lực ({khoi_phuc_hon_luc}).",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 4
+                }
+              ]
+            },
+            {
+              "year": "25,000 năm",
+              "bonus": "Tăng 15% sát thương / hiệu quả.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Giải trừ 1 hiệu ứng bất lợi.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 3
+                }
+              ]
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Nhận hiệu ứng {vo_dich_kim_than} trong 1 lượt.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "group": "bithuat",
+          "name": "Bí Thuật — Nhánh 1",
+          "icon": "🔮",
+          "type": "Chủ động",
+          "cost": "3 Hồn Lực",
+          "description": "Kỹ năng bí thuật nhánh 1.",
+          "ringUpgrades": [
+            {
+              "year": "10,000 năm",
+              "bonus": "Hồi 1 điểm Hồn Lực ({khoi_phuc_hon_luc}).",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 4
+                }
+              ]
+            },
+            {
+              "year": "25,000 năm",
+              "bonus": "Tăng 15% sát thương / hiệu quả.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Giải trừ 1 hiệu ứng bất lợi.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 3
+                }
+              ]
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Nhận hiệu ứng {vo_dich_kim_than} trong 1 lượt.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "branchId": "branch_2",
+      "branchName": "Nhánh 2",
+      "skills": [
+        {
+          "group": "passive",
+          "name": "Bị Động — Nhánh 2",
+          "icon": "🛡️",
+          "type": "Bị động",
+          "cost": "",
+          "description": "Hiệu ứng bị động nhánh 2.",
+          "ringUpgrades": [
+            {
+              "year": "10,000 năm",
+              "bonus": "Khóa mục tiêu 1 lượt.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 4
+                }
+              ]
+            },
+            {
+              "year": "25,000 năm",
+              "bonus": "Tăng 20% kháng khống chế.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Nhận ngay {khien_than} hấp thụ sát thương.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 3
+                }
+              ]
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Miễn nhiễm 100% khống chế lượt đầu.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "group": "honky",
+          "name": "Hồn Kỹ — Nhánh 2",
+          "icon": "🔥",
+          "type": "Chủ động",
+          "cost": "2 Hồn Lực",
+          "description": "Kỹ năng hồn kỹ nhánh 2.",
+          "ringUpgrades": [
+            {
+              "year": "10,000 năm",
+              "bonus": "Hồi 1 điểm Hồn Lực ({khoi_phuc_hon_luc}).",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 4
+                }
+              ]
+            },
+            {
+              "year": "25,000 năm",
+              "bonus": "Tăng 15% sát thương / hiệu quả.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Giải trừ 1 hiệu ứng bất lợi.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 3
+                }
+              ]
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Nhận hiệu ứng {vo_dich_kim_than} trong 1 lượt.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "group": "bithuat",
+          "name": "Bí Thuật — Nhánh 2",
+          "icon": "🔮",
+          "type": "Chủ động",
+          "cost": "3 Hồn Lực",
+          "description": "Kỹ năng bí thuật nhánh 2.",
+          "ringUpgrades": [
+            {
+              "year": "10,000 năm",
+              "bonus": "Hồi 1 điểm Hồn Lực ({khoi_phuc_hon_luc}).",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "gold",
+                  "count": 4
+                }
+              ]
+            },
+            {
+              "year": "25,000 năm",
+              "bonus": "Tăng 15% sát thương / hiệu quả.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "year": "50,000 năm",
+              "bonus": "Giải trừ 1 hiệu ứng bất lợi.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 3
+                }
+              ]
+            },
+            {
+              "year": "100,000 năm",
+              "bonus": "Nhận hiệu ứng {vo_dich_kim_than} trong 1 lượt.",
+              "requirements": [
+                {
+                  "type": "star",
+                  "color": "red",
+                  "count": 4
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tags": [
+    "SR",
+    "Hỗ Trợ"
+  ]
+}

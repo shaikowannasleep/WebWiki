@@ -10,7 +10,8 @@ const DataLayer = {
     heroesList: null,
     keywords: null,
     heroDetails: {},
-    websiteConfig: null
+    websiteConfig: null,
+    honhachList: null
   },
   
   projectDirHandle: null,
@@ -63,7 +64,7 @@ const DataLayer = {
   DEFAULT_NAV_ITEMS: [
     { id: 'home', name: 'Trang Chủ', url: 'index.html' },
     { id: 'heroes', name: 'Hồn Sư', url: 'index.html' },
-    { id: 'honhach', name: 'Hồn Hạch', url: '#' },
+    { id: 'honhach', name: 'Hồn Hạch', url: 'honhach.html' },
     { id: 'honcot', name: 'Hồn Cốt', url: '#' },
     { id: 'phuvan', name: 'Phù Văn', url: '#' },
     { id: 'editor', name: '🛠️ Editor Mode', url: 'edit.html', badge: true }
@@ -81,7 +82,8 @@ const DataLayer = {
     HEROES_INDEX: 'douluo_wiki_draft_heroes_index',
     KEYWORDS: 'douluo_wiki_draft_keywords',
     CONFIG: 'douluo_wiki_draft_config',
-    HERO_DETAIL_PREFIX: 'douluo_wiki_draft_hero_'
+    HERO_DETAIL_PREFIX: 'douluo_wiki_draft_hero_',
+    HONHACH_INDEX: 'douluo_wiki_draft_honhach_index'
   },
 
   async getWebsiteConfig() {
@@ -132,6 +134,106 @@ const DataLayer = {
       console.error('DataLayer Error (getHeroesList):', error);
       return [];
     }
+  },
+
+  async getHonhachList() {
+    const localDraft = localStorage.getItem(this.STORAGE_KEYS.HONHACH_INDEX);
+    if (localDraft) {
+      try {
+        this.cache.honhachList = JSON.parse(localDraft);
+        return this.cache.honhachList;
+      } catch (e) {
+        console.warn('Draft honhach corrupt, falling back to JSON file.');
+      }
+    }
+    if (this.cache.honhachList) return this.cache.honhachList;
+
+    try {
+      const response = await fetch('data/honhach.json');
+      if (!response.ok) throw new Error('Failed to fetch data/honhach.json');
+      const data = await response.json();
+      this.cache.honhachList = data;
+      return data;
+    } catch (error) {
+      console.error('DataLayer Error (getHonhachList):', error);
+      return [];
+    }
+  },
+
+  saveHonhachDraft(listOrItem) {
+    if (Array.isArray(listOrItem)) {
+      this.cache.honhachList = listOrItem;
+    } else if (listOrItem && listOrItem.id) {
+      if (!this.cache.honhachList) this.cache.honhachList = [];
+      const idx = this.cache.honhachList.findIndex(h => h.id === listOrItem.id);
+      if (idx >= 0) this.cache.honhachList[idx] = listOrItem;
+      else this.cache.honhachList.push(listOrItem);
+    }
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.HONHACH_INDEX, JSON.stringify(this.cache.honhachList, null, 2));
+    } catch (e) {
+      console.warn('localStorage Quota error when saving honhach:', e);
+    }
+  },
+
+  deleteHonhach(id) {
+    if (!id || !this.cache.honhachList) return;
+    this.cache.honhachList = this.cache.honhachList.filter(h => h.id !== id);
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.HONHACH_INDEX, JSON.stringify(this.cache.honhachList, null, 2));
+    } catch (e) {
+      console.warn('localStorage Quota error when deleting honhach:', e);
+    }
+  },
+
+  async cloneHonhach(id) {
+    const list = await this.getHonhachList();
+    const original = list.find(h => h.id === id);
+    if (!original) return null;
+    const cloned = JSON.parse(JSON.stringify(original));
+    cloned.id = original.id + '_clone_' + Date.now().toString().slice(-4);
+    cloned.nameVi = original.nameVi + ' (Bản Sao)';
+    this.saveHonhachDraft(cloned);
+    return cloned;
+  },
+
+  async createNewHonhach(id, nameVi, roles = ['cuong_cong', 'man_cong']) {
+    const newHonhach = {
+      id: id || ('honhach_' + Date.now().toString().slice(-4)),
+      name: nameVi || '新魂核',
+      nameVi: nameVi || 'Bộ Hồn Hạch Mới',
+      roles: roles,
+      rarity: 'SSR',
+      icon: 'assets/icons/star_gold.svg',
+      type: 'both',
+      description: 'Bộ Hồn Hạch hỗ trợ thuộc tính và hiệu ứng chiến đấu.',
+      set2: {
+        unlockStar: 2,
+        statName: 'Tỉ lệ Bạo Kích',
+        template: 'Tỉ lệ bạo kích +{stat}%',
+        stars: [
+          { star: 2, value: 5.0, duration: 0 },
+          { star: 4, value: 7.5, duration: 0 },
+          { star: 6, value: 9.0, duration: 0 },
+          { star: 8, value: 10.5, duration: 0 },
+          { star: 10, value: 12.0, duration: 0 }
+        ]
+      },
+      set4: {
+        template: 'Khi kích hoạt kỹ năng, tăng {stat}% sát thương gây ra trong 15s.',
+        extra24Star: 'Kéo dài thời gian hiệu lực lên 22.5s.',
+        stars: [
+          { star: 4, value: 7.5, effect: 'Khi kích hoạt kỹ năng, tăng 7.5% sát thương gây ra trong 15s.' },
+          { star: 8, value: 9.0, effect: 'Khi kích hoạt kỹ năng, tăng 9.0% sát thương gây ra trong 15s.' },
+          { star: 12, value: 10.5, effect: 'Khi kích hoạt kỹ năng, tăng 10.5% sát thương gây ra trong 15s.' },
+          { star: 16, value: 12.0, effect: 'Khi kích hoạt kỹ năng, tăng 12.0% sát thương gây ra trong 15s.' },
+          { star: 20, value: 13.5, effect: 'Khi kích hoạt kỹ năng, tăng 13.5% sát thương gây ra trong 15s.' },
+          { star: 24, value: 15.0, effect: 'Khi kích hoạt kỹ năng, tăng 15.0% sát thương gây ra trong 15s. ✨ Đột phá 24★: Kéo dài thời gian hiệu lực lên 22.5s.' }
+        ]
+      }
+    };
+    this.saveHonhachDraft(newHonhach);
+    return newHonhach;
   },
 
   async getKeywords() {
@@ -310,6 +412,9 @@ const DataLayer = {
     }
     await this.writeDirectToLocalDisk('data/heroes.json', JSON.stringify(this.cache.heroesList, null, 2));
     await this.writeDirectToLocalDisk('data/keywords.json', JSON.stringify(this.cache.keywords, null, 2));
+    if (this.cache.honhachList) {
+      await this.writeDirectToLocalDisk('data/honhach.json', JSON.stringify(this.cache.honhachList, null, 2));
+    }
 
     if (this.cache.heroesList) {
       for (let hSummary of this.cache.heroesList) {

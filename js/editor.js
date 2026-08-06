@@ -65,30 +65,52 @@ document.addEventListener('DOMContentLoaded', async () => {
   const ringMilestonesContainer = document.getElementById('ringMilestonesContainer');
   const btnAddRingMilestone = document.getElementById('btnAddRingMilestone');
 
-  // Bottom Console OCR Elements
-  const btnToggleConsole = document.getElementById('btnToggleConsole');
-  const consoleBodyContent = document.getElementById('consoleBodyContent');
-  const ocrDropzone = document.getElementById('ocrDropzone');
-  const ocrFileInput = document.getElementById('ocrFileInput');
-  const imageAssistantBox = document.getElementById('imageAssistantBox');
-  const cropIconPreview = document.getElementById('cropIconPreview');
-  const btnApplyCropIcon = document.getElementById('btnApplyCropIcon');
-
-  const ocrRichTextOutput = document.getElementById('ocrRichTextOutput');
-  const btnCopyOcrText = document.getElementById('btnCopyOcrText');
-  const btnConvertKeywords = document.getElementById('btnConvertKeywords');
-  const btnAnalyzeKeywords = document.getElementById('btnAnalyzeKeywords');
-  const keywordAnalyzerBox = document.getElementById('keywordAnalyzerBox');
-  const existingKwList = document.getElementById('existingKwList');
-  const missingKwList = document.getElementById('missingKwList');
-
+  // Bottom Console Elements
   const editorLivePreviewFrame = document.getElementById('editorLivePreviewFrame');
   const toastContainer = document.getElementById('toastContainer');
-  const globalKeywordPopup = document.getElementById('global-keyword-popup');
+  const globalKeywordPopup = document.getElementById('global-keyword-popup');  // Mode Switcher DOM refs
+  const tabModeHero = document.getElementById('tabModeHero');
+  const tabModeHonhach = document.getElementById('tabModeHonhach');
+  const heroTopControls = document.getElementById('heroTopControls');
+  const honhachTopControls = document.getElementById('honhachTopControls');
+  const heroEditorSidebarContainer = document.getElementById('heroEditorSidebarContainer');
+  const honhachEditorSidebarContainer = document.getElementById('honhachEditorSidebarContainer');
+  const honhachPreviewContainer = document.getElementById('honhachPreviewContainer');
+  const honhachLivePreviewFrame = document.getElementById('honhachLivePreviewFrame');
+
+  // Honhach Controls DOM refs
+  const honhachSelect = document.getElementById('honhachSelect');
+  const btnAddHonhach = document.getElementById('btnAddHonhach');
+  const btnCloneHonhach = document.getElementById('btnCloneHonhach');
+  const btnDeleteHonhach = document.getElementById('btnDeleteHonhach');
+
+  const editHonhachNameVi = document.getElementById('editHonhachNameVi');
+  const editHonhachRole   = document.getElementById('editHonhachRole');
+  const editHonhachRarity = document.getElementById('editHonhachRarity');
+  const editHonhachIcon   = document.getElementById('editHonhachIcon');
+  const btnPasteHonhachIcon = document.getElementById('btnPasteHonhachIcon');
+  const editHonhachDesc   = document.getElementById('editHonhachDesc');
+
+  const btnTplHonhachBoth = document.getElementById('btnTplHonhachBoth');
+  const btnTplHonhach2    = document.getElementById('btnTplHonhach2');
+  const btnTplHonhach4    = document.getElementById('btnTplHonhach4');
+
+  const honhachSet2StatName = document.getElementById('honhachSet2StatName');
+  const honhachSet2Template = document.getElementById('honhachSet2Template');
+  const btnGenSet2Stars     = document.getElementById('btnGenSet2Stars');
+  const honhachSet2StarRows = document.getElementById('honhachSet2StarRows');
+
+  const honhachSet4Template = document.getElementById('honhachSet4Template');
+  const honhachSet4Extra24  = document.getElementById('honhachSet4Extra24');
+  const btnGenSet4Stars     = document.getElementById('btnGenSet4Stars');
+  const honhachSet4StarRows = document.getElementById('honhachSet4StarRows');
 
   // State Variables
+  let editorMode = 'hero'; // 'hero' | 'honhach'
   let heroesList = [];
+  let honhachList = [];
   let currentHero = null;
+  let currentHonhach = null;
   let keywordsDict = {};
   let websiteConfig = null;
   let activeGroupId = 'honky';
@@ -112,14 +134,441 @@ document.addEventListener('DOMContentLoaded', async () => {
     heroesList = await DataLayer.getHeroesList();
     keywordsDict = await DataLayer.getKeywords();
     websiteConfig = await DataLayer.getWebsiteConfig();
+    honhachList = await DataLayer.getHonhachList();
 
     populateHeroSelect();
+    populateHonhachSelect();
 
     if (heroesList.length > 0) {
       await selectHero(heroesList[0].id);
     }
+    if (honhachList.length > 0) {
+      await selectHonhach(honhachList[0].id);
+    }
 
     setupEventListeners();
+    setupHonhachEventListeners();
+  }
+
+  function switchEditorMode(mode) {
+    editorMode = mode;
+    if (mode === 'hero') {
+      tabModeHero.classList.add('active-group');
+      tabModeHonhach.classList.remove('active-group');
+      heroTopControls.style.display = 'flex';
+      honhachTopControls.style.display = 'none';
+      heroEditorSidebarContainer.style.display = 'flex';
+      honhachEditorSidebarContainer.style.display = 'none';
+      editorPreviewContainer.style.display = 'block';
+      honhachPreviewContainer.style.display = 'none';
+      renderLivePreviewCanvas();
+    } else {
+      tabModeHonhach.classList.add('active-group');
+      tabModeHero.classList.remove('active-group');
+      heroTopControls.style.display = 'none';
+      honhachTopControls.style.display = 'flex';
+      heroEditorSidebarContainer.style.display = 'none';
+      honhachEditorSidebarContainer.style.display = 'flex';
+      editorPreviewContainer.style.display = 'none';
+      honhachPreviewContainer.style.display = 'block';
+      loadHonhachToInspector();
+      renderHonhachLivePreview();
+    }
+  }
+
+  function populateHonhachSelect() {
+    if (!honhachSelect) return;
+    honhachSelect.innerHTML = honhachList.map(item => `
+      <option value="${item.id}">${item.nameVi} - ${item.rarity || 'SSR'}</option>
+    `).join('');
+  }
+
+  async function selectHonhach(id) {
+    if (!honhachList || honhachList.length === 0) return;
+    currentHonhach = honhachList.find(h => h.id === id) || honhachList[0];
+    if (!currentHonhach) return;
+
+    honhachSelect.value = currentHonhach.id;
+
+    loadHonhachToInspector();
+    renderHonhachLivePreview();
+  }
+
+  function loadHonhachToInspector() {
+    if (!currentHonhach) return;
+
+    const editHonhachSet2Star   = document.getElementById('editHonhachSet2Star');
+    const editHonhachSet2Effect = document.getElementById('editHonhachSet2Effect');
+
+    if (editHonhachNameVi) editHonhachNameVi.value = currentHonhach.nameVi || '';
+    if (editHonhachRole)   editHonhachRole.value   = (currentHonhach.roles || ['cuong_cong','man_cong']).join(',');
+    if (editHonhachRarity) editHonhachRarity.value = currentHonhach.rarity || 'SSR';
+    if (editHonhachIcon)   editHonhachIcon.value   = currentHonhach.icon || 'assets/icons/star_gold.svg';
+    if (editHonhachDesc)   editHonhachDesc.value   = currentHonhach.description || '';
+
+    // Set 2 fields (1-line description editor)
+    if (editHonhachSet2Star)   editHonhachSet2Star.value   = 2; // Fixed at 2 stars for set 2
+    if (editHonhachSet2Effect) editHonhachSet2Effect.value = typeof currentHonhach.set2 === 'string' ? currentHonhach.set2 : 'Tỷ Lệ Bạo+5,0%';
+
+    // Set 4 fields
+    if (currentHonhach.set4) {
+      if (honhachSet4Template) honhachSet4Template.value = currentHonhach.set4.desc || '';
+      if (honhachSet4Extra24)  honhachSet4Extra24.value  = currentHonhach.set4.extra24 || '';
+    }
+
+    renderHonhachStarRows();
+  }
+
+  function renderHonhachStarRows() {
+    if (!currentHonhach) return;
+
+    // Render Set 4 star inputs (6 star values)
+    if (honhachSet4StarRows && currentHonhach.set4) {
+      if (!currentHonhach.set4.stats || currentHonhach.set4.stats.length === 0) {
+        currentHonhach.set4.stats = [7.5, 9.0, 10.5, 12.0, 13.5, 15.0];
+      }
+
+      const defaultStars = [4, 8, 12, 16, 20, 24];
+
+      honhachSet4StarRows.innerHTML = `
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.5rem;">
+          ${currentHonhach.set4.stats.map((val, idx) => `
+            <div style="background:rgba(255,255,255,0.04); padding:0.4rem 0.5rem; border-radius:6px; border:1px solid var(--border-glass); display:flex; align-items:center; justify-content:space-between;">
+              <span class="star-pill" style="background:rgba(245,158,11,0.2); border-color:var(--accent-gold); color:#fef08a; font-size:0.72rem;">${defaultStars[idx]}★</span>
+              <input type="number" step="0.5" class="form-input set4-val-input" data-idx="${idx}" value="${val}" style="width:65px; padding:0.15rem 0.3rem; font-size:0.78rem; text-align:right;">
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      honhachSet4StarRows.querySelectorAll('.set4-val-input').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+          const idx = parseInt(e.target.getAttribute('data-idx'), 10);
+          if (currentHonhach.set4.stats[idx] !== undefined) {
+            currentHonhach.set4.stats[idx] = parseFloat(e.target.value) || 0;
+            syncHonhachToMemory();
+          }
+        });
+      });
+    }
+  }
+
+  function syncHonhachToMemory() {
+    if (!currentHonhach) return;
+
+    const editHonhachSet2Star   = document.getElementById('editHonhachSet2Star');
+    const editHonhachSet2Effect = document.getElementById('editHonhachSet2Effect');
+
+    if (editHonhachNameVi) currentHonhach.nameVi = editHonhachNameVi.value;
+    if (editHonhachRole)   currentHonhach.roles = editHonhachRole.value.split(',');
+    if (editHonhachRarity) currentHonhach.rarity = editHonhachRarity.value;
+    if (editHonhachIcon)   currentHonhach.icon = editHonhachIcon.value;
+    if (editHonhachDesc)   currentHonhach.description = editHonhachDesc.value;
+
+    if (editHonhachSet2Effect) {
+      currentHonhach.set2 = editHonhachSet2Effect.value;
+    }
+
+    if (currentHonhach.set4) {
+      if (honhachSet4Template) currentHonhach.set4.desc = honhachSet4Template.value;
+      if (honhachSet4Extra24)  currentHonhach.set4.extra24 = honhachSet4Extra24.value;
+    }
+
+    populateHonhachSelect();
+    honhachSelect.value = currentHonhach.id;
+
+    DataLayer.saveHonhachDraft(currentHonhach);
+    renderHonhachLivePreview();
+  }
+
+  function renderHonhachLivePreview() {
+    if (!currentHonhach || !honhachLivePreviewFrame) return;
+
+    const rolesList = currentHonhach.roles || ['cuong_cong', 'man_cong'];
+    let rolesDisplay = 'Cường Công / Mẫn Công';
+    if (rolesList.includes('phu_tro') || rolesList.includes('khong_che') || rolesList.includes('phong_thu')) {
+      rolesDisplay = 'Phụ Trợ / Khống Chế / Phòng Thủ';
+    }
+
+    let set2CardHtml = '';
+    if (currentHonhach.set2) {
+      const set2Text = typeof currentHonhach.set2 === 'string' ? currentHonhach.set2 : 'Tỷ Lệ Bạo+5,0%';
+      set2CardHtml = `
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 12px; padding: 1.25rem; flex:1;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid var(--border-glass); padding-bottom:0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-size:1.1rem; color:var(--accent-cyan);">🔷 2件套</span>
+              <span style="font-size:0.8rem; background:rgba(6,182,212,0.2); color:#a5f3fc; padding:0.15rem 0.5rem; border-radius:12px; font-weight:700;">2★</span>
+            </div>
+            <span style="font-size:0.78rem; color:var(--text-sub);">Hiệu Quả 2 Món</span>
+          </div>
+          <div style="font-size:0.95rem; color:#a5f3fc; font-weight:700; line-height:1.5; padding:0.75rem 1rem; background:rgba(6,182,212,0.05); border-radius:8px; border:1px dashed rgba(6,182,212,0.3);">
+            ✨ ${set2Text}
+          </div>
+        </div>
+      `;
+    }
+
+    let set4CardHtml = '';
+    if (currentHonhach.set4) {
+      const starVals = currentHonhach.set4.stats || [];
+      const minVal = starVals.length > 0 ? starVals[0] : 7.5;
+      const maxVal = starVals.length > 0 ? starVals[starVals.length - 1] : 15.0;
+      const defaultStars = [4, 8, 12, 16, 20, 24];
+
+      const templateDesc = (currentHonhach.set4.desc || '').replace(/\{stat\}/g, `<span style="color:#fef08a; font-weight:800;">[${minVal}% ~ ${maxVal}%]</span>`);
+
+      const starPillsHtml = starVals.map((val, i) => `
+        <span class="star-pill" style="background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:#fef08a; padding:0.2rem 0.5rem; font-size:0.78rem;">
+          <strong>${defaultStars[i]}★</strong>: ${val}%
+        </span>
+      `).join(' ');
+
+      const extra24Html = currentHonhach.set4.extra24 ? `
+        <div style="margin-top:0.75rem; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); padding:0.5rem 0.75rem; border-radius:8px; font-size:0.82rem; color:#fef08a;">
+          ✨ <strong>Đột phá 24★:</strong> ${currentHonhach.set4.extra24}
+        </div>
+      ` : '';
+
+      set4CardHtml = `
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 12px; padding: 1.25rem; flex:1.2;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid var(--border-glass); padding-bottom:0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-size:1.1rem; color:var(--accent-gold);">🔶 4件套</span>
+              <span style="font-size:0.8rem; background:rgba(245,158,11,0.2); color:#fef08a; padding:0.15rem 0.5rem; border-radius:12px; font-weight:700;">4/8/12/16/20/24★</span>
+            </div>
+            <span style="font-size:0.78rem; color:var(--text-sub);">Hiệu Quả 4 Món</span>
+          </div>
+
+          <!-- Unified Description Block -->
+          <div style="font-size:0.88rem; color:#e2e8f0; line-height:1.6; margin-bottom:0.75rem;">
+            ${templateDesc}
+          </div>
+
+          <!-- Compact Star Scaling Pills Row -->
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.5rem;">
+            ${starPillsHtml}
+          </div>
+
+          ${extra24Html}
+        </div>
+      `;
+    }
+
+    honhachLivePreviewFrame.innerHTML = `
+      <!-- Header Info Block -->
+      <div style="background: var(--bg-surface); padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 1.25rem; border: 1px solid var(--border-glass); display: flex; gap: 1.25rem; align-items: center;">
+        <div style="width: 64px; height: 64px; background: rgba(6,182,212,0.15); border: 1.5px solid var(--accent-cyan); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+          <img src="${currentHonhach.icon || 'assets/icons/star_gold.svg'}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/icons/star_gold.svg'">
+        </div>
+        <div style="flex:1;">
+          <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.2rem;">
+            <span class="rarity-badge ${currentHonhach.rarity || 'SSR'}">${currentHonhach.rarity || 'SSR'}</span>
+            <span style="font-size:0.75rem; background:rgba(59,130,246,0.2); border:1px solid var(--primary); color:#93c5fd; padding:0.15rem 0.5rem; border-radius:4px; font-weight:600;">❖ ${rolesDisplay}</span>
+          </div>
+          <h2 style="color: #fff; font-family: var(--font-heading); margin-top: 0.1rem; font-size: 1.35rem;">${currentHonhach.nameVi}</h2>
+          <p style="font-size: 0.82rem; color: var(--text-sub); margin-top: 0.2rem;">${currentHonhach.description || ''}</p>
+        </div>
+      </div>
+
+      <!-- AAA Game Preview Cards Grid -->
+      <div style="display: flex; gap: 1.25rem; margin-bottom: 1.25rem;">
+        ${set2CardHtml}
+        ${set4CardHtml}
+      </div>
+
+      <!-- JSON Inspector Terminal -->
+      <div style="background: #07090e; border: 1px solid var(--border-glass); border-radius: 10px; padding: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); font-family: monospace;">CẤU TRÚC DỮ LIỆU (JSON FORMAT)</span>
+          <button id="btnCopyHonhachJson" class="btn-editor btn-editor-ghost" style="font-size: 0.72rem; padding: 0.15rem 0.5rem;">📋 Copy JSON</button>
+        </div>
+        <pre style="font-family: monospace; font-size: 0.8rem; color: #fef08a; margin: 0; max-height: 200px; overflow-y: auto; white-space: pre-wrap;">${JSON.stringify(currentHonhach, null, 2)}</pre>
+      </div>
+    `;
+
+    const btnCopyHonhachJson = document.getElementById('btnCopyHonhachJson');
+    if (btnCopyHonhachJson) {
+      btnCopyHonhachJson.addEventListener('click', () => {
+        navigator.clipboard.writeText(JSON.stringify(currentHonhach, null, 2));
+        showToast('Đã copy chuỗi JSON Hồn Hạch!', 'success');
+      });
+    }
+  }
+
+  function setupHonhachEventListeners() {
+    if (tabModeHero)    tabModeHero.addEventListener('click', () => switchEditorMode('hero'));
+    if (tabModeHonhach) tabModeHonhach.addEventListener('click', () => switchEditorMode('honhach'));
+
+    if (honhachSelect) {
+      honhachSelect.addEventListener('change', (e) => selectHonhach(e.target.value));
+    }
+
+    if (btnAddHonhach) {
+      btnAddHonhach.addEventListener('click', async () => {
+        const nameVi = prompt('Nhập tên Bộ Hồn Hạch mới:', 'Bộ Hồn Hạch Mới');
+        if (!nameVi) return;
+        const id = 'honhach_' + Date.now().toString().slice(-4);
+        const newHonhach = await DataLayer.createNewHonhach(id, nameVi);
+        honhachList = await DataLayer.getHonhachList();
+        populateHonhachSelect();
+        await selectHonhach(newHonhach.id);
+        showToast(`Đã thêm Bộ Hồn Hạch "${nameVi}"!`, 'success');
+      });
+    }
+
+    if (btnCloneHonhach) {
+      btnCloneHonhach.addEventListener('click', async () => {
+        if (!currentHonhach) return;
+        const cloned = await DataLayer.cloneHonhach(currentHonhach.id);
+        if (cloned) {
+          honhachList = await DataLayer.getHonhachList();
+          populateHonhachSelect();
+          await selectHonhach(cloned.id);
+          showToast('Đã nhân bản Bộ Hồn Hạch thành công!', 'success');
+        }
+      });
+    }
+
+    if (btnDeleteHonhach) {
+      btnDeleteHonhach.addEventListener('click', async () => {
+        if (!currentHonhach) return;
+        if (confirm(`Xóa Bộ Hồn Hạch "${currentHonhach.nameVi}"? Thao tác không thể hoàn tác.`)) {
+          DataLayer.deleteHonhach(currentHonhach.id);
+          honhachList = await DataLayer.getHonhachList();
+          populateHonhachSelect();
+          if (honhachList.length > 0) await selectHonhach(honhachList[0].id);
+          showToast('Đã xóa Bộ Hồn Hạch.', 'danger');
+        }
+      });
+    }
+
+    if (btnPasteHonhachIcon) {
+      btnPasteHonhachIcon.addEventListener('click', async () => {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text && editHonhachIcon) {
+            editHonhachIcon.value = text;
+            syncHonhachToMemory();
+            showToast('Đã dán Icon URL từ Clipboard!', 'success');
+          }
+        } catch (e) {
+          showToast('Lỗi đọc Clipboard: ' + e.message, 'danger');
+        }
+      });
+    }
+
+    // Direct Image File Upload for Honhach Icon
+    const honhachIconFileInput = document.getElementById('honhachIconFileInput');
+    if (honhachIconFileInput) {
+      honhachIconFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            if (editHonhachIcon) editHonhachIcon.value = evt.target.result;
+            syncHonhachToMemory();
+            showToast('Đã tải & cập nhật Icon Hồn Hạch từ file!', 'success');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    // Direct Clipboard Image Paste Listener for Honhach
+    window.addEventListener('paste', (e) => {
+      if (editorMode !== 'honhach') return;
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let item of items) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const blob = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            if (editHonhachIcon) editHonhachIcon.value = evt.target.result;
+            syncHonhachToMemory();
+            showToast('📋 Đã dán ảnh từ Clipboard làm Icon Hồn Hạch!', 'success');
+          };
+          reader.readAsDataURL(blob);
+          break;
+        }
+      }
+    });
+
+    // Reactive inputs for Honhach info
+    const editHonhachSet2Star   = document.getElementById('editHonhachSet2Star');
+    const editHonhachSet2Effect = document.getElementById('editHonhachSet2Effect');
+    const honhachInputs = [editHonhachNameVi, editHonhachRole, editHonhachRarity, editHonhachIcon, editHonhachDesc, editHonhachSet2Star, editHonhachSet2Effect, honhachSet4Template, honhachSet4Extra24];
+    honhachInputs.forEach(inp => {
+      if (inp) {
+        inp.addEventListener('input', () => syncHonhachToMemory());
+      }
+    });
+
+    if (btnGenSet4Stars) {
+      btnGenSet4Stars.addEventListener('click', () => {
+        if (!currentHonhach || !currentHonhach.set4) return;
+        currentHonhach.set4.stars = [
+          { star: 4, value: 7.5, effect: '' },
+          { star: 8, value: 9.0, effect: '' },
+          { star: 12, value: 10.5, effect: '' },
+          { star: 16, value: 12.0, effect: '' },
+          { star: 20, value: 13.5, effect: '' },
+          { star: 24, value: 15.0, effect: '' }
+        ];
+        rebuildSet4EffectsFromTemplate();
+        syncHonhachToMemory();
+        showToast('Đã tự động sinh mốc Bộ 4 (4★ - 24★)!', 'success');
+      });
+    }
+
+    // Quick Template applicators
+    if (btnTplHonhachBoth) {
+      btnTplHonhachBoth.addEventListener('click', () => {
+        if (!currentHonhach) return;
+        currentHonhach.type = 'both';
+        currentHonhach.set2 = {
+          unlockStar: 2,
+          effect: 'Hội tâm suất +5.0%'
+        };
+        currentHonhach.set4 = {
+          template: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng {stat}% sát thương cuối trong 15s. Cooldown 30s.',
+          extra24Star: 'Thời gian kéo dài pháp trận kéo dài lên 22.5s.',
+          stars: [
+            { star: 4, value: 7.5, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 7.5% sát thương cuối trong 15s. Cooldown 30s.' },
+            { star: 8, value: 9.0, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 9.0% sát thương cuối trong 15s. Cooldown 30s.' },
+            { star: 12, value: 10.5, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 10.5% sát thương cuối trong 15s. Cooldown 30s.' },
+            { star: 16, value: 12.0, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 12.0% sát thương cuối trong 15s. Cooldown 30s.' },
+            { star: 20, value: 13.5, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 13.5% sát thương cuối trong 15s. Cooldown 30s.' },
+            { star: 24, value: 15.0, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 15.0% sát thương cuối trong 15s. Cooldown 30s. ✨ Đột phá 24★: Thời gian kéo dài pháp trận kéo dài lên 22.5s.' }
+          ]
+        };
+        loadHonhachToInspector();
+        syncHonhachToMemory();
+        showToast('Áp dụng Template 2+4 Tiêu Chuẩn!', 'success');
+      });
+    }
+
+    if (btnTplHonhach2) {
+      btnTplHonhach2.addEventListener('click', () => {
+        if (!currentHonhach) return;
+        currentHonhach.type = '2-piece';
+        delete currentHonhach.set4;
+        loadHonhachToInspector();
+        syncHonhachToMemory();
+        showToast('Áp dụng Template Chỉ Bộ 2 Món!', 'success');
+      });
+    }
+
+    if (btnTplHonhach4) {
+      btnTplHonhach4.addEventListener('click', () => {
+        if (!currentHonhach) return;
+        currentHonhach.type = '4-piece';
+        delete currentHonhach.set2;
+        loadHonhachToInspector();
+        syncHonhachToMemory();
+        showToast('Áp dụng Template Chỉ Bộ 4 Món!', 'success');
+      });
+    }
   }
 
   function populateHeroSelect() {
@@ -673,93 +1122,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnRuleTienco) btnRuleTienco.addEventListener('click', () => { activeGroupId = 'tienco'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
     if (btnRuleBithuat) btnRuleBithuat.addEventListener('click', () => { activeGroupId = 'bithuat'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
 
-    // OCR Events
-    ocrDropzone.addEventListener('click', () => ocrFileInput.click());
-    ocrFileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) processOcrScreenshot(e.target.files[0]);
-    });
-
-    // Global paste: route to asset zone if OCR is closed, else to OCR
+    // Global paste: route image to asset zone
     window.addEventListener('paste', (e) => {
-      const items = e.clipboardData?.items;
+      const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
       if (!items) return;
-      const ocrOpen = document.getElementById('consoleBodyContent')?.style.display !== 'none';
       for (let item of items) {
-        if (item.type.startsWith('image/')) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          if (!file) continue;
-          if (ocrOpen) {
-            processOcrScreenshot(file); // paste into OCR
-          } else {
-            showAssetPreview(file); // paste into asset zone
+          if (file) {
+            showAssetPreview(file);
             showToast('🖼️ Đã nhận ảnh → Kiểm tra khu vực "Thay Đổi Ảnh"', 'info');
           }
+          break; // only process the first image to avoid lag
         }
       }
-    });
-
-    async function processOcrScreenshot(file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = async () => {
-          showToast('🔍 AI Assistant đang phân tích ảnh...', 'info');
-          const result = await DataLayer.processImageRecognitionAssistant(img);
-
-          imageAssistantBox.style.display = 'block';
-          cropIconPreview.src = result.crops.icon;
-          currentCroppedIconData = result.crops.icon;
-
-          ocrRichTextOutput.value = result.rawOcrText;
-          showToast('🎉 Đã trích xuất xong sang Rich Text Buffer Console!', 'success');
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    btnApplyCropIcon.addEventListener('click', () => {
-      if (currentCroppedIconData) {
-        editSkillIcon.value = currentCroppedIconData;
-        syncInspectorToMemory();
-        showToast('Đã áp dụng Icon cho Kỹ Năng!', 'success');
-      }
-    });
-
-    btnCopyOcrText.addEventListener('click', () => {
-      ocrRichTextOutput.select();
-      document.execCommand('copy');
-      showToast('Đã copy text vào Clipboard!', 'success');
-    });
-
-    btnConvertKeywords.addEventListener('click', () => {
-      const converted = DataLayer.convertKeywordSyntax(ocrRichTextOutput.value, keywordsDict);
-      ocrRichTextOutput.value = converted;
-      showToast('Đã convert [Name] ➔ {Name}!', 'success');
-    });
-
-    btnAnalyzeKeywords.addEventListener('click', () => {
-      const analysis = DataLayer.analyzeKeywordsInText(ocrRichTextOutput.value, keywordsDict);
-      keywordAnalyzerBox.style.display = 'block';
-
-      existingKwList.innerHTML = analysis.existing.map(item => `
-        <span style="background: rgba(52, 211, 153, 0.2); border: 1px solid var(--accent-green); color: #a7f3d0; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.72rem;">✓ ${item.name}</span>
-      `).join(' ') || 'Không có';
-
-      missingKwList.innerHTML = analysis.missing.map(kw => `
-        <button class="btn-editor btn-editor-gold btn-create-draft-kw" data-kw="${kw}" style="padding: 0.1rem 0.4rem; font-size: 0.72rem;">+ ${kw}</button>
-      `).join(' ') || 'Không có';
-
-      keywordAnalyzerBox.querySelectorAll('.btn-create-draft-kw').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const kw = btn.getAttribute('data-kw');
-          keywordsDict[kw] = { name: kw, type: 'Buff', category: 'Hỗ trợ', icon: '✨', description: `Hiệu ứng: ${kw}.` };
-          DataLayer.saveKeywordsDraft(keywordsDict);
-          renderLivePreviewCanvas();
-          showToast(`Đã tạo Draft Keyword "{${kw}}"!`, 'success');
-          btn.remove();
-        });
-      });
     });
 
     // Direct Disk Saving
