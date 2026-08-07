@@ -1,18 +1,24 @@
-# .gitignore for PrjWeb project
+# .gitignore for Douluo MMO WebWiki Project
 # OS generated files
 .DS_Store
+Thumbs.db
 
-# Environment files (keep safe)
+# Environment & temporary files
 .env
 .env.*
 
-# AI‑related files (ignore documentation that may contain sensitive prompts)
+# AI & Internal Guidelines
 AI_GUIDELINE.md
 ProjectSpec.md
 
-# Hide all Markdown documentation from the repo (optional, adjust if needed)
-*.md
-
-# Add any other generated assets you do not want tracked
+# Build & dependencies
 node_modules/
 dist/
+
+# ==============================================================================
+# Wiki Studio Local-Only Editor Files (Hidden 100% from public GitHub repo)
+# ==============================================================================
+edit.html
+js/editor.js
+js/canvas-editor.js
+js/auth.js
