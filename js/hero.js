@@ -55,18 +55,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderPanel2And3();
 
   function renderHeroProfilePanel(data) {
+    const heroName = i18n.translateConcept(data.name);
+    const heroRole = i18n.translateConcept(data.role);
+    const heroTitle = data.title ? i18n.translateConcept(data.title) : '';
+    const heroWusoul = i18n.translateConcept(data.wusoul);
+
     panelHeroProfile.innerHTML = `
       <div class="panel-hero-avatar">
-        <img src="${data.avatar}" alt="${data.name}" onerror="this.src='assets/heroes/oscar/avatar.webp'">
+        <img src="${data.avatar}" alt="${heroName}" onerror="this.src='assets/heroes/oscar/avatar.webp'">
       </div>
       <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
         <span class="rarity-badge ${data.rarity}">${data.rarity}</span>
-        <span class="role-badge">❖ Hệ ${data.role}</span>
+        <span class="role-badge">❖ ${heroRole}</span>
       </div>
-      <h1 class="panel-hero-name">${data.name}</h1>
-      <div class="panel-hero-title">${data.title || ''}</div>
-      <div style="font-size: 0.88rem; color: var(--text-sub); margin-bottom: 0.75rem;">✨ Võ Hồn: <strong>${data.wusoul}</strong></div>
-      <p class="panel-hero-bio" style="line-height: 1.7; font-size: 0.9rem;">${data.bio || ''}</p>
+      <h1 class="panel-hero-name">${heroName}</h1>
+      <div class="panel-hero-title">${heroTitle}</div>
+      <div style="font-size: 0.88rem; color: var(--text-sub); margin-bottom: 0.75rem;">${i18n.t('wusoul_label')} <strong>${heroWusoul}</strong></div>
+      <p class="panel-hero-bio" style="line-height: 1.7; font-size: 0.9rem;">${data.bio ? i18n.translateConcept(data.bio) : ''}</p>
     `;
   }
 
@@ -319,5 +324,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (globalKeywordPopup && !globalKeywordPopup.contains(e.target)) {
       globalKeywordPopup.style.display = 'none';
     }
+  });
+
+  window.addEventListener('languageChanged', () => {
+    renderHeroProfilePanel(heroData);
+    renderPanel2And3();
   });
 });

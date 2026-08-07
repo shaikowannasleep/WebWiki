@@ -18,13 +18,9 @@
         <span style="font-size: 0.75rem; color: var(--accent-gold); padding: 0.1rem 0.5rem; border: 1px solid var(--accent-gold); border-radius: 4px; font-family: var(--font-body);">WIKI STUDIO V3.1</span>
       </a>
       <nav class="nav-links" style="align-items: center;">
-        <a href="index.html" class="nav-link">Trang Chủ</a>
+        <a href="index.html" class="nav-link" data-i18n="nav_home">Trang Chủ</a>
         <a href="edit.html" class="nav-link editor-badge active">🛠️ Wiki Studio 3.1</a>
-        <!-- Viewport Controls - only in edit page -->
-        <div style="display: flex; gap: 0.25rem; background: rgba(255,255,255,0.06); padding: 0.2rem; border-radius: 8px; border: 1px solid var(--border-glass); margin-left: 0.5rem;">
-          <button id="viewDesktop" class="btn-editor btn-editor-ghost active" title="Desktop View" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">🖥️ Desktop</button>
-          <button id="viewPhone" class="btn-editor btn-editor-ghost" title="Mobile View" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">📱 Mobile</button>
-        </div>
+        <div class="lang-selector-wrapper" id="langSelectorWrapper" style="margin-left: 0.5rem;"></div>
       </nav>
     </div>
   </header>
@@ -32,19 +28,47 @@
   <!-- Douluo Studio Main Area -->
   <main class="container-fluid studio-wrapper">
 
+    <!-- Interactive Stepper Workflow Bar (Easy to Follow 4-Step Process) -->
+    <div class="workflow-stepper">
+      <div class="step-item active">
+        <div class="step-num">1</div>
+        <div class="step-title">👤 Chọn Mục Tiêu</div>
+      </div>
+      <div class="step-item active">
+        <div class="step-num">2</div>
+        <div class="step-title">📝 Thông Tin Cơ Bản</div>
+      </div>
+      <div class="step-item active">
+        <div class="step-num">3</div>
+        <div class="step-title">⚔️ Chỉnh Kỹ Năng / Preset</div>
+      </div>
+      <div class="step-item active">
+        <div class="step-num">4</div>
+        <div class="step-title">👁️ Live Canvas & Lưu Disk</div>
+      </div>
+    </div>
+
     <!-- Mode Switcher Tabs (Hồn Sư vs Hồn Hạch) -->
-    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; background: rgba(15, 23, 42, 0.8); padding: 0.4rem 0.6rem; border-radius: 10px; border: 1px solid var(--border-glass); align-items: center;">
-      <span style="font-size: 0.8rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; margin-right: 0.5rem;">CHẾ ĐỘ EDITOR:</span>
-      <button id="tabModeHero" class="btn-editor btn-editor-ghost active-group" style="padding: 0.4rem 1rem; font-weight: 700; font-size: 0.85rem;">👤 Quản Lý Hồn Sư</button>
-      <button id="tabModeHonhach" class="btn-editor btn-editor-ghost" style="padding: 0.4rem 1rem; font-weight: 700; font-size: 0.85rem;">🦴 Quản Lý Hồn Hạch (Soul Core)</button>
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; background: rgba(15, 23, 42, 0.85); padding: 0.5rem 0.75rem; border-radius: 12px; border: 1px solid var(--border-glass); align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 0.78rem; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">CHẾ ĐỘ EDITOR STUDIO:</span>
+        <button id="tabModeHero" class="btn-editor btn-editor-ghost active-group" style="padding: 0.4rem 1rem; font-weight: 700; font-size: 0.85rem;">👤 Quản Lý Hồn Sư</button>
+        <button id="tabModeHonhach" class="btn-editor btn-editor-ghost" style="padding: 0.4rem 1rem; font-weight: 700; font-size: 0.85rem;">🦴 Quản Lý Hồn Hạch (Soul Core)</button>
+      </div>
+
+      <!-- Viewport Controls -->
+      <div style="display: flex; gap: 0.25rem; background: rgba(255,255,255,0.06); padding: 0.2rem; border-radius: 8px; border: 1px solid var(--border-glass);">
+        <button id="viewDesktop" class="btn-editor btn-editor-ghost active" title="Desktop View" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 700;">🖥️ Desktop View</button>
+        <button id="viewPhone" class="btn-editor btn-editor-ghost" title="Mobile View" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 700;">📱 Mobile View</button>
+      </div>
     </div>
 
     <!-- Studio Top Bar -->
     <div class="studio-top-bar">
       <!-- Hero Mode Top Controls -->
-      <div id="heroTopControls" style="display: flex; align-items: center; gap: 1rem;">
-        <label for="heroSelect" style="font-weight: 700; color: #fff; font-size: 0.9rem;">Hồn Sư:</label>
-        <select id="heroSelect" class="editor-select">
+      <div id="heroTopControls" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <label for="heroSelect" style="font-weight: 700; color: #fff; font-size: 0.88rem;">Hồn Sư:</label>
+        <select id="heroSelect" class="editor-select" style="min-width: 200px; font-weight: 700;">
           <!-- Dynamically filled by editor.js -->
         </select>
         <button id="btnAddHero" class="btn-editor btn-editor-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">➕ Thêm Hồn Sư</button>
@@ -53,9 +77,9 @@
       </div>
 
       <!-- Honhach Mode Top Controls (Hidden by default) -->
-      <div id="honhachTopControls" style="display: none; align-items: center; gap: 1rem;">
-        <label for="honhachSelect" style="font-weight: 700; color: var(--accent-gold); font-size: 0.9rem;">Bộ Hồn Hạch:</label>
-        <select id="honhachSelect" class="editor-select" style="min-width: 220px;">
+      <div id="honhachTopControls" style="display: none; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <label for="honhachSelect" style="font-weight: 700; color: var(--accent-gold); font-size: 0.88rem;">Bộ Hồn Hạch:</label>
+        <select id="honhachSelect" class="editor-select" style="min-width: 220px; font-weight: 700;">
           <!-- Dynamically filled by editor.js -->
         </select>
         <button id="btnAddHonhach" class="btn-editor btn-editor-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">➕ Thêm Bộ Mới</button>
@@ -63,7 +87,7 @@
         <button id="btnDeleteHonhach" class="btn-editor btn-editor-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">🗑️ Xóa</button>
       </div>
 
-      <div class="btn-group">
+      <div class="btn-group" style="display: flex; gap: 0.5rem;">
         <button id="btnConnectFolder" class="btn-editor btn-editor-success" title="Chọn thư mục PrjWeb để lưu trực tiếp">📂 Kết Nối Local Disk</button>
         <button id="btnSaveDirectToDisk" class="btn-editor btn-editor-gold" title="Lưu trực tiếp vào file JSON trên đĩa cứng">💾 Lưu Disk JSON</button>
         <button id="btnResetDraft" class="btn-editor btn-editor-ghost" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">🔄 Reset</button>
@@ -71,27 +95,33 @@
     </div>
 
     <!-- Status Banner for Folder Connection -->
-    <div id="folderStatusBanner" style="background: rgba(56, 189, 248, 0.1); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; color: #bae6fd; display: flex; align-items: center; justify-content: space-between;">
-      <span>💡 <strong>Douluo Studio V3.1:</strong> Quản lý Hồn Sư & Hồn Hạch (Soul Core) với Effect Builder & Live Canvas Preview.</span>
-      <span id="folderStatusBadge" style="font-weight: 700; color: #fef08a; background: var(--bg-surface); padding: 0.2rem 0.6rem; border-radius: 4px;">Chưa kết nối</span>
+    <div id="folderStatusBanner" style="background: rgba(6, 182, 212, 0.1); border: 1px solid var(--accent-cyan); border-radius: 10px; padding: 0.6rem 1.2rem; font-size: 0.85rem; color: #bae6fd; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="pulse-live-dot"></span>
+        <span><strong>Douluo Studio V3.1:</strong> Hệ thống Quản lý Hồn Sư & Hồn Hạch tích hợp Live Canvas Preview tự động đồng bộ.</span>
+      </div>
+      <span id="folderStatusBadge" style="font-weight: 700; color: #fef08a; background: var(--bg-surface); padding: 0.25rem 0.75rem; border-radius: 20px; border: 1px solid var(--border-glass);">Chưa kết nối</span>
     </div>
 
-    <!-- IDE 2-Column Studio Layout -->
-    <div class="studio-layout" style="display: grid; grid-template-columns: 480px 1fr; gap: 1.5rem; min-height: 720px; align-items: start;">
+    <!-- IDE 3-Column Studio Layout -->
+    <div class="studio-layout" id="studioLayout">
 
-      <!-- Column 1: Left Advanced Editor & Explorer Sidebar (Widened to 480px) -->
-      <aside class="studio-left-sidebar" id="mainSidebar" style="background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; gap: 1.5rem; max-height: 850px; overflow-y: auto;">
+      <!-- PANEL 1: Left Sidebar (Form Inputs) -->
+      <aside class="studio-left-sidebar" id="mainSidebar">
         
         <!-- HERO EDITOR SIDEBAR CONTAINER -->
-        <div id="heroEditorSidebarContainer" style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div id="heroEditorSidebarContainer" style="display: flex; flex-direction: column; gap: 1rem;">
         
-        <!-- Part 0: Hồn Sư Info (luôn hiển thị) -->
-        <div style="background: rgba(251,191,36,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(251,191,36,0.25);">
-          <div class="tree-section-header" style="margin-bottom: 0.75rem; color: var(--accent-gold);">👤 THÔNG TIN HỒN SƯ</div>
+        <!-- Part 0: Hồn Sư Info Card -->
+        <div class="studio-step-card" style="background: rgba(251, 191, 36, 0.04); border-color: rgba(251, 191, 36, 0.25);">
+          <div class="step-card-header">
+            <span class="step-badge-tag">👤 BƯỚC 1: THÔNG TIN HỒN SƯ</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Cơ bản</span>
+          </div>
 
           <div class="form-group">
             <label class="form-label">Tên Hồn Sư:</label>
-            <input type="text" id="editHeroName" class="form-input" placeholder="VD: Đường Tam" style="width:100%;">
+            <input type="text" id="editHeroName" class="form-input" placeholder="VD: Đường Tam" style="width:100%; font-weight: 700;">
           </div>
 
           <div class="form-row-2">
@@ -101,12 +131,12 @@
             </div>
             <div class="form-group">
               <label class="form-label">Hệ / Vai Trò:</label>
-              <select id="editHeroRole" class="form-select" style="width:100%;">
-                <option value="Cường Công">Cường Công</option>
-                <option value="Mẫn Công">Mẫn Công</option>
-                <option value="Khống Chế">Khống Chế</option>
-                <option value="Phụ Trợ">Phụ Trợ</option>
-                <option value="Phòng Thủ">Phòng Thủ</option>
+              <select id="editHeroRole" class="form-select" style="width:100%; font-weight: 600;">
+                <option value="Cường Công">⚔️ Cường Công</option>
+                <option value="Mẫn Công">⚡ Mẫn Công</option>
+                <option value="Khống Chế">🌿 Khống Chế</option>
+                <option value="Phụ Trợ">🧪 Phụ Trợ</option>
+                <option value="Phòng Thủ">🛡️ Phòng Thủ</option>
               </select>
             </div>
           </div>
@@ -118,9 +148,9 @@
             </div>
             <div class="form-group">
               <label class="form-label">Độ Hiếm:</label>
-              <select id="editHeroRarity" class="form-select" style="width:100%;">
+              <select id="editHeroRarity" class="form-select" style="width:100%; font-weight: 800; color: var(--accent-gold);">
                 <option value="SSR" selected>SSR</option>
-                <option value="SP">SP</option>
+                <option value="SP">SP 🔥</option>
                 <option value="SR">SR</option>
                 <option value="R">R</option>
               </select>
@@ -133,9 +163,13 @@
           </div>
         </div>
 
-        <!-- Part 1: Quick Navigation & Skill Selection -->
-        <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass);">
-          <div class="tree-section-header" style="margin-bottom: 0.75rem;">⚔️ CHỌN NHÓM KỸ NĂNG</div>
+        <!-- Part 1: Quick Navigation & Skill Selection Card -->
+        <div class="studio-step-card">
+          <div class="step-card-header">
+            <span class="step-badge-tag" style="color: var(--accent-cyan);">⚔️ BƯỚC 2: CHỌN NHÓM KỸ NĂNG</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Rules Engine</span>
+          </div>
+
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 0.4rem;">
             <button class="btn-editor btn-editor-ghost group-btn active-group" id="btnRuleNormal" style="padding: 0.5rem; font-size: 0.75rem; justify-content: center;">⚔️ Đánh Thường</button>
             <button class="btn-editor btn-editor-ghost group-btn" id="btnRulePassive" style="padding: 0.5rem; font-size: 0.75rem; justify-content: center;">🛡️ Bị Động</button>
@@ -147,22 +181,24 @@
           </div>
           
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <label class="form-label" style="margin-bottom: 0;">Template Mẫu Nhanh:</label>
+            <label class="form-label" style="margin-bottom: 0;">⚡ Áp Dụng Template Mẫu Nhanh:</label>
           </div>
           <div style="display: flex; gap: 0.35rem;">
-            <button id="btnTemplateNormal" class="btn-editor btn-editor-ghost" style="flex:1; font-size:0.72rem; padding:0.35rem; justify-content: center;">Normal Preset</button>
-            <button id="btnTemplatePassive" class="btn-editor btn-editor-ghost" style="flex:1; font-size:0.72rem; padding:0.35rem; justify-content: center;">Passive Presets</button>
-            <button id="btnTemplateSoul" class="btn-editor btn-editor-gold" style="flex:1; font-size:0.72rem; padding:0.35rem; justify-content: center;">Soul Presets</button>
+            <button id="btnTemplateNormal" class="btn-editor btn-editor-ghost" style="flex:1; font-size:0.72rem; padding:0.4rem; justify-content: center;">Normal Preset</button>
+            <button id="btnTemplatePassive" class="btn-editor btn-editor-ghost" style="flex:1; font-size:0.72rem; padding:0.4rem; justify-content: center;">Passive Presets</button>
+            <button id="btnTemplateSoul" class="btn-editor btn-editor-gold" style="flex:1; font-size:0.72rem; padding:0.4rem; justify-content: center;">Soul Presets</button>
           </div>
         </div>
 
-        <!-- Part 2: Detailed Skill Properties Form -->
-        <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass);">
-          <div class="tree-section-header" style="margin-bottom: 0.75rem;">🛠️ THÔNG TIN CHI TIẾT — <span id="inspectorTargetName" style="color: var(--accent-gold); font-weight: 600; font-size: 0.8rem;">Chọn nhóm kỹ năng</span></div>
+        <!-- Part 2: Detailed Skill Properties Form Card -->
+        <div class="studio-step-card">
+          <div class="step-card-header">
+            <span class="step-badge-tag" style="color: #c084fc;">🛠️ BƯỚC 3: CHI TIẾT — <span id="inspectorTargetName" style="color: var(--accent-gold); font-weight: 700;">Chọn nhóm kỹ năng</span></span>
+          </div>
           
           <div class="form-group">
             <label class="form-label">Tên Kỹ Năng:</label>
-            <input type="text" id="editSkillName" class="form-input" style="width: 100%;">
+            <input type="text" id="editSkillName" class="form-input" style="width: 100%; font-weight: 700;">
           </div>
 
           <div class="form-group">
@@ -191,17 +227,17 @@
           <div class="form-group" style="margin-bottom: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
               <label class="form-label" style="margin-bottom: 0;">Mô Tả ({TừKhóa}):</label>
-              <button id="btnQuickInsertKw" class="btn-editor btn-editor-ghost" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;">✨ Insert (@)</button>
+              <button id="btnQuickInsertKw" class="btn-editor btn-editor-ghost" style="padding: 0.15rem 0.4rem; font-size: 0.7rem; color: var(--accent-gold);">✨ Chèn từ khóa (@)</button>
             </div>
             <textarea id="editSkillDesc" class="form-textarea" style="min-height: 120px; width: 100%; font-size: 0.88rem; line-height: 1.5;"></textarea>
           </div>
         </div>
 
-        <!-- Part 3: Niên Hạn & Star Requirements Form -->
-        <div id="ringUpgradesEditSection" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass);">
-          <div style="font-weight: 700; color: #fff; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
-            <span class="tree-section-header" style="margin-bottom: 0;">⭕ MỐC NIÊN HẠN HỒN HOÀN</span>
-            <button id="btnAddRingMilestone" class="btn-editor btn-editor-primary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">+ Thêm Mốc</button>
+        <!-- Part 3: Niên Hạn & Star Requirements Form Card -->
+        <div id="ringUpgradesEditSection" class="studio-step-card">
+          <div class="step-card-header">
+            <span class="step-badge-tag" style="color: var(--accent-gold);">⭕ MỐC NIÊN HẠN HỒN HOÀN</span>
+            <button id="btnAddRingMilestone" class="btn-editor btn-editor-primary" style="padding: 0.25rem 0.6rem; font-size: 0.72rem;">+ Thêm Mốc</button>
           </div>
 
           <div id="ringMilestonesContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -209,9 +245,11 @@
           </div>
         </div>
 
-        <!-- Asset Paste Zone -->
-        <div id="assetPasteSection" style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass);">
-          <div class="tree-section-header" style="margin-bottom: 0.75rem;">🖼️ THAY ĐỔI ẢNH</div>
+        <!-- Asset Paste Zone Card -->
+        <div id="assetPasteSection" class="studio-step-card">
+          <div class="step-card-header">
+            <span class="step-badge-tag" style="color: var(--accent-green);">🖼️ THAY ĐỔI ẢNH & ASSET PASTE</span>
+          </div>
 
           <!-- Chọn mục tiêu paste -->
           <div style="display: flex; gap: 0.4rem; margin-bottom: 0.6rem;">
@@ -222,13 +260,13 @@
 
           <!-- Paste Zone -->
           <div id="assetPasteZone"
-            style="border: 2px dashed var(--border-glass); border-radius: 8px; padding: 0.75rem; text-align: center; cursor: pointer; transition: border-color 0.2s; min-height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; position: relative;"
+            style="border: 2px dashed var(--border-glass); border-radius: 8px; padding: 0.85rem; text-align: center; cursor: pointer; transition: border-color 0.2s; min-height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; position: relative;"
             onclick="document.getElementById('assetFileInput').click()"
           >
             <input type="file" id="assetFileInput" accept="image/*" style="display:none;">
-            <span style="font-size: 1.5rem;">📋</span>
-            <span style="font-size: 0.78rem; color: var(--text-sub);">Ctrl+V hoặc click để chọn ảnh</span>
-            <span style="font-size: 0.7rem; color: var(--text-muted);" id="assetPasteTarget">→ Đang nhắm: <strong style="color: var(--accent-cyan);">Avatar</strong></span>
+            <span style="font-size: 1.6rem;">📋</span>
+            <span style="font-size: 0.8rem; color: var(--text-sub); font-weight: 600;">Nhấn Ctrl+V hoặc Click để tải ảnh</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted);" id="assetPasteTarget">→ Đang chọn target: <strong style="color: var(--accent-cyan);">Avatar</strong></span>
           </div>
 
           <!-- Preview -->
@@ -246,20 +284,22 @@
       </div> <!-- End heroEditorSidebarContainer -->
 
       <!-- HONHACH EDITOR SIDEBAR CONTAINER (Hidden by default) -->
-      <div id="honhachEditorSidebarContainer" style="display: none; flex-direction: column; gap: 1.25rem;">
+      <div id="honhachEditorSidebarContainer" style="display: none; flex-direction: column; gap: 1rem;">
           
           <!-- Hồn Hạch Info Form -->
-          <div style="background: rgba(6,182,212,0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(6,182,212,0.25);">
-            <div class="tree-section-header" style="margin-bottom: 0.75rem; color: var(--accent-cyan);">🦴 THÔNG TIN BỘ HỒN HẠCH</div>
+          <div class="studio-step-card" style="background: rgba(6,182,212,0.04); border-color: rgba(6,182,212,0.25);">
+            <div class="step-card-header">
+              <span class="step-badge-tag" style="color: var(--accent-cyan);">🦴 BƯỚC 1: THÔNG TIN BỘ HỒN HẠCH</span>
+            </div>
 
             <div class="form-row-2">
               <div class="form-group">
                 <label class="form-label">Tên Bộ Hồn Hạch:</label>
-                <input type="text" id="editHonhachNameVi" class="form-input" placeholder="VD: Sương Ảnh Thương Long" style="width:100%;">
+                <input type="text" id="editHonhachNameVi" class="form-input" placeholder="VD: Sương Ảnh Thương Long" style="width:100%; font-weight: 700;">
               </div>
               <div class="form-group">
                 <label class="form-label">Độ Hiếm:</label>
-                <select id="editHonhachRarity" class="form-select" style="width:100%;">
+                <select id="editHonhachRarity" class="form-select" style="width:100%; font-weight: 800; color: var(--accent-gold);">
                   <option value="SSR">SSR</option>
                   <option value="SR">SR</option>
                 </select>
@@ -283,7 +323,7 @@
             </div>
 
             <!-- Hồn Hạch Image Upload & Paste Dropzone -->
-            <div style="background: rgba(255,255,255,0.03); border: 1px dashed var(--accent-cyan); border-radius: 6px; padding: 0.6rem; text-align: center; margin-bottom: 1rem; cursor: pointer;" onclick="document.getElementById('honhachIconFileInput').click()">
+            <div style="background: rgba(255,255,255,0.03); border: 1px dashed var(--accent-cyan); border-radius: 8px; padding: 0.75rem; text-align: center; margin-bottom: 1rem; cursor: pointer;" onclick="document.getElementById('honhachIconFileInput').click()">
               <input type="file" id="honhachIconFileInput" accept="image/*" style="display:none;">
               <div style="font-size: 0.8rem; color: #a5f3fc; font-weight: 600;">🖼️ Click hoặc Ctrl+V dán ảnh trực tiếp làm Icon Bộ</div>
               <div style="font-size: 0.7rem; color: var(--text-muted);">Hệ thống tự động tải & áp dụng icon ngay lập tức</div>
@@ -296,8 +336,10 @@
           </div>
 
           <!-- Quick Template Selector -->
-          <div style="background: rgba(255,255,255,0.02); padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid var(--border-glass);">
-            <div class="tree-section-header" style="margin-bottom: 0.5rem; color: var(--accent-gold);">⚡ ÁP DỤNG TEMPLATE MẪU NHANH</div>
+          <div class="studio-step-card">
+            <div class="step-card-header">
+              <span class="step-badge-tag" style="color: var(--accent-gold);">⚡ ÁP DỤNG TEMPLATE MẪU NHANH</span>
+            </div>
             <div style="display: flex; gap: 0.4rem;">
               <button id="btnTplHonhachBoth" class="btn-editor btn-editor-gold" style="flex:1; font-size:0.75rem; justify-content:center; padding:0.4rem;">○ 2+4 Tiêu Chuẩn</button>
               <button id="btnTplHonhach2" class="btn-editor btn-editor-ghost" style="flex:1; font-size:0.75rem; justify-content:center; padding:0.4rem;">○ Chỉ Bộ 2</button>
@@ -305,14 +347,16 @@
             </div>
           </div>
 
-          <!-- Set 2 Món Form (1 Dòng duy nhất - Tự do sửa mô tả) -->
-          <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass);">
-            <div class="tree-section-header" style="margin-bottom: 0.6rem; color: var(--accent-cyan);">🔷 BỘ 2 MÓN (2件套 — 1 DÒNG DUY NHẤT)</div>
+          <!-- Set 2 Món Form -->
+          <div class="studio-step-card">
+            <div class="step-card-header">
+              <span class="step-badge-tag" style="color: var(--accent-cyan);">🔷 BỘ 2 MÓN (2件套 — 1 DÒNG DUY NHẤT)</span>
+            </div>
             
             <div class="form-row-2" style="margin-bottom: 0.6rem;">
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label">Yêu Cầu Mở Mốc:</label>
-                <input type="number" id="editHonhachSet2Star" class="form-input" style="width:100%;" value="2" placeholder="2">
+                <input type="number" id="editHonhachSet2Star" class="form-input" style="width:100%; font-weight:700;" value="2" placeholder="2">
               </div>
               <div class="form-group" style="margin-bottom: 0; display:flex; align-items:flex-end;">
                 <span style="font-size:0.75rem; color:var(--text-sub);">(Gợi ý: 2★ Cố định)</span>
@@ -326,8 +370,10 @@
           </div>
 
           <!-- Set 4 Món Form & Effect Builder -->
-          <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-glass);">
-            <div class="tree-section-header" style="margin-bottom: 0.6rem; color: var(--accent-gold);">🔶 BỘ 4 MÓN (4件套 — SCALING 4★ - 24★)</div>
+          <div class="studio-step-card">
+            <div class="step-card-header">
+              <span class="step-badge-tag" style="color: var(--accent-gold);">🔶 BỘ 4 MÓN (4件套 — SCALING 4★ - 24★)</span>
+            </div>
 
             <div class="form-group">
               <label class="form-label">Template Mô Tả Bộ 4 ({stat}):</label>
@@ -353,37 +399,72 @@
 
       </aside>
 
-      <!-- Column 2: Center Interactive Live Preview Canvas (Occupies right side) -->
-      <!-- Hero Mode Preview Container -->
-      <section class="studio-center-canvas" id="editorPreviewContainer" style="background: var(--bg-card); border: 1px solid var(--border-highlight); border-radius: var(--radius-md); padding: 1.25rem; position: relative; box-shadow: 0 0 35px rgba(6, 182, 212, 0.2);">
-        <div class="preview-badge-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem;">
-          <div style="font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
-            <span>👁️ BẢN XEM TRƯỚC LIVE CANVAS</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">(Click vào node Hồn Kỹ / Bị Động... bên dưới để chuyển đổi)</span>
+      <!-- PANEL 2: Center Inline Editor Canvas (Click-to-Edit) -->
+      <!-- Hero Editor Canvas -->
+      <section class="editor-canvas-panel" id="heroEditorCanvasPanel">
+        <div class="editor-canvas-panel-header">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-size:0.88rem; font-weight:800; color:#fbbf24;">✏️ EDITOR CANVAS</span>
+            <span style="font-size:0.72rem; color:var(--text-muted); background:rgba(251,191,36,0.1); padding:0.15rem 0.5rem; border-radius:20px;">Click để chỉnh trực tiếp</span>
           </div>
-          <span class="preview-status-pill" style="font-size: 0.75rem; color: var(--accent-green);">⚡ Live Sync</span>
+          <div style="display:flex; align-items:center; gap:0.35rem;">
+            <span class="pulse-live-dot" style="background:var(--accent-gold); box-shadow:0 0 8px var(--accent-gold);"></span>
+            <span style="font-size:0.72rem; color:var(--accent-gold); font-weight:700;">EDIT LIVE</span>
+            <button id="btnToggleLivePreview" class="btn-editor btn-editor-ghost" style="padding:0.2rem 0.6rem; font-size:0.72rem; margin-left:0.5rem;" title="Ẩn/Hiện Panel Live Preview">👁️ Preview</button>
+          </div>
         </div>
+        <!-- Editor canvas content injected by canvas-editor.js -->
+        <div id="heroEditorCanvasFrame"></div>
+      </section>
 
+      <!-- Honhach Editor Canvas (Hidden by default) -->
+      <section class="editor-canvas-panel" id="honhachEditorCanvasPanel" style="display:none;">
+        <div class="editor-canvas-panel-header">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-size:0.88rem; font-weight:800; color:var(--accent-cyan);">✏️ HONHACH CANVAS</span>
+            <span style="font-size:0.72rem; color:var(--text-muted);">Xem Preview trực tiếp</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.35rem;">
+            <span class="pulse-live-dot"></span>
+            <span style="font-size:0.72rem; color:var(--accent-green); font-weight:700;">LIVE SYNC</span>
+          </div>
+        </div>
+        <div id="honhachEditorCanvasFrame"></div>
+      </section>
+
+      <!-- PANEL 3: Right Live Preview (read-only, toggleable) -->
+      <!-- Hero Mode Preview -->
+      <div class="studio-live-preview" id="editorPreviewContainer">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border-glass);">
+          <div style="font-weight:800; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+            <span>👁️ LIVE PREVIEW</span>
+            <span style="font-size:0.72rem; color:var(--text-muted);">(Chế độ đọc)</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <span class="pulse-live-dot"></span>
+            <span style="font-size:0.72rem; color:var(--accent-green); font-weight:700;">LIVE</span>
+          </div>
+        </div>
         <div id="editorLivePreviewFrame">
           <!-- Rendered live interactive component canvas -->
         </div>
-      </section>
+      </div>
 
-      <!-- Honhach Mode Game Preview Container (Hidden by default) -->
-      <section class="studio-center-canvas" id="honhachPreviewContainer" style="display: none; background: var(--bg-card); border: 1px solid var(--border-highlight); border-radius: var(--radius-md); padding: 1.25rem; position: relative; box-shadow: 0 0 35px rgba(245, 158, 11, 0.2);">
-        <div class="preview-badge-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 0.75rem;">
-          <div style="font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.5rem;">
-            <span>👁️ PREVIEW TRONG GAME — SOUL CORE CARDS</span>
-            <span style="font-size: 0.75rem; color: var(--accent-gold);">(Giao diện chuẩn game Đấu La MMO)</span>
+      <!-- Honhach Live Preview (Hidden by default) -->
+      <div class="studio-live-preview" id="honhachPreviewContainer" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border-glass);">
+          <div style="font-weight:800; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+            <span>👁️ PREVIEW SOUL CORE</span>
           </div>
-          <span class="preview-status-pill" style="font-size: 0.75rem; color: var(--accent-green);">⚡ Live Sync</span>
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <span class="pulse-live-dot"></span>
+            <span style="font-size:0.72rem; color:var(--accent-green); font-weight:700;">LIVE</span>
+          </div>
         </div>
-
         <div id="honhachLivePreviewFrame">
           <!-- Rendered Soul Core Game Preview Cards & JSON Inspector -->
         </div>
-      </section>
-
+      </div>
 
     </div>
 
@@ -405,7 +486,9 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Scripts -->
+  <script src="js/i18n.js"></script>
   <script src="js/data-layer.js"></script>
+  <script src="js/canvas-editor.js"></script>
   <script src="js/editor.js"></script>
 </body>
 </html>

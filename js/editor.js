@@ -117,6 +117,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentBranchIdx = 0;
   let currentSkillIdx = 0;
   let currentCroppedIconData = null;
+  let livePreviewVisible = true;
+
+  // Panel elements
+  const studioLayout = document.getElementById('studioLayout');
+  const heroEditorCanvasPanel = document.getElementById('heroEditorCanvasPanel');
+  const honhachEditorCanvasPanel = document.getElementById('honhachEditorCanvasPanel');
+  const btnToggleLivePreview = document.getElementById('btnToggleLivePreview');
 
   // Layout Visibility Config
   let layoutVisibility = {
@@ -139,6 +146,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     populateHeroSelect();
     populateHonhachSelect();
 
+    // Initialize CanvasEditor
+    CanvasEditor.init({
+      hero: null,
+      onSave: (hero, meta) => {
+        currentHero = hero;
+        const fp = meta && meta.fieldPath ? meta.fieldPath : '';
+
+        // ── Sync back to sidebar form fields ──
+        if (editHeroName)   editHeroName.value   = hero.name   || '';
+        if (editHeroWusoul) editHeroWusoul.value = hero.wusoul || '';
+        if (editHeroRole)   editHeroRole.value   = hero.role   || '';
+        if (editHeroTitle)  editHeroTitle.value  = hero.title  || '';
+        if (editHeroBio)    editHeroBio.value    = hero.bio    || '';
+
+        // Sync rarity dropdown in sidebar
+        if (fp === 'rarity') {
+          const rarityEl = document.getElementById('editHeroRarity');
+          if (rarityEl) rarityEl.value = hero.rarity || 'SR';
+        }
+
+        // Reload skill inspector when any skill field changes
+        if (fp.startsWith('skill') || fp.startsWith('branch')) {
+          loadSkillToInspector();
+          // Also update hero select label
+          populateHeroSelect();
+          heroSelect.value = hero.id;
+        }
+
+        // Handle branch switch from canvas (tab click)
+        if (meta && meta.branchChanged) {
+          currentBranchIdx = meta.branchIdx;
+          loadSkillToInspector();
+        }
+
+        DataLayer.saveHeroDraft(hero);
+        renderLivePreviewCanvas();
+      },
+      groupId: activeGroupId,
+      branchIdx: currentBranchIdx
+    });
+
+
+    // Toggle Live Preview button
+    if (btnToggleLivePreview) {
+      btnToggleLivePreview.addEventListener('click', () => {
+        livePreviewVisible = !livePreviewVisible;
+        const livePanel = document.getElementById('editorPreviewContainer');
+        if (livePanel) livePanel.classList.toggle('hidden', !livePreviewVisible);
+        if (studioLayout) studioLayout.classList.toggle('preview-hidden', !livePreviewVisible);
+        btnToggleLivePreview.textContent = livePreviewVisible ? '👁️ Preview' : '👁️ Hiện Preview';
+        btnToggleLivePreview.style.color = livePreviewVisible ? '' : 'var(--accent-gold)';
+      });
+    }
+
     if (heroesList.length > 0) {
       await selectHero(heroesList[0].id);
     }
@@ -159,9 +220,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       honhachTopControls.style.display = 'none';
       heroEditorSidebarContainer.style.display = 'flex';
       honhachEditorSidebarContainer.style.display = 'none';
+      // Panel 2 switches
+      if (heroEditorCanvasPanel) heroEditorCanvasPanel.style.display = 'flex';
+      if (honhachEditorCanvasPanel) honhachEditorCanvasPanel.style.display = 'none';
+      // Panel 3 switches
       editorPreviewContainer.style.display = 'block';
       honhachPreviewContainer.style.display = 'none';
       renderLivePreviewCanvas();
+      renderEditorCanvas();
     } else {
       tabModeHonhach.classList.add('active-group');
       tabModeHero.classList.remove('active-group');
@@ -169,11 +235,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       honhachTopControls.style.display = 'flex';
       heroEditorSidebarContainer.style.display = 'none';
       honhachEditorSidebarContainer.style.display = 'flex';
+      // Panel 2 switches
+      if (heroEditorCanvasPanel) heroEditorCanvasPanel.style.display = 'none';
+      if (honhachEditorCanvasPanel) honhachEditorCanvasPanel.style.display = 'flex';
+      // Panel 3 switches
       editorPreviewContainer.style.display = 'none';
       honhachPreviewContainer.style.display = 'block';
       loadHonhachToInspector();
       renderHonhachLivePreview();
+      // For honhach, editor canvas mirrors the live preview
+      const honhachCanvasFrame = document.getElementById('honhachEditorCanvasFrame');
+      if (honhachCanvasFrame && honhachLivePreviewFrame) {
+        honhachCanvasFrame.innerHTML = honhachLivePreviewFrame.innerHTML;
+      }
     }
+  }
+
+  /** Render the inline Editor Canvas (Panel 2) for current hero */
+  function renderEditorCanvas() {
+    if (!currentHero) return;
+    CanvasEditor.setHero(currentHero);
+    CanvasEditor.setGroup(activeGroupId);
+    CanvasEditor.setBranch(currentBranchIdx);
+    CanvasEditor.render('heroEditorCanvasFrame');
   }
 
   function populateHonhachSelect() {
@@ -593,6 +677,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     loadSkillToInspector();
     renderLivePreviewCanvas();
+    renderEditorCanvas();
   }
 
   function loadSkillToInspector() {
@@ -801,6 +886,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     DataLayer.saveHeroDraft(currentHero);
     renderLivePreviewCanvas();
+    renderEditorCanvas();
   }
 
   /**
@@ -945,6 +1031,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentSkillIdx = 0;
         loadSkillToInspector();
         renderLivePreviewCanvas();
+        renderEditorCanvas();
       });
     });
 
@@ -955,6 +1042,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentSkillIdx = 0;
         loadSkillToInspector();
         renderLivePreviewCanvas();
+        renderEditorCanvas();
       });
     });
   }
@@ -982,11 +1070,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Viewport Simulator (Desktop / Mobile only)
     viewDesktop.addEventListener('click', () => {
       viewDesktop.classList.add('active'); viewPhone.classList.remove('active');
-      editorPreviewContainer.className = 'studio-center-canvas';
+      editorPreviewContainer.className = 'studio-live-preview';
     });
     viewPhone.addEventListener('click', () => {
       viewPhone.classList.add('active'); viewDesktop.classList.remove('active');
-      editorPreviewContainer.className = 'studio-center-canvas viewport-phone';
+      editorPreviewContainer.className = 'studio-live-preview viewport-phone';
     });
 
     // Hero info form reactive
@@ -1315,4 +1403,14 @@ Thao tác này không thể hoàn tác.`)) {
       setTimeout(() => toast.remove(), 300);
     }, 3500);
   }
+
+  // Listen for i18n language change in editor
+  window.addEventListener('languageChanged', () => {
+    if (activeMode === 'hero') {
+      renderLivePreview();
+    } else if (activeMode === 'honhach') {
+      renderHonhachPreview();
+    }
+  });
 });
+
