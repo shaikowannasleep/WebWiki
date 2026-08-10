@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const skillItemsContainer = document.getElementById('skillItemsContainer');
   const panelSkillDisplay = document.getElementById('panelSkillDisplay');
   const globalKeywordPopup = document.getElementById('global-keyword-popup');
+  const btnCompareToggle = document.getElementById('btnCompareToggle');
 
   if (!panelHeroProfile) return;
 
@@ -49,9 +50,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeGroupId = 'honky'; // Default: Hồn Kỹ
   let activeBranchIndex = 0;
   let activeSkillIndex = 0;
+  let isCompareMode = false;
 
   renderHeroProfilePanel(heroData);
   setupRadialMenuListeners();
+  setupCompareToggle();
   renderPanel2And3();
 
   function renderHeroProfilePanel(data) {
@@ -103,6 +106,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  function setupCompareToggle() {
+    if (!btnCompareToggle) return;
+    const gridContainer = document.querySelector('.hero-3panel-grid');
+    
+    btnCompareToggle.addEventListener('click', () => {
+      isCompareMode = !isCompareMode;
+      if (isCompareMode) {
+        btnCompareToggle.classList.add('active');
+        btnCompareToggle.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2))';
+        btnCompareToggle.style.borderColor = 'var(--accent-cyan)';
+        btnCompareToggle.style.color = '#a5f3fc';
+        if (gridContainer) gridContainer.classList.add('compare-active');
+      } else {
+        btnCompareToggle.classList.remove('active');
+        btnCompareToggle.style.background = '';
+        btnCompareToggle.style.borderColor = '';
+        btnCompareToggle.style.color = '';
+        if (gridContainer) gridContainer.classList.remove('compare-active');
+      }
+      renderSkillDisplay();
+    });
+  }
+
   /**
    * Rule Engine Driven Panel 2 & 3 Rendering
    */
@@ -114,6 +140,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (hasBranch) {
       branchToggleContainer.style.display = 'flex';
+      if (btnCompareToggle && heroData.branches.length >= 2) {
+        btnCompareToggle.style.display = 'inline-flex';
+      } else if (btnCompareToggle) {
+        btnCompareToggle.style.display = 'none';
+      }
       renderBranchToggle(heroData.branches);
 
       const branch = heroData.branches[activeBranchIndex] || heroData.branches[0];
@@ -123,6 +154,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } else {
       branchToggleContainer.style.display = 'none';
+      if (btnCompareToggle) btnCompareToggle.style.display = 'none';
+      isCompareMode = false;
+      if (btnCompareToggle) {
+        btnCompareToggle.classList.remove('active');
+        btnCompareToggle.style.background = '';
+        btnCompareToggle.style.borderColor = '';
+        btnCompareToggle.style.color = '';
+      }
+      const gridContainer = document.querySelector('.hero-3panel-grid');
+      if (gridContainer) gridContainer.classList.remove('compare-active');
 
       heroData.branches.forEach(b => {
         const matching = b.skills.filter(s => s.group === activeGroupId);
@@ -171,11 +212,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         activeSkillIndex = idx;
         items.forEach(i => i.classList.remove('active'));
         item.classList.add('active');
-        renderSkillDisplay(availableSkills[activeSkillIndex]);
+        renderSkillDisplay();
       });
     });
 
-    renderSkillDisplay(availableSkills[activeSkillIndex]);
+    renderSkillDisplay();
   }
 
   function renderBranchToggle(branches) {
@@ -201,15 +242,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function renderSkillDisplay(skill) {
-    if (!skill) return;
+  function getSkillForBranch(bIdx, sIdx) {
+    const b = heroData.branches[bIdx];
+    if (!b || !b.skills) return null;
+    let filteredSkills = b.skills.filter(s => !s.group || s.group === activeGroupId || activeGroupId === 'honky');
+    if (filteredSkills.length === 0) filteredSkills = b.skills;
+    return filteredSkills[sIdx] || null;
+  }
 
+  function renderSingleSkillHTML(skill, branchName = '') {
     const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
     const hasRingUpgrades = groupRule.hasRingUpgrades;
     const parsedDesc = parseKeywordMarkup(skill.description);
 
-    panelSkillDisplay.innerHTML = `
-      <div class="skill-detail-header">
+    return `
+      ${branchName ? `<div class="skill-branch-label" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.75rem; border-bottom: 1px solid rgba(251, 191, 36, 0.3); padding-bottom: 0.35rem; display: inline-block;">${branchName}</div>` : ''}
+      <div class="skill-detail-header" style="${branchName ? 'margin-bottom: 1rem; padding-bottom: 0.75rem;' : ''}">
         <div class="skill-detail-large-icon" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
           ${skill.icon && skill.icon.includes('/') ? `<img src="${skill.icon}" style="width:100%; height:100%; object-fit:cover;">` : (skill.icon || '⚔️')}
         </div>
@@ -223,24 +271,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
 
-      <div class="skill-description-box">
+      <div class="skill-description-box" style="${branchName ? 'font-size: 0.88rem; padding: 1rem;' : ''}">
         ${parsedDesc}
       </div>
 
       ${hasRingUpgrades && skill.ringUpgrades ? `
         <div class="ring-upgrades-section">
           <div class="ring-upgrades-title">
-            <span>⭕ Hiệu Ứng Niên Hạn Hồn Hoàn & Yêu Cầu Mở Khóa</span>
+            <span>⭕ Hiệu Ứng Niên Hạn</span>
           </div>
           <div class="ring-upgrades-list">
             ${(skill.ringUpgrades || []).map(upgrade => {
               const yearClass = getYearCssClass(upgrade.year);
               const parsedBonus = parseKeywordMarkup(upgrade.bonus);
               return `
-                <div class="ring-upgrade-card" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+                <div class="ring-upgrade-card" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; ${branchName ? 'padding: 0.6rem 0.85rem;' : ''}">
                   <div style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
-                    <span class="ring-year-tag ${yearClass}">${upgrade.year}</span>
-                    <span class="ring-bonus-text">${parsedBonus}</span>
+                    <span class="ring-year-tag ${yearClass}" style="${branchName ? 'padding: 0.15rem 0.5rem; font-size: 0.72rem;' : ''}">${upgrade.year}</span>
+                    <span class="ring-bonus-text" style="${branchName ? 'font-size: 0.82rem;' : ''}">${parsedBonus}</span>
                   </div>
                   ${upgrade.requirements && upgrade.requirements.length > 0 ? `
                     <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.25rem;">
@@ -254,7 +302,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       ` : ''}
     `;
+  }
 
+  function renderSkillDisplay() {
+    const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
+    
+    if (isCompareMode && groupRule.hasBranch && heroData.branches.length >= 2) {
+      const skill1 = getSkillForBranch(0, activeSkillIndex);
+      const skill2 = getSkillForBranch(1, activeSkillIndex);
+      
+      if (skill1 && skill2) {
+        panelSkillDisplay.innerHTML = `
+          <div class="skill-compare-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+            <div class="compare-col" style="border-right: 1px solid var(--border-glass); padding-right: 1.5rem;">
+              ${renderSingleSkillHTML(skill1, heroData.branches[0].branchName)}
+            </div>
+            <div class="compare-col">
+              ${renderSingleSkillHTML(skill2, heroData.branches[1].branchName)}
+            </div>
+          </div>
+        `;
+        attachKeywordClickEvents();
+        return;
+      }
+    }
+
+    // Default Single View
+    let skill = null;
+    if (groupRule.hasBranch) {
+       skill = getSkillForBranch(activeBranchIndex, activeSkillIndex);
+    } else {
+       // Single pool
+       let allSkills = [];
+       heroData.branches.forEach(b => {
+         allSkills.push(...b.skills.filter(s => s.group === activeGroupId));
+       });
+       if (allSkills.length === 0 && heroData.branches[0]) {
+         const idxMap = { normal: 0, tienco: 1 };
+         const idx = idxMap[activeGroupId] !== undefined ? idxMap[activeGroupId] : 0;
+         allSkills = [heroData.branches[0].skills[idx]];
+       }
+       skill = allSkills[activeSkillIndex];
+    }
+
+    if (!skill) {
+      panelSkillDisplay.innerHTML = `<div style="color: var(--text-muted);">Không tìm thấy thông tin kỹ năng.</div>`;
+      return;
+    }
+
+    panelSkillDisplay.innerHTML = renderSingleSkillHTML(skill);
     attachKeywordClickEvents();
   }
 

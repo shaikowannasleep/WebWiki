@@ -84,8 +84,13 @@
         </div>
 
         <!-- Level 2: Branch Toggle -->
-        <div class="branch-toggle-container" id="branchToggleContainer" style="display: none;">
-          <!-- Branch Switcher Buttons populated by hero.js -->
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <div class="branch-toggle-container" id="branchToggleContainer" style="display: none; flex: 1;">
+            <!-- Branch Switcher Buttons populated by hero.js -->
+          </div>
+          <button id="btnCompareToggle" class="btn-editor btn-editor-ghost" style="display: none; font-size: 0.75rem; padding: 0.4rem 0.6rem; white-space: nowrap;" title="So sánh 2 nhánh">
+            <span class="icon">⚖️</span> So sánh
+          </button>
         </div>
 
         <!-- Skill Items List for Active Group/Branch -->

@@ -22,3 +22,4 @@ edit.html
 js/editor.js
 js/canvas-editor.js
 js/auth.js
+*.md
