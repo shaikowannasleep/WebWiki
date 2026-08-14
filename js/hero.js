@@ -62,9 +62,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const heroRole = i18n.translateConcept(data.role);
     const heroTitle = data.title ? i18n.translateConcept(data.title) : '';
     const heroWusoul = i18n.translateConcept(data.wusoul);
+    const rarityClass = data.rarity === 'SP' ? 'rarity-sp' : (data.rarity === 'SSR' ? 'rarity-ssr' : '');
 
     panelHeroProfile.innerHTML = `
-      <div class="panel-hero-avatar">
+      <div class="panel-hero-avatar ${rarityClass}">
         <img src="${data.avatar}" alt="${heroName}" onerror="this.src='assets/heroes/oscar/avatar.webp'">
       </div>
       <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -82,26 +83,36 @@ document.addEventListener('DOMContentLoaded', async () => {
    * Radial Navigation Menu Event Setup (100% Matching Game Screenshot)
    */
   function setupRadialMenuListeners() {
-    if (!radialMenuWrapper) return;
-    const radialNodes = radialMenuWrapper.querySelectorAll('.radial-node');
-    
+    const radialNodes = radialMenuWrapper ? radialMenuWrapper.querySelectorAll('.radial-node') : [];
+    const mobileChips = document.querySelectorAll('#mobileSkillGroupBar .mobile-group-chip');
+
+    function syncActiveGroup(groupId) {
+      activeGroupId = groupId;
+      activeSkillIndex = 0;
+
+      radialNodes.forEach(n => {
+        n.classList.toggle('active', n.getAttribute('data-group-id') === groupId);
+      });
+      mobileChips.forEach(c => {
+        c.classList.toggle('active', c.getAttribute('data-group-id') === groupId);
+      });
+      renderPanel2And3();
+    }
+
     // Set initial active state
     radialNodes.forEach(node => {
-      if (node.getAttribute('data-group-id') === activeGroupId) {
-        node.classList.add('active');
-      } else {
-        node.classList.remove('active');
-      }
-
+      node.classList.toggle('active', node.getAttribute('data-group-id') === activeGroupId);
       node.addEventListener('click', () => {
         const groupId = node.getAttribute('data-group-id');
-        if (groupId !== activeGroupId) {
-          activeGroupId = groupId;
-          activeSkillIndex = 0;
-          radialNodes.forEach(n => n.classList.remove('active'));
-          node.classList.add('active');
-          renderPanel2And3();
-        }
+        if (groupId !== activeGroupId) syncActiveGroup(groupId);
+      });
+    });
+
+    mobileChips.forEach(chip => {
+      chip.classList.toggle('active', chip.getAttribute('data-group-id') === activeGroupId);
+      chip.addEventListener('click', () => {
+        const groupId = chip.getAttribute('data-group-id');
+        if (groupId !== activeGroupId) syncActiveGroup(groupId);
       });
     });
   }
@@ -255,9 +266,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const hasRingUpgrades = groupRule.hasRingUpgrades;
     const parsedDesc = parseKeywordMarkup(skill.description);
 
+    // Extract unique keywords mentioned in description
+    const kwMatches = (skill.description || '').match(/\{([a-zA-Z0-9_\u00C0-\u1EF9]+)\}/g) || [];
+    const uniqueKws = [...new Set(kwMatches.map(k => k.replace(/[{}]/g, '')))].filter(k => k !== 'stat');
+
+    const kwPillsHTML = uniqueKws.map(k => {
+      const kwObj = (keywordsDict && keywordsDict[k]) || { name: k, icon: '✨', type: 'Hiệu ứng' };
+      return `<span class="combat-kw-tag keyword-item" data-keyword="${k}"><span>${kwObj.icon || '✨'}</span> ${kwObj.name || k}</span>`;
+    }).join('');
+
     return `
       ${branchName ? `<div class="skill-branch-label" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.75rem; border-bottom: 1px solid rgba(251, 191, 36, 0.3); padding-bottom: 0.35rem; display: inline-block;">${branchName}</div>` : ''}
-      <div class="skill-detail-header" style="${branchName ? 'margin-bottom: 1rem; padding-bottom: 0.75rem;' : ''}">
+      <div class="skill-detail-header" style="${branchName ? 'margin-bottom: 0.75rem; padding-bottom: 0.5rem;' : ''}">
         <div class="skill-detail-large-icon" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
           ${skill.icon && skill.icon.includes('/') ? `<img src="${skill.icon}" style="width:100%; height:100%; object-fit:cover;">` : (skill.icon || '⚔️')}
         </div>
@@ -271,7 +291,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
 
+      <!-- Tactical Combat Summary Box -->
+      <div class="combat-summary-card">
+        <div class="combat-summary-header">
+          <span class="combat-summary-title">⚡ COMBAT SUMMARY</span>
+          <span style="font-size: 0.68rem; color: var(--text-muted);">Quick Tactical Scan</span>
+        </div>
+        <div class="combat-stats-grid">
+          <div class="combat-stat-cell">
+            <span class="combat-stat-label">Tiêu Hao</span>
+            <span class="combat-stat-value" style="color:var(--accent-gold);">${skill.cost || '0 Hồn Lực'}</span>
+          </div>
+          <div class="combat-stat-cell">
+            <span class="combat-stat-label">Hồi Chiêu</span>
+            <span class="combat-stat-value" style="color:var(--accent-cyan);">${skill.cooldown || '0 lượt'}</span>
+          </div>
+          <div class="combat-stat-cell">
+            <span class="combat-stat-label">Cơ Chế</span>
+            <span class="combat-stat-value">${skill.type || 'Chủ động'}</span>
+          </div>
+        </div>
+        ${uniqueKws.length > 0 ? `
+          <div class="combat-keywords-row">
+            <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-right:0.25rem;">Hiệu Ứng:</span>
+            ${kwPillsHTML}
+          </div>
+        ` : ''}
+      </div>
+
       <div class="skill-description-box" style="${branchName ? 'font-size: 0.88rem; padding: 1rem;' : ''}">
+        <div style="font-size:0.72rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem; letter-spacing:0.5px;">MÔ TẢ CHI TIẾT</div>
         ${parsedDesc}
       </div>
 
@@ -351,6 +400,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     panelSkillDisplay.innerHTML = renderSingleSkillHTML(skill);
+    panelSkillDisplay.classList.remove('fade-in-skill');
+    void panelSkillDisplay.offsetWidth; // trigger reflow for animation restart
+    panelSkillDisplay.classList.add('fade-in-skill');
     attachKeywordClickEvents();
   }
 

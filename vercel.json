@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "name": "douluo-wiki",
+  "routes": [
+    {
+      "src": "/edit.html(.*)",
+      "status": 404
+    },
+    {
+      "src": "/edit(.*)",
+      "status": 404
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

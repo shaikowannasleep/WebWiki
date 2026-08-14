@@ -1,0 +1,33 @@
+[
+  {
+    "id": "honcot_head_thaithan_clone_7134_clone_7805",
+    "name": "Xương Đầu Thánh Tựu Hư Thiên",
+    "nameVi": "Xương Đầu Thánh Tựu Hư Thiên",
+    "slot": "head",
+    "wusoulType": "",
+    "icon": "assets/uploads/img_1786681489352.png",
+    "enhanceStats": "<div><span style=\"font-size: 14.08px;\">Sau khi kích hoạt, triệu hồi Hư Thiên Quang Thứu, gây&nbsp;</span><span style=\"font-size: 0.88rem;\">15101+466.2%+37.5% ST Kỹ Năng.</span></div><div>Trong 60 giây tiếp theo, mỗi khi Đánh Thường sẽ gây thêm 1 lần ST Kỹ Năng bằng</div><div>11955+373.0%+30.0% Công, tối đa kích hoạt 30 lần. Khi trúng mục tiêu đang ở trạng thái {Chớp Sáng}, ST tăng thêm 50%, CD 150 giây, có thể thi triển khi Hồn Lực Nạp Năng đat 1500 điểm</div>",
+    "effects": [
+      {
+        "year": "1 Vạn",
+        "star": 1,
+        "desc": "Lượng Hồn Lực tiêu hao giảm 300 điểm."
+      },
+      {
+        "year": "2.5 Vạn",
+        "star": 2,
+        "desc": "Khi nhận [Quang Năng], lập tức bổ sung 10 lượt kích hoạt, mỗi 60 giây tối đa kích hoạt 1 lần"
+      },
+      {
+        "year": "5 Vạn",
+        "star": 3,
+        "desc": "ST gây ra tăng 20%"
+      },
+      {
+        "year": "8 Vạn",
+        "star": 4,
+        "desc": "CD kỹ năng giảm 30 giây"
+      }
+    ]
+  }
+]

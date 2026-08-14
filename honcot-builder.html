@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Hồn Cốt - Douluo MMO Wiki</title>
+  <meta name="description" content="Trình mô phỏng và xây dựng đội hình Hồn Cốt Đấu La Đại Lục MMO.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* Builder Specific Overrides */
+    .builder-toolbar {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .btn-action {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-glass);
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-action:hover {
+      background: var(--bg-surface);
+      border-color: var(--accent-cyan);
+    }
+    .hc-slot-inner {
+      position: relative;
+    }
+    .btn-change-bone {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      opacity: 0.8;
+      transition: all 0.2s;
+    }
+    .btn-change-bone:hover {
+      opacity: 1;
+      transform: scale(1.1);
+      background: var(--accent-cyan);
+      color: #000;
+    }
+    .right-align .btn-change-bone {
+      right: auto;
+      left: -10px;
+    }
+    .honcot-container {
+      background-image: url('assets/honcotbg_default.png');
+      background-size: cover;
+      background-position: center;
+      background-blend-mode: overlay;
+      background-color: rgba(11, 17, 32, 0.85); /* Fallback/overlay */
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+    }
+    .hc-modal-overlay.active {
+      display: flex;
+    }
+    .bone-list-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(15, 23, 42, 0.5);
+    }
+    .bone-list-item:hover {
+      border-color: var(--accent-gold);
+      background: rgba(251, 191, 36, 0.1);
+    }
+    .bone-list-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .bone-list-info {
+      flex: 1;
+    }
+    .bone-list-name {
+      font-weight: 700;
+      color: #fff;
+    }
+    .bone-list-desc {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+    .upload-area {
+      border: 2px dashed var(--border-glass);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+    }
+    .upload-area:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.05);
+    }
+    #uploadPreview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 8px;
+      margin-top: 1rem;
+      display: none;
+    }
+    .crop-container {
+      max-width: 100%;
+      max-height: 400px;
+      margin-top: 1rem;
+      display: none;
+    }
+    #cropImage {
+      max-width: 100%;
+      display: block;
+    }
+    .hc-hero-name-edit {
+      border-bottom: 2px dashed rgba(255, 255, 255, 0.5);
+      cursor: text;
+      display: inline-block;
+      padding: 0 0.5rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .hc-hero-name-edit:focus {
+      border-bottom-color: var(--accent-gold);
+      background: rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header" data-html2canvas-ignore="true">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <span class="logo-icon">🐉</span>
+        <span>DOULUO WIKI</span>
+      </a>
+      <nav class="nav-links" id="mainNavLinks">
+        <a href="index.html" class="nav-link">Trang Chủ</a>
+        <a href="index.html" class="nav-link">Hồn Sư</a>
+        <a href="honhach.html" class="nav-link">Hồn Hạch</a>
+        <a href="honcot.html" class="nav-link">Hồn Cốt</a>
+        <div class="lang-selector-wrapper" id="langSelectorWrapper"></div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- Builder Tools (Not captured in screenshot) -->
+    <div class="builder-toolbar" data-html2canvas-ignore="true">
+      <button class="btn-action" onclick="openUploadModal('avatar')">👤 Đổi Nhân Vật</button>
+      <button class="btn-action" onclick="openUploadModal('bg')">🖼 Đổi Hình Nền</button>
+      <button class="btn-action" onclick="resetSetup()">🗑 Xóa Hết Hồn Cốt</button>
+    </div>
+
+    <!-- Capture Area -->
+    <div class="honcot-container" id="honcotCaptureArea">
+      
+      <div class="honcot-header-info">
+        <h1 id="hcHeroName" class="hc-hero-name-edit" contenteditable="true" spellcheck="false" title="Nhấn để đổi tên">Nhân Vật Tùy Chỉnh</h1>
+        <div class="hc-stats-box" style="display: none;">
+          <span>Điểm Hồn Cốt Thám Hiểm</span>
+          <strong id="hcScore">0</strong>
+        </div>
+      </div>
+
+      <div class="honcot-grid-layout">
+        
+        <!-- Left Column -->
+        <div class="hc-column hc-left">
+          <!-- Đầu -->
+          <div class="hc-slot" id="slot-head">
+            <div class="hc-slot-inner">
+              <button class="btn-change-bone" data-html2canvas-ignore="true" onclick="openBonePicker('head')" title="Đổi Hồn Cốt">🔄</button>
+              <div class="hc-icon-wrapper" onclick="openBoneModal('head')">
+                <img src="assets/icons/honcot_head.png" id="img-head">
+                <div class="hc-enhance-tag" id="enh-head" onclick="editEnhance('head', event)" title="Nhấn để đổi cấp cường hóa">+0</div>
+              </div>
+              <div class="hc-info-box" onclick="openBoneModal('head')">
+                <div class="hc-name" id="name-head">Trống</div>
+                <div class="hc-stars" id="star-head"></div>
+                <div class="hc-year" id="year-head">0 Vạn Năm</div>
+              </div>
+            </div>
+          </div>
+          <!-- Tay Trái -->
+          <div class="hc-slot" id="slot-left_arm">
+            <div class="hc-slot-inner">
+              <button class="btn-change-bone" data-html2canvas-ignore="true" onclick="openBonePicker('left_arm')" title="Đổi Hồn Cốt">🔄</button>
+              <div class="hc-icon-wrapper" onclick="openBoneModal('left_arm')">
+                <img src="assets/icons/honcot_leftarm.png" id="img-left_arm">
+                <div class="hc-enhance-tag" id="enh-left_arm" onclick="editEnhance('left_arm', event)" title="Nhấn để đổi cấp cường hóa">+0</div>
+              </div>
+              <div class="hc-info-box" onclick="openBoneModal('left_arm')">
+                <div class="hc-name" id="name-left_arm">Trống</div>
+                <div class="hc-stars" id="star-left_arm"></div>
+                <div class="hc-year" id="year-left_arm">0 Vạn Năm</div>
+              </div>
+            </div>
+          </div>
+          <!-- Chân Trái -->
+          <div class="hc-slot" id="slot-left_leg">
+            <div class="hc-slot-inner">
+              <button class="btn-change-bone" data-html2canvas-ignore="true" onclick="openBonePicker('left_leg')" title="Đổi Hồn Cốt">🔄</button>
+              <div class="hc-icon-wrapper" onclick="openBoneModal('left_leg')">
+                <img src="assets/icons/honcot_leftleg.png" id="img-left_leg">
+                <div class="hc-enhance-tag" id="enh-left_leg" onclick="editEnhance('left_leg', event)" title="Nhấn để đổi cấp cường hóa">+0</div>
+              </div>
+              <div class="hc-info-box" onclick="openBoneModal('left_leg')">
+                <div class="hc-name" id="name-left_leg">Trống</div>
+                <div class="hc-stars" id="star-left_leg"></div>
+                <div class="hc-year" id="year-left_leg">0 Vạn Năm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Avatar -->
+        <div class="hc-column hc-center">
+          <div class="hc-avatar-glow" style="cursor: pointer;" title="Nhấn để đổi ảnh" onclick="openUploadModal('avatar')">
+            <img src="assets/heroes/default/avatar.webp" id="hcAvatarImg" alt="Avatar">
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="hc-column hc-right">
+          <!-- Thân -->
+          <div class="hc-slot right-align" id="slot-body">
+            <div class="hc-slot-inner flex-row-reverse">
+              <button class="btn-change-bone" data-html2canvas-ignore="true" onclick="openBonePicker('body')" title="Đổi Hồn Cốt">🔄</button>
+              <div class="hc-icon-wrapper" onclick="openBoneModal('body')">
+                <img src="assets/icons/honcot_torso.png" id="img-body">
+                <div class="hc-enhance-tag" id="enh-body" onclick="editEnhance('body', event)" title="Nhấn để đổi cấp cường hóa">+0</div>
+              </div>
+              <div class="hc-info-box align-right" onclick="openBoneModal('body')">
+                <div class="hc-name" id="name-body">Trống</div>
+                <div class="hc-stars" id="star-body"></div>
+                <div class="hc-year" id="year-body">0 Vạn Năm</div>
+              </div>
+            </div>
+          </div>
+          <!-- Tay Phải -->
+          <div class="hc-slot right-align" id="slot-right_arm">
+            <div class="hc-slot-inner flex-row-reverse">
+              <button class="btn-change-bone" data-html2canvas-ignore="true" onclick="openBonePicker('right_arm')" title="Đổi Hồn Cốt">🔄</button>
+              <div class="hc-icon-wrapper" onclick="openBoneModal('right_arm')">
+                <img src="assets/icons/honcot_rightarm.png" id="img-right_arm">
+                <div class="hc-enhance-tag" id="enh-right_arm" onclick="editEnhance('right_arm', event)" title="Nhấn để đổi cấp cường hóa">+0</div>
+              </div>
+              <div class="hc-info-box align-right" onclick="openBoneModal('right_arm')">
+                <div class="hc-name" id="name-right_arm">Trống</div>
+                <div class="hc-stars" id="star-right_arm"></div>
+                <div class="hc-year" id="year-right_arm">0 Vạn Năm</div>
+              </div>
+            </div>
+          </div>
+          <!-- Chân Phải -->
+          <div class="hc-slot right-align" id="slot-right_leg">
+            <div class="hc-slot-inner flex-row-reverse">
+              <button class="btn-change-bone" data-html2canvas-ignore="true" onclick="openBonePicker('right_leg')" title="Đổi Hồn Cốt">🔄</button>
+              <div class="hc-icon-wrapper" onclick="openBoneModal('right_leg')">
+                <img src="assets/icons/honcot_rightleg.png" id="img-right_leg">
+                <div class="hc-enhance-tag" id="enh-right_leg" onclick="editEnhance('right_leg', event)" title="Nhấn để đổi cấp cường hóa">+0</div>
+              </div>
+              <div class="hc-info-box align-right" onclick="openBoneModal('right_leg')">
+                <div class="hc-name" id="name-right_leg">Trống</div>
+                <div class="hc-stars" id="star-right_leg"></div>
+                <div class="hc-year" id="year-right_leg">0 Vạn Năm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Action -->
+    <div class="hc-actions" data-html2canvas-ignore="true" style="text-align: center; margin-top: 2rem;">
+      <button class="btn-editor btn-editor-gold" onclick="takeScreenshot()" style="font-size: 1.2rem; padding: 1rem 3rem;">📸 LƯU ẢNH SETUP</button>
+    </div>
+
+  </main>
+
+  <!-- Modal: Hiển Thị Thông Tin Hồn Cốt (View Only) -->
+  <div id="hcModalOverlay" class="hc-modal-overlay" onclick="closeModal('hcModalOverlay', event)">
+    <div class="hc-modal-content" onclick="event.stopPropagation()">
+      <div class="hc-modal-header">
+        <h2 id="modalBoneName">Tên Hồn Cốt</h2>
+        <button class="hc-modal-close" onclick="closeModal('hcModalOverlay')">✕</button>
+      </div>
+      <div class="hc-modal-body">
+        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+          <div class="hc-icon-wrapper" style="width: 80px; height: 80px; box-shadow: 0 0 15px rgba(251,191,36,0.3);">
+            <img src="" id="modalBoneImg" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div>
+            <div id="modalBoneYear" style="color: var(--accent-gold); font-weight: 800; font-size: 1.2rem;">0 Vạn Năm</div>
+            <div id="modalBoneStars" style="margin: 0.25rem 0;"></div>
+            <div id="modalBoneEnhance" style="display: inline-block; background: rgba(59,130,246,0.2); border: 1px solid var(--primary); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 700; color: #93c5fd;">Cường Hóa +0</div>
+          </div>
+        </div>
+        <div class="hc-modal-section">
+          <h4 class="hc-section-title">Thuộc Tính Cơ Bản & Cường Hóa</h4>
+          <div class="hc-enhance-stats" id="modalEnhanceStats"></div>
+        </div>
+        <div class="hc-modal-section">
+          <h4 class="hc-section-title">Hiệu Ứng Hồn Cốt (Theo Vạn Năm)</h4>
+          <div class="hc-effects-list" id="modalEffectsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Chọn Hồn Cốt (Picker) -->
+  <div id="pickerModalOverlay" class="hc-modal-overlay" onclick="closeModal('pickerModalOverlay', event)">
+    <div class="hc-modal-content" onclick="event.stopPropagation()">
+      <div class="hc-modal-header">
+        <h2>Chọn Hồn Cốt</h2>
+        <button class="hc-modal-close" onclick="closeModal('pickerModalOverlay')">✕</button>
+      </div>
+      <div class="hc-modal-body" style="max-height: 400px; overflow-y: auto;" id="pickerList">
+        <!-- Danh sách render qua JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Upload Ảnh -->
+  <div id="uploadModalOverlay" class="hc-modal-overlay" onclick="closeModal('uploadModalOverlay', event)">
+    <div class="hc-modal-content" onclick="event.stopPropagation()">
+      <div class="hc-modal-header">
+        <h2 id="uploadModalTitle">Đổi Hình Ảnh</h2>
+        <button class="hc-modal-close" onclick="closeModal('uploadModalOverlay')">✕</button>
+      </div>
+      <div class="hc-modal-body">
+        <input type="file" id="imageUploadInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+        <div class="upload-area" onclick="document.getElementById('imageUploadInput').click()">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;">📥</div>
+          <div>Click để tải ảnh lên (PNG/JPG)</div>
+        </div>
+        <div style="text-align: center;" id="previewContainer">
+          <img id="uploadPreview" src="">
+        </div>
+        <div class="crop-container" id="cropContainer">
+          <img id="cropImage" src="">
+        </div>
+        
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+          <button class="btn-action" style="background: var(--accent-gold); color: #000; display: none;" id="btnSaveDefaultAsEditor" onclick="downloadDefaultImage()">💾 Lưu làm mặc định (Dành cho Editor)</button>
+          <button class="btn-action" style="background: var(--primary); display: none;" id="btnCrop" onclick="performCrop()">✂️ Cắt Ảnh</button>
+          <button class="btn-action" style="background: var(--primary);" id="btnApplyUpload" onclick="applyUploadedImage()">✅ Áp Dụng Ngay</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/data-layer.js"></script>
+  <script>
+    // --- Trạng thái Ứng Dụng ---
+    let fullHoncotList = [];
+    let currentSetup = {
+      heroName: 'Nhân Vật Tùy Chỉnh',
+      avatarUrl: 'assets/heroes/default/avatar.webp',
+      bgUrl: 'assets/honcotbg_default.png',
+      totalScore: 120370,
+      bones: {
+        head: null,
+        body: null,
+        left_arm: null,
+        right_arm: null,
+        left_leg: null,
+        right_leg: null
+      }
+    };
+    
+    // Fallback default assets if missing
+    const defaultIcons = {
+      head: 'assets/icons/honcot_head.png',
+      body: 'assets/icons/honcot_torso.png',
+      left_arm: 'assets/icons/honcot_leftarm.png',
+      right_arm: 'assets/icons/honcot_rightarm.png',
+      left_leg: 'assets/icons/honcot_leftleg.png',
+      right_leg: 'assets/icons/honcot_rightleg.png'
+    };
+
+    let activePickerSlot = null;
+    let activeUploadTarget = null; // 'avatar' | 'bg'
+    let currentUploadedDataUrl = null;
+    let cropper = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      fullHoncotList = await DataLayer.getHoncotList();
+      renderAllSlots();
+    });
+
+    // --- Render Logic ---
+    function renderAllSlots() {
+      // document.getElementById('hcHeroName').textContent = currentSetup.heroName; // We keep it contenteditable, so don't overwrite it on re-render unless needed
+      document.getElementById('hcAvatarImg').src = currentSetup.avatarUrl;
+      document.getElementById('honcotCaptureArea').style.backgroundImage = `url('${currentSetup.bgUrl}')`;
+      
+      let totalScore = 0;
+
+      const keys = ['head', 'body', 'left_arm', 'right_arm', 'left_leg', 'right_leg'];
+      keys.forEach(k => {
+        const d = currentSetup.bones[k];
+        if (!d) {
+          // Trạng thái trống
+          document.getElementById('name-' + k).textContent = 'Chưa Lắp';
+          document.getElementById('year-' + k).textContent = '0 Vạn Năm';
+          document.getElementById('enh-' + k).textContent = '+0';
+          document.getElementById('img-' + k).src = defaultIcons[k];
+          document.getElementById('star-' + k).textContent = '';
+          document.getElementById('year-' + k).style.color = '#bae6fd';
+          document.getElementById('name-' + k).style.color = '#bae6fd';
+          return;
+        }
+
+        // Fake Data if missing (e.g. from editor)
+        const yearNum = parseFloat(d.year || 5);
+        const enhance = d.enhance || 30;
+        const stars = d.stars || 5;
+
+        totalScore += (enhance * 100) + (yearNum * 1000);
+
+        document.getElementById('name-' + k).textContent = d.nameVi || d.name;
+        document.getElementById('year-' + k).textContent = yearNum + ' Vạn Năm';
+        document.getElementById('enh-' + k).textContent = '+' + enhance;
+        document.getElementById('img-' + k).src = d.icon || defaultIcons[k];
+        
+        let starsHtml = '';
+        for(let i=0; i<stars; i++) starsHtml += '★';
+        document.getElementById('star-' + k).textContent = starsHtml;
+        
+        const yearEl = document.getElementById('year-' + k);
+        const nameEl = document.getElementById('name-' + k);
+        if(yearNum >= 10) { nameEl.style.color = '#fef08a'; yearEl.style.color = '#fef08a'; }
+        else if(yearNum >= 5) { nameEl.style.color = '#fca5a5'; yearEl.style.color = '#fca5a5'; }
+        else if(yearNum >= 2.5) { nameEl.style.color = '#e9d5ff'; yearEl.style.color = '#e9d5ff'; }
+        else { nameEl.style.color = '#bae6fd'; yearEl.style.color = '#bae6fd'; }
+      });
+
+      document.getElementById('hcScore').textContent = Math.floor(totalScore);
+    }
+
+    // --- Modal Hồn Cốt (View) ---
+    function openBoneModal(boneKey) {
+      const d = currentSetup.bones[boneKey];
+      if (!d) return;
+
+      document.getElementById('modalBoneName').textContent = d.nameVi || d.name;
+      document.getElementById('modalBoneYear').textContent = (d.year || 5) + ' Vạn Năm';
+      document.getElementById('modalBoneEnhance').textContent = 'Cường Hóa +' + (d.enhance || 30);
+      document.getElementById('modalBoneImg').src = d.icon || defaultIcons[boneKey];
+      document.getElementById('modalEnhanceStats').innerHTML = d.enhanceStats || 'Không có mô tả';
+
+      let starsHtml = '';
+      for(let i=0; i<(d.stars || 5); i++) starsHtml += '★';
+      document.getElementById('modalBoneStars').textContent = starsHtml;
+      document.getElementById('modalBoneStars').style.color = '#f59e0b';
+
+      const effList = document.getElementById('modalEffectsList');
+      effList.innerHTML = '';
+      if(d.effects && d.effects.length > 0) {
+        d.effects.forEach(eff => {
+          effList.innerHTML += `
+            <div class="hc-effect-item">
+              <span class="hc-eff-year">${eff.year}</span>
+              <span class="hc-eff-desc">${eff.desc}</span>
+            </div>
+          `;
+        });
+      } else {
+        effList.innerHTML = '<div style="color: var(--text-muted)">Không có hiệu ứng vạn năm.</div>';
+      }
+
+      document.getElementById('hcModalOverlay').classList.add('active');
+    }
+
+    // --- Modal Chọn Hồn Cốt (Picker) ---
+    function openBonePicker(slotKey) {
+      activePickerSlot = slotKey;
+      const listContainer = document.getElementById('pickerList');
+      listContainer.innerHTML = '';
+
+      const filtered = fullHoncotList.filter(b => b.slot === slotKey);
+      
+      if(filtered.length === 0) {
+        listContainer.innerHTML = '<div style="text-align:center; padding: 2rem;">Không có dữ liệu trong Database cho vị trí này.</div>';
+      } else {
+        filtered.forEach(b => {
+          const div = document.createElement('div');
+          div.className = 'bone-list-item';
+          div.innerHTML = `
+            <img src="${b.icon || defaultIcons[slotKey]}" class="bone-list-icon">
+            <div class="bone-list-info">
+              <div class="bone-list-name">${b.nameVi || b.name}</div>
+              <div class="bone-list-desc">Hệ: ${b.wusoulType || 'Tất cả'}</div>
+            </div>
+          `;
+          div.onclick = () => {
+            selectBoneForSlot(b);
+          };
+          listContainer.appendChild(div);
+        });
+      }
+      
+      // Nút tháo
+      const removeDiv = document.createElement('div');
+      removeDiv.className = 'bone-list-item';
+      removeDiv.style.justifyContent = 'center';
+      removeDiv.style.color = '#ef4444';
+      removeDiv.innerHTML = `<strong>🚫 Tháo Hồn Cốt Này</strong>`;
+      removeDiv.onclick = () => {
+        currentSetup.bones[activePickerSlot] = null;
+        renderAllSlots();
+        closeModal('pickerModalOverlay');
+      };
+      listContainer.appendChild(removeDiv);
+
+      document.getElementById('pickerModalOverlay').classList.add('active');
+    }
+
+    function selectBoneForSlot(boneData) {
+      // Create a copy to allow independent enhance/star editing in future if needed
+      currentSetup.bones[activePickerSlot] = {
+        ...boneData,
+        enhance: 30, // Default mock
+        stars: 5,    // Default mock
+        year: boneData.effects && boneData.effects.length > 0 ? parseFloat(boneData.effects[boneData.effects.length-1].year) : 5
+      };
+      renderAllSlots();
+      closeModal('pickerModalOverlay');
+    }
+
+    function resetSetup() {
+      if(!confirm('Bạn có chắc chắn muốn xóa toàn bộ đội hình?')) return;
+      Object.keys(currentSetup.bones).forEach(k => currentSetup.bones[k] = null);
+      renderAllSlots();
+    }
+
+    function editEnhance(slotKey, event) {
+      if(event) event.stopPropagation(); // Ngăn mở modal view
+      if(!currentSetup.bones[slotKey]) return; // Chưa lắp xương
+      
+      let currentEnhance = currentSetup.bones[slotKey].enhance || 0;
+      let val = prompt("Nhập cấp cường hóa cho Hồn Cốt này:", currentEnhance);
+      
+      if (val !== null && !isNaN(val) && val !== "") {
+        currentSetup.bones[slotKey].enhance = parseInt(val) || 0;
+        renderAllSlots();
+      }
+    }
+
+    // --- Modal Upload Ảnh ---
+    function openUploadModal(target) {
+      activeUploadTarget = target;
+      currentUploadedDataUrl = null;
+      document.getElementById('uploadPreview').style.display = 'none';
+      document.getElementById('previewContainer').style.display = 'block';
+      document.getElementById('cropContainer').style.display = 'none';
+      document.getElementById('btnCrop').style.display = 'none';
+      document.getElementById('btnApplyUpload').style.display = 'inline-flex';
+      document.getElementById('imageUploadInput').value = '';
+      if(cropper) { cropper.destroy(); cropper = null; }
+      
+      const titleMap = {
+        'avatar': 'Đổi Avatar Nhân Vật',
+        'bg': 'Đổi Hình Nền (Background)'
+      };
+      document.getElementById('uploadModalTitle').textContent = titleMap[target];
+      
+      // Hiện nút Save As Default cho cả Đổi Hình Nền và Đổi Avatar (dành cho Editor)
+      document.getElementById('btnSaveDefaultAsEditor').style.display = 'inline-flex';
+
+      document.getElementById('uploadModalOverlay').classList.add('active');
+    }
+
+    document.getElementById('imageUploadInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        currentUploadedDataUrl = evt.target.result;
+        
+        // Cả Avatar và Background đều chạy qua Cropper
+        document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('cropContainer').style.display = 'block';
+        document.getElementById('btnCrop').style.display = 'inline-flex';
+        document.getElementById('btnApplyUpload').style.display = 'none';
+        const cropImg = document.getElementById('cropImage');
+        cropImg.src = currentUploadedDataUrl;
+        if(cropper) { cropper.destroy(); }
+        cropper = new Cropper(cropImg, {
+            aspectRatio: activeUploadTarget === 'avatar' ? 1 : 16 / 9,
+            viewMode: 1
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function performCrop() {
+        if(!cropper) return;
+        
+        // Avatar cố định 400x400, Background cố định 1920x1080
+        const cropOptions = activeUploadTarget === 'avatar' ? { width: 400, height: 400 } : { width: 1920, height: 1080 };
+        const canvas = cropper.getCroppedCanvas(cropOptions);
+        
+        currentUploadedDataUrl = canvas.toDataURL('image/png');
+        cropper.destroy();
+        cropper = null;
+        document.getElementById('cropContainer').style.display = 'none';
+        
+        const preview = document.getElementById('uploadPreview');
+        preview.src = currentUploadedDataUrl;
+        document.getElementById('previewContainer').style.display = 'block';
+        preview.style.display = 'inline-block';
+        
+        document.getElementById('btnCrop').style.display = 'none';
+        document.getElementById('btnApplyUpload').style.display = 'inline-flex';
+    }
+
+    function applyUploadedImage() {
+      if(!currentUploadedDataUrl) {
+        alert('Vui lòng chọn ảnh trước!');
+        return;
+      }
+      if (activeUploadTarget === 'avatar') {
+        currentSetup.avatarUrl = currentUploadedDataUrl;
+      } else if (activeUploadTarget === 'bg') {
+        currentSetup.bgUrl = currentUploadedDataUrl;
+      }
+      renderAllSlots();
+      closeModal('uploadModalOverlay');
+    }
+
+    function downloadDefaultImage() {
+      if(!currentUploadedDataUrl) {
+        alert('Vui lòng chọn ảnh trước!');
+        return;
+      }
+      const link = document.createElement('a');
+      link.download = activeUploadTarget === 'avatar' ? 'avatar.png' : 'honcotbg_default.png';
+      link.href = currentUploadedDataUrl;
+      link.click();
+      alert('File đã được tải xuống! Vui lòng copy file này đè vào thư mục gốc để lưu làm mặc định.');
+      applyUploadedImage(); // Apply it to view as well
+    }
+
+    // --- Utilities ---
+    function closeModal(modalId, e) {
+      if (e) e.stopPropagation();
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function takeScreenshot() {
+      const captureArea = document.getElementById('honcotCaptureArea');
+      html2canvas(captureArea, {
+        backgroundColor: '#0B1120',
+        scale: 2,
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Setup_HonCot_${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="js/floating-widget.js"></script>
+</body>
+</html>

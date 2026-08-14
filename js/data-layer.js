@@ -5,16 +5,163 @@
  * Dynamic Field Library, and Skill Type Templates.
  */
 
+// IndexedDB helper for persisting FileSystemDirectoryHandle across page reloads
+const DouluoIDB = {
+  dbName: 'DouluoStudioDB',
+  storeName: 'handles',
+  version: 1,
+  
+  async getDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(this.dbName, this.version);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName);
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  },
+
+  async set(key, val) {
+    try {
+      const db = await this.getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.storeName, 'readwrite');
+        tx.objectStore(this.storeName).put(val, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.warn('DouluoIDB.set failed:', e);
+    }
+  },
+
+  async get(key) {
+    try {
+      const db = await this.getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.storeName, 'readonly');
+        const req = tx.objectStore(this.storeName).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.warn('DouluoIDB.get failed:', e);
+      return null;
+    }
+  },
+
+  async del(key) {
+    try {
+      const db = await this.getDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.storeName, 'readwrite');
+        tx.objectStore(this.storeName).delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.warn('DouluoIDB.del failed:', e);
+    }
+  }
+};
+
+// Universal History Manager for Undo/Redo across Studio
+const HistoryManager = {
+  undoStack: [],
+  redoStack: [],
+  maxStack: 50,
+  listeners: [],
+  isPerformingUndoRedo: false,
+
+  onChange(fn) {
+    this.listeners.push(fn);
+  },
+
+  notify() {
+    this.listeners.forEach(fn => {
+      try { fn({ canUndo: this.canUndo(), canRedo: this.canRedo() }); } catch(e) {}
+    });
+  },
+
+  pushState(snapshot) {
+    if (this.isPerformingUndoRedo || !snapshot) return;
+    try {
+      const cloned = JSON.parse(JSON.stringify(snapshot));
+      this.undoStack.push(cloned);
+      if (this.undoStack.length > this.maxStack) {
+        this.undoStack.shift();
+      }
+      this.redoStack = []; // clear redo on new user action
+      this.notify();
+    } catch(e) {
+      console.warn('HistoryManager push failed:', e);
+    }
+  },
+
+  canUndo() {
+    return this.undoStack.length > 1;
+  },
+
+  canRedo() {
+    return this.redoStack.length > 0;
+  },
+
+  undo() {
+    if (!this.canUndo()) return null;
+    this.isPerformingUndoRedo = true;
+    try {
+      const currentState = this.undoStack.pop();
+      this.redoStack.push(currentState);
+      const previousState = this.undoStack[this.undoStack.length - 1];
+      this.isPerformingUndoRedo = false;
+      this.notify();
+      return JSON.parse(JSON.stringify(previousState));
+    } catch(e) {
+      this.isPerformingUndoRedo = false;
+      console.warn('HistoryManager undo error:', e);
+      return null;
+    }
+  },
+
+  redo() {
+    if (!this.canRedo()) return null;
+    this.isPerformingUndoRedo = true;
+    try {
+      const nextState = this.redoStack.pop();
+      this.undoStack.push(nextState);
+      this.isPerformingUndoRedo = false;
+      this.notify();
+      return JSON.parse(JSON.stringify(nextState));
+    } catch(e) {
+      this.isPerformingUndoRedo = false;
+      console.warn('HistoryManager redo error:', e);
+      return null;
+    }
+  },
+
+  clear() {
+    this.undoStack = [];
+    this.redoStack = [];
+    this.notify();
+  }
+};
+
 const DataLayer = {
   cache: {
     heroesList: null,
     keywords: null,
     heroDetails: {},
     websiteConfig: null,
-    honhachList: null
+    honhachList: null,
+    honcotList: null
   },
   
   projectDirHandle: null,
+  pendingDirHandle: null,
 
   // Rule Engine for Skill Groups
   SKILL_GROUP_RULES: {
@@ -83,7 +230,25 @@ const DataLayer = {
     KEYWORDS: 'douluo_wiki_draft_keywords',
     CONFIG: 'douluo_wiki_draft_config',
     HERO_DETAIL_PREFIX: 'douluo_wiki_draft_hero_',
-    HONHACH_INDEX: 'douluo_wiki_draft_honhach_index'
+    HONHACH_INDEX: 'douluo_wiki_draft_honhach_index',
+    HONCOT_INDEX: 'douluo_wiki_draft_honcot_index',
+    SESSION_STATE: 'douluo_wiki_studio_session_state'
+  },
+
+  getSessionState() {
+    try {
+      const state = localStorage.getItem(this.STORAGE_KEYS.SESSION_STATE);
+      return state ? JSON.parse(state) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  saveSessionState(state) {
+    if (!state) return;
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.SESSION_STATE, JSON.stringify(state));
+    } catch (e) {}
   },
 
   async getWebsiteConfig() {
@@ -236,6 +401,87 @@ const DataLayer = {
     return newHonhach;
   },
 
+  async getHoncotList() {
+    const localDraft = localStorage.getItem(this.STORAGE_KEYS.HONCOT_INDEX);
+    if (localDraft) {
+      try {
+        this.cache.honcotList = JSON.parse(localDraft);
+        return this.cache.honcotList;
+      } catch (e) {
+        console.warn('Draft honcot corrupt, falling back to JSON file.');
+      }
+    }
+    if (this.cache.honcotList) return this.cache.honcotList;
+
+    try {
+      const response = await fetch('data/honcot.json');
+      if (!response.ok) throw new Error('Failed to fetch data/honcot.json');
+      const data = await response.json();
+      this.cache.honcotList = data;
+      return data;
+    } catch (error) {
+      console.error('DataLayer Error (getHoncotList):', error);
+      return [];
+    }
+  },
+
+  saveHoncotDraft(listOrItem) {
+    if (Array.isArray(listOrItem)) {
+      this.cache.honcotList = listOrItem;
+    } else if (listOrItem && listOrItem.id) {
+      if (!this.cache.honcotList) this.cache.honcotList = [];
+      const idx = this.cache.honcotList.findIndex(h => h.id === listOrItem.id);
+      if (idx >= 0) this.cache.honcotList[idx] = listOrItem;
+      else this.cache.honcotList.push(listOrItem);
+    }
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.HONCOT_INDEX, JSON.stringify(this.cache.honcotList, null, 2));
+    } catch (e) {
+      console.warn('localStorage Quota error when saving honcot:', e);
+    }
+  },
+
+  deleteHoncot(id) {
+    if (!id || !this.cache.honcotList) return;
+    this.cache.honcotList = this.cache.honcotList.filter(h => h.id !== id);
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.HONCOT_INDEX, JSON.stringify(this.cache.honcotList, null, 2));
+    } catch (e) {
+      console.warn('localStorage Quota error when deleting honcot:', e);
+    }
+  },
+
+  async cloneHoncot(id) {
+    const list = await this.getHoncotList();
+    const original = list.find(h => h.id === id);
+    if (!original) return null;
+    const cloned = JSON.parse(JSON.stringify(original));
+    cloned.id = original.id + '_clone_' + Date.now().toString().slice(-4);
+    cloned.nameVi = original.nameVi + ' (Bản Sao)';
+    cloned.name = original.name + ' (Bản Sao)';
+    this.saveHoncotDraft(cloned);
+    return cloned;
+  },
+
+  async createNewHoncot(id, nameVi, slot = 'head') {
+    const newHoncot = {
+      id: id || ('honcot_' + Date.now().toString().slice(-4)),
+      name: nameVi || 'Xương Đầu Mới',
+      nameVi: nameVi || 'Xương Đầu Mới',
+      slot: slot,
+      wusoulType: 'all',
+      icon: 'assets/icons/honcot_head.png',
+      enhanceStats: 'Lực công kích +1500',
+      effects: [
+        { year: '1 Vạn', desc: 'Tăng 5% chỉ số cơ bản.' },
+        { year: '2.5 Vạn', desc: 'Giảm 10% sát thương nhận vào.' },
+        { year: '5 Vạn', desc: 'Kháng khống chế 15%.' }
+      ]
+    };
+    this.saveHoncotDraft(newHoncot);
+    return newHoncot;
+  },
+
   async getKeywords() {
     const localDraft = localStorage.getItem(this.STORAGE_KEYS.KEYWORDS);
     if (localDraft) {
@@ -317,6 +563,18 @@ const DataLayer = {
     }
   },
 
+  async getHonhachById(id) {
+    if (!id) return null;
+    const list = await this.getHonhachList();
+    return list.find(h => h.id === id) || null;
+  },
+
+  async getHoncotById(id) {
+    if (!id) return null;
+    const list = await this.getHoncotList();
+    return list.find(h => h.id === id) || null;
+  },
+
   saveHeroDraft(heroObj) {
     if (!heroObj || !heroObj.id) return;
     this.cache.heroDetails[heroObj.id] = heroObj;
@@ -359,12 +617,59 @@ const DataLayer = {
     localStorage.setItem(this.STORAGE_KEYS.KEYWORDS, JSON.stringify(keywordsObj, null, 2));
   },
 
-  async connectLocalProjectDirectory() {
+  async restoreProjectDirectory() {
+    if (!('showDirectoryPicker' in window)) return null;
+    try {
+      const handle = await DouluoIDB.get('projectDirHandle');
+      if (!handle) return null;
+      
+      // Check current permission without prompting user
+      const queryPerm = await handle.queryPermission({ mode: 'readwrite' });
+      if (queryPerm === 'granted') {
+        this.projectDirHandle = handle;
+        return handle;
+      }
+      // If prompt needed, remember pending handle
+      this.pendingDirHandle = handle;
+      return null;
+    } catch (e) {
+      console.warn('Cannot restore directory handle from IndexedDB:', e);
+      return null;
+    }
+  },
+
+  async connectLocalProjectDirectory(userGesture = true) {
     if (!('showDirectoryPicker' in window)) {
       throw new Error('Trình duyệt của bạn không hỗ trợ File System Access API. Hãy dùng Google Chrome, Microsoft Edge hoặc Opera.');
     }
+    
+    // If we have a pending handle and user clicks connect, try requesting permission first
+    if (this.pendingDirHandle && userGesture) {
+      try {
+        const perm = await this.pendingDirHandle.requestPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+          this.projectDirHandle = this.pendingDirHandle;
+          await DouluoIDB.set('projectDirHandle', this.projectDirHandle);
+          this.pendingDirHandle = null;
+          return this.projectDirHandle;
+        }
+      } catch (e) {
+        console.warn('Request permission on existing handle failed, selecting folder...', e);
+      }
+    }
+
     this.projectDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    if (this.projectDirHandle) {
+      await DouluoIDB.set('projectDirHandle', this.projectDirHandle);
+      this.pendingDirHandle = null;
+    }
     return this.projectDirHandle;
+  },
+
+  async disconnectLocalProjectDirectory() {
+    this.projectDirHandle = null;
+    this.pendingDirHandle = null;
+    await DouluoIDB.del('projectDirHandle');
   },
 
   async writeDirectToLocalDisk(relativePath, contentString) {
@@ -382,6 +687,26 @@ const DataLayer = {
     const writable = await fileHandle.createWritable();
     await writable.write(contentString);
     await writable.close();
+  },
+
+  async saveImageDirectToLocalDisk(blob, filename) {
+    if (!this.projectDirHandle) {
+      throw new Error('Chưa kết nối thư mục project! Hãy bấm "📂 Kết Nối Local Disk" ở góc trên trước khi dán ảnh.');
+    }
+    const relativePath = `assets/uploads/${filename}`;
+    const parts = relativePath.split('/').filter(p => p.length > 0);
+    let currentHandle = this.projectDirHandle;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      currentHandle = await currentHandle.getDirectoryHandle(parts[i], { create: true });
+    }
+
+    const fileHandle = await currentHandle.getFileHandle(parts[parts.length - 1], { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    
+    return relativePath;
   },
 
   async deleteHeroFromDisk(heroId) {
@@ -415,6 +740,9 @@ const DataLayer = {
     if (this.cache.honhachList) {
       await this.writeDirectToLocalDisk('data/honhach.json', JSON.stringify(this.cache.honhachList, null, 2));
     }
+    if (this.cache.honcotList) {
+      await this.writeDirectToLocalDisk('data/honcot.json', JSON.stringify(this.cache.honcotList, null, 2));
+    }
 
     if (this.cache.heroesList) {
       for (let hSummary of this.cache.heroesList) {
@@ -423,6 +751,131 @@ const DataLayer = {
           await this.writeDirectToLocalDisk(`data/heroes/${hSummary.id}.json`, JSON.stringify(detail, null, 2));
         }
       }
+    }
+  },
+
+  async readDirectFromLocalDisk(relativePath) {
+    if (!this.projectDirHandle) {
+      throw new Error('Chưa kết nối thư mục local project!');
+    }
+    const parts = relativePath.split('/').filter(p => p.length > 0);
+    let currentHandle = this.projectDirHandle;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      currentHandle = await currentHandle.getDirectoryHandle(parts[i], { create: false });
+    }
+
+    const fileHandle = await currentHandle.getFileHandle(parts[parts.length - 1], { create: false });
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+    return text;
+  },
+
+  async pullAllFromLocalDisk() {
+    if (!this.projectDirHandle) {
+      throw new Error('Chưa kết nối thư mục local project! Hãy bấm "📂 Kết Nối Local Disk" trước khi nạp DB.');
+    }
+
+    let loadedHeroesCount = 0;
+    let loadedHonhachCount = 0;
+    let loadedHoncotCount = 0;
+
+    // 1. Read data/heroes.json
+    try {
+      const heroesRaw = await this.readDirectFromLocalDisk('data/heroes.json');
+      this.cache.heroesList = JSON.parse(heroesRaw);
+      localStorage.setItem(this.STORAGE_KEYS.HEROES_INDEX, JSON.stringify(this.cache.heroesList, null, 2));
+      loadedHeroesCount = this.cache.heroesList.length;
+    } catch (e) {
+      console.warn('Cannot pull data/heroes.json from disk:', e);
+    }
+
+    // 2. Read data/keywords.json
+    try {
+      const kwRaw = await this.readDirectFromLocalDisk('data/keywords.json');
+      this.cache.keywords = JSON.parse(kwRaw);
+      localStorage.setItem(this.STORAGE_KEYS.KEYWORDS, JSON.stringify(this.cache.keywords, null, 2));
+    } catch (e) {
+      console.warn('Cannot pull data/keywords.json from disk:', e);
+    }
+
+    // 3. Read data/honhach.json
+    try {
+      const hhRaw = await this.readDirectFromLocalDisk('data/honhach.json');
+      this.cache.honhachList = JSON.parse(hhRaw);
+      localStorage.setItem(this.STORAGE_KEYS.HONHACH_INDEX, JSON.stringify(this.cache.honhachList, null, 2));
+      loadedHonhachCount = this.cache.honhachList.length;
+    } catch (e) {
+      console.warn('Cannot pull data/honhach.json from disk:', e);
+    }
+
+    // 4. Read data/honcot.json
+    try {
+      const hcRaw = await this.readDirectFromLocalDisk('data/honcot.json');
+      this.cache.honcotList = JSON.parse(hcRaw);
+      localStorage.setItem(this.STORAGE_KEYS.HONCOT_INDEX, JSON.stringify(this.cache.honcotList, null, 2));
+      loadedHoncotCount = this.cache.honcotList.length;
+    } catch (e) {
+      console.warn('Cannot pull data/honcot.json from disk:', e);
+    }
+
+    // 5. Read all individual hero details from data/heroes/{id}.json
+    if (this.cache.heroesList) {
+      for (const h of this.cache.heroesList) {
+        try {
+          const detailRaw = await this.readDirectFromLocalDisk(`data/heroes/${h.id}.json`);
+          const detailObj = JSON.parse(detailRaw);
+          this.cache.heroDetails[h.id] = detailObj;
+          localStorage.setItem(this.STORAGE_KEYS.HERO_DETAIL_PREFIX + h.id, JSON.stringify(detailObj, null, 2));
+        } catch (err) {
+          console.warn(`Cannot pull hero detail for ${h.id} from disk:`, err);
+        }
+      }
+    }
+
+    return {
+      heroesCount: loadedHeroesCount,
+      honhachCount: loadedHonhachCount,
+      honcotCount: loadedHoncotCount
+    };
+  },
+
+  exportDatabaseBundle() {
+    return {
+      version: '3.4',
+      timestamp: new Date().toISOString(),
+      heroesList: this.cache.heroesList || [],
+      heroDetails: this.cache.heroDetails || {},
+      keywords: this.cache.keywords || {},
+      honhachList: this.cache.honhachList || [],
+      honcotList: this.cache.honcotList || [],
+      websiteConfig: this.cache.websiteConfig || null
+    };
+  },
+
+  importDatabaseBundle(bundle) {
+    if (!bundle || typeof bundle !== 'object') throw new Error('Dữ liệu DB không hợp lệ!');
+    if (bundle.heroesList) {
+      this.cache.heroesList = bundle.heroesList;
+      localStorage.setItem(this.STORAGE_KEYS.HEROES_INDEX, JSON.stringify(bundle.heroesList, null, 2));
+    }
+    if (bundle.heroDetails) {
+      this.cache.heroDetails = bundle.heroDetails;
+      Object.keys(bundle.heroDetails).forEach(id => {
+        localStorage.setItem(this.STORAGE_KEYS.HERO_DETAIL_PREFIX + id, JSON.stringify(bundle.heroDetails[id], null, 2));
+      });
+    }
+    if (bundle.keywords) {
+      this.cache.keywords = bundle.keywords;
+      localStorage.setItem(this.STORAGE_KEYS.KEYWORDS, JSON.stringify(bundle.keywords, null, 2));
+    }
+    if (bundle.honhachList) {
+      this.cache.honhachList = bundle.honhachList;
+      localStorage.setItem(this.STORAGE_KEYS.HONHACH_INDEX, JSON.stringify(bundle.honhachList, null, 2));
+    }
+    if (bundle.honcotList) {
+      this.cache.honcotList = bundle.honcotList;
+      localStorage.setItem(this.STORAGE_KEYS.HONCOT_INDEX, JSON.stringify(bundle.honcotList, null, 2));
     }
   },
 
@@ -596,53 +1049,132 @@ const DataLayer = {
     return cloned;
   },
 
-  async createNewHero(slug, name) {
-    /**
-     * Cấu trúc đúng:
-     * - normal & tienco: skill phẳng, không có nhánh (đặt ở branch_1)
-     * - passive, honky, bithuat: mỗi nhóm có 2 nhánh riêng
-     *   → Nhánh 1 (branches[0]) và Nhánh 2 (branches[1]) đều chứa skill của cả 3 nhóm này
-     */
+  async createNewHero(slug, name, archetype = 'cuong_cong', rarity = 'SSR') {
     const P = JSON.parse(JSON.stringify(this.RING_PRESETS.PassiveSkill));
     const S = JSON.parse(JSON.stringify(this.RING_PRESETS.SoulSkill));
+
+    const archetypes = {
+      cuong_cong: {
+        role: 'Cường Công',
+        title: 'Cường Công Thống Trị',
+        bio: 'Hồn Sư hệ Cường Công với khả năng bộc phát sát thương diện rộng và bạo kích cực mạnh.',
+        b1Name: 'Nhánh 1: Cuồng Bạo & Đột Kích',
+        b2Name: 'Nhánh 2: Tuyệt Diệt & Trảm Sát',
+        normalDesc: 'Vung vũ khí gây sát thương vật lý trực diện lên 1 kẻ địch.',
+        tiencoDesc: 'Đầu trận tăng 15% Sát Thương Bạo Kích cho bản thân trong 2 lượt.',
+        p1Desc: 'Mỗi đòn đánh bạo kích giúp tăng 5% Sức Công, cộng dồn tối đa 6 tầng.',
+        p2Desc: 'Khi HP mục tiêu dưới 40%, sát thương gây ra tăng thêm 30%.',
+        h1Desc: 'Thi triển chiêu thức cuồng nộ tấn công toàn bộ đội hình địch.',
+        h2Desc: 'Tập trung toàn lực chém kích đơn thể gây sát thương chí mạng.',
+        b1Desc: 'Bí thuật kích hoạt trạng thái Bá Thể, tăng 40% Xuyên Giáp.',
+        b2Desc: 'Bí thuật triệu hồi chiến hồn, hồi lập tức 2 điểm Hồn Lực.'
+      },
+      man_cong: {
+        role: 'Mẫn Công',
+        title: 'Mẫn Công Thần Tốc',
+        bio: 'Hồn Sư hệ Mẫn Công sở hữu tốc độ siêu phàm, thoắt ẩn thoắt hiện và kết liễu chủ lực đối phương.',
+        b1Name: 'Nhánh 1: Tốc Biến & Ám Sát',
+        b2Name: 'Nhánh 2: Đoạt Mệnh & Chảy Máu',
+        normalDesc: 'Tung đòn trảm kích chớp nhoáng gây sát thương đơn thể.',
+        tiencoDesc: 'Tăng 20 điểm Tốc Độ hành động ngay khi vào trận đấu.',
+        p1Desc: 'Sau khi tiêu diệt mục tiêu, lập tức nhận thêm 1 lượt hành động phụ.',
+        p2Desc: 'Đòn đánh kèm hiệu ứng {chay_mau}, gây sát thương chuẩn theo thời gian.',
+        h1Desc: 'Ám sát mục tiêu có lượng HP thấp nhất trong đội hình địch.',
+        h2Desc: 'Phân thân tấn công liên hoàn 4 lần vào các mục tiêu ngẫu nhiên.',
+        b1Desc: 'Ẩn mình vào bóng tối, miễn nhiễm sát thương đơn thể trong 1 lượt.',
+        b2Desc: 'Gia tăng 50% Tỷ Lệ Bạo Kích trong 2 lượt thi triển tiếp theo.'
+      },
+      khong_che: {
+        role: 'Khống Chế',
+        title: 'Khống Chế Trận Địa',
+        bio: 'Bậc thầy kiểm soát cục diện, vô hiệu hóa chiêu thức và cầm chân toàn bộ quân địch.',
+        b1Name: 'Nhánh 1: Giam Cầm & Đóng Băng',
+        b2Name: 'Nhánh 2: Hút Hồn & Cấm Chiêu',
+        normalDesc: 'Bắn tia năng lượng khống chế, làm chậm tốc độ mục tiêu.',
+        tiencoDesc: 'Giảm 15% Kháng Khống Chế của toàn bộ quân địch ở lượt đầu.',
+        p1Desc: 'Đòn đánh có 35% tỷ lệ khiến mục tiêu rơi vào trạng thái {Choáng}.',
+        p2Desc: 'Mỗi khi kẻ địch thi triển kỹ năng, giảm 1 Hồn Lực của kẻ đó.',
+        h1Desc: 'Triệu hồi kết giới phong tỏa, cấm thi triển Hồn Kỹ trong 1 lượt.',
+        h2Desc: 'Trói buộc toàn thể địch thủ, làm gián đoạn thanh hành động.',
+        b1Desc: 'Kích hoạt trận pháp làm tiêu hao 2 điểm Hồn Lực toàn đội hình địch.',
+        b2Desc: 'Gia tăng 60% Tỷ Lệ Đánh Choáng cho toàn đội trong 2 lượt.'
+      },
+      phu_tro: {
+        role: 'Phụ Trợ',
+        title: 'Phụ Trợ Thiên Tài',
+        bio: 'Nguồn tiếp tế sức mạnh vô tận, hồi phục Hồn Lực và ban phước lành cho toàn đội.',
+        b1Name: 'Nhánh 1: Khôi Phục & Tiếp Năng',
+        b2Name: 'Nhánh 2: Cường Hóa & Tẩy Trừ',
+        normalDesc: 'Đánh thường cơ bản và hồi nhẹ HP cho đồng đội thấp máu nhất.',
+        tiencoDesc: 'Vào trận tự động tăng 1 điểm Hồn Lực ban đầu cho toàn đội.',
+        p1Desc: 'Khi đồng đội bị dính debuff, tự động giải trừ 1 hiệu ứng bất lợi.',
+        p2Desc: 'Đồng đội được hồi máu sẽ nhận thêm 15% Sức Công trong 2 lượt.',
+        h1Desc: 'Kêu gọi thần quang ban 2 điểm Hồn Lực tức thì cho 1 đồng minh chủ lực.',
+        h2Desc: 'Trị liệu diện rộng toàn đội và tạo lớp {khien_than} hấp thụ sát thương.',
+        b1Desc: 'Cường hóa 35% Sát Thương cho toàn đội trong 2 lượt tới.',
+        b2Desc: 'Hồi sinh 1 đồng đội đã hy sinh với 50% lượng máu tối đa.'
+      },
+      phong_ngu: {
+        role: 'Phòng Ngự',
+        title: 'Phòng Ngự Bất Diệt',
+        bio: 'Bức tường thành kiên cố, gánh chịu toàn bộ sát thương và bảo hộ đồng minh an toàn.',
+        b1Name: 'Nhánh 1: Thiết Bích & Hộ Mệnh',
+        b2Name: 'Nhánh 2: Khiêu Khích & Phản Kích',
+        normalDesc: 'Vung khiên đập mạnh gây sát thương dựa trên chỉ số Phòng Ngự.',
+        tiencoDesc: 'Bản thân nhận 30% Giảm Sát Thương trong 2 lượt đầu tiên.',
+        p1Desc: 'Tự động gánh chịu 40% sát thương thay cho đồng minh kế bên.',
+        p2Desc: 'Khi nhận đòn đánh bạo kích, phản lại 25% sát thương cho kẻ tấn công.',
+        h1Desc: 'Dựng tường thành kim cương, tạo khiên hộ thể bằng 25% HP tối đa cho toàn đội.',
+        h2Desc: 'Phát động tiếng gầm chiến tranh, khiêu khích toàn bộ kẻ địch đánh vào mình.',
+        b1Desc: 'Bất tử trong 1 lượt, không thể bị hạ gục khi HP về 0.',
+        b2Desc: 'Xóa toàn bộ hiệu ứng khống chế trên bản thân và hồi 30% HP.'
+      }
+    };
+
+    const t = archetypes[archetype] || archetypes.cuong_cong;
 
     const newHero = {
       id: slug,
       name: name,
-      title: 'Hồn Sư Mới',
-      role: 'Phụ Trợ',
-      rarity: 'SSR',
-      wusoul: 'Chưa Xác Định',
-      avatar: 'assets/heroes/default/avatar.webp',
-      banner: 'assets/heroes/default/avatar.webp',
-      bio: 'Chưa có tiểu sử.',
+      title: t.title,
+      role: t.role,
+      rarity: rarity,
+      wusoul: `${t.role} Võ Hồn`,
+      avatar: 'assets/heroes/oscar/avatar.webp',
+      banner: 'assets/heroes/oscar/banner.webp',
+      bio: t.bio,
       branches: [
         {
           branchId: 'branch_1',
-          branchName: 'Nhánh 1',
+          branchName: t.b1Name,
           skills: [
-            // Phẳng - không có nhánh
-            { group: 'normal',  name: 'Đánh Thường',         icon: '⚔️', type: 'Chủ động', cost: '0 Hồn Lực',  description: 'Gây sát thương vật lý cơ bản cho 1 mục tiêu.', ringUpgrades: [] },
-            { group: 'tienco',  name: 'Tiên Cơ',             icon: '⚡', type: 'Đặc biệt',  cost: '',           description: 'Kỹ năng tiên cơ đặc biệt.', ringUpgrades: [] },
-            // Nhánh 1 của các nhóm có nhánh
-            { group: 'passive', name: 'Bị Động — Nhánh 1',   icon: '🛡️', type: 'Bị động',  cost: '',           description: 'Hiệu ứng bị động nhánh 1.', ringUpgrades: JSON.parse(JSON.stringify(P)) },
-            { group: 'honky',   name: 'Hồn Kỹ — Nhánh 1',   icon: '🔥', type: 'Chủ động', cost: '2 Hồn Lực', description: 'Kỹ năng hồn kỹ nhánh 1.', ringUpgrades: JSON.parse(JSON.stringify(S)) },
-            { group: 'bithuat', name: 'Bí Thuật — Nhánh 1',  icon: '🔮', type: 'Chủ động', cost: '3 Hồn Lực', description: 'Kỹ năng bí thuật nhánh 1.', ringUpgrades: JSON.parse(JSON.stringify(S)) }
+            { group: 'normal',  name: 'Đánh Thường',          icon: '⚔️', type: 'Chủ động', cost: '0 Hồn Lực',  description: t.normalDesc, ringUpgrades: [] },
+            { group: 'tienco',  name: 'Tiên Cơ Thần Kỹ',     icon: '⚡', type: 'Đặc biệt',  cost: '',           description: t.tiencoDesc, ringUpgrades: [] },
+            { group: 'passive', name: `Bị Động: ${t.role} I`, icon: '🛡️', type: 'Bị động',  cost: '',           description: t.p1Desc, ringUpgrades: JSON.parse(JSON.stringify(P)) },
+            { group: 'honky',   name: `Hồn Kỹ: Tuyệt Kỹ I`,   icon: '🔥', type: 'Chủ động', cost: '2 Hồn Lực', description: t.h1Desc, ringUpgrades: JSON.parse(JSON.stringify(S)) },
+            { group: 'bithuat', name: `Bí Thuật: Thần Thông I`, icon: '🔮', type: 'Chủ động', cost: '3 Hồn Lực', description: t.b1Desc, ringUpgrades: JSON.parse(JSON.stringify(S)) }
           ]
         },
         {
           branchId: 'branch_2',
-          branchName: 'Nhánh 2',
+          branchName: t.b2Name,
           skills: [
-            // Nhánh 2 của các nhóm có nhánh (normal & tienco không có ở đây)
-            { group: 'passive', name: 'Bị Động — Nhánh 2',   icon: '🛡️', type: 'Bị động',  cost: '',           description: 'Hiệu ứng bị động nhánh 2.', ringUpgrades: JSON.parse(JSON.stringify(P)) },
-            { group: 'honky',   name: 'Hồn Kỹ — Nhánh 2',   icon: '🔥', type: 'Chủ động', cost: '2 Hồn Lực', description: 'Kỹ năng hồn kỹ nhánh 2.', ringUpgrades: JSON.parse(JSON.stringify(S)) },
-            { group: 'bithuat', name: 'Bí Thuật — Nhánh 2',  icon: '🔮', type: 'Chủ động', cost: '3 Hồn Lực', description: 'Kỹ năng bí thuật nhánh 2.', ringUpgrades: JSON.parse(JSON.stringify(S)) }
+            { group: 'passive', name: `Bị Động: ${t.role} II`, icon: '🛡️', type: 'Bị động',  cost: '',           description: t.p2Desc, ringUpgrades: JSON.parse(JSON.stringify(P)) },
+            { group: 'honky',   name: `Hồn Kỹ: Tuyệt Kỹ II`,   icon: '🔥', type: 'Chủ động', cost: '2 Hồn Lực', description: t.h2Desc, ringUpgrades: JSON.parse(JSON.stringify(S)) },
+            { group: 'bithuat', name: `Bí Thuật: Thần Thông II`, icon: '🔮', type: 'Chủ động', cost: '3 Hồn Lực', description: t.b2Desc, ringUpgrades: JSON.parse(JSON.stringify(S)) }
           ]
         }
       ],
-      tags: ['SSR', 'Phụ Trợ']
+      customBlocks: [
+        {
+          title: '⚡ ĐỀ XUẤT ĐỘI HÌNH & CHIẾN THUẬT',
+          tag: 'Đề Xuất',
+          content: `Hồn Sư hệ ${t.role} phát huy tối đa sức mạnh khi kết hợp cùng đội hình có đủ Cường Công, Khống Chế và Phụ Trợ để bảo đảm vòng quay Hồn Lực liên tục.`
+        }
+      ],
+      tags: [rarity, t.role]
     };
+
     this.saveHeroDraft(newHero);
     return newHero;
   }

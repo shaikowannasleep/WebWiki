@@ -1,0 +1,23 @@
+{
+  "name": "douluo-wiki-mmo",
+  "version": "3.4.0",
+  "description": "Douluo MMO Wiki & Studio Editor Web App",
+  "main": "server.js",
+  "scripts": {
+    "server": "node server.js",
+    "sever": "node server.js",
+    "senver": "node server.js",
+    "dev": "node server.js",
+    "start": "node server.js",
+    "serve": "node server.js"
+  },
+  "keywords": [
+    "douluo",
+    "wiki",
+    "mmo",
+    "studio",
+    "editor"
+  ],
+  "author": "",
+  "license": "ISC"
+}

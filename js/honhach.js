@@ -84,6 +84,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         ` : '';
 
+        const curveSvgHtml = (window.CoreServices && starVals.length > 0) ? `
+          <div class="scaling-chart-container">
+            <div class="scaling-chart-title">📈 Đường Cong Tăng Tiến (4★ ➔ 24★)</div>
+            ${CoreServices.ScalingGraphRenderer.renderMiniCurve(starVals, { width: 310, height: 60, color: '#06B6D4' })}
+          </div>
+        ` : '';
+
         set4Html = `
           <div class="set-box" style="border-color: rgba(245,158,11,0.3);">
             <div class="set-box-title" style="color:var(--accent-gold);">
@@ -99,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               ${starPillsHtml}
             </div>
 
+            ${curveSvgHtml}
             ${extra24Html}
           </div>
         `;

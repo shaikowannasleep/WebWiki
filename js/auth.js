@@ -196,23 +196,7 @@ const AdminAuth = (() => {
     // 2. Sync navbar link visibility (hide edit link if not authed)
     syncNavbarVisibility();
 
-    // 3. Page Protection for `edit.html`
-    const isEditPage = window.location.pathname.endsWith('edit.html');
-    if (isEditPage) {
-      if (!isAuthenticated()) {
-        openAuthModal({
-          message: 'Trang Wiki Studio yêu cầu Mã PIN Bí Mật của Quản Trị Viên.',
-          redirectOnCancel: true,
-          onSuccess: () => {
-            // Re-enable studio initialization if needed
-            if (typeof initStudio === 'function') initStudio();
-          }
-        });
-      } else {
-        // Add Logout & Change PIN button to Studio Top Bar
-        _addStudioLogoutButton();
-      }
-    }
+    // 3. Page Protection for edit.html removed (free local access)
 
     // 4. Hotkey Listener: Ctrl + Shift + E
     window.addEventListener('keydown', (e) => {

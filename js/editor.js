@@ -1,503 +1,1191 @@
 /**
- * Douluo Wiki Studio Engine V3.1 - 8-Module Dashboard (`edit.html`)
- * Features Module 1: Website Layout Builder (Section Visibility Checkboxes & Live Reordering),
- * Midnight Navy Palette (#0B1120), Interactive Live Canvas, and Direct Local Disk Access File Saver.
+ * Douluo Master Studio V4.0 — Unified Controller
+ * 100% Universal Editability across Inspector, Live Canvas, Raw JSON, and Local Disk DB.
  */
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-  // DOM References
+  // ─── STATE ───────────────────────────────────────────────────────────────
+  let activeMode = 'hero'; // 'hero' | 'honhach' | 'honcot' | 'rawjson'
+  let heroesList = [];
+  let honhachList = [];
+  let honcotList = [];
+  let keywordsDict = {};
+
+  let currentHero = null;
+  let currentHonhach = null;
+  let currentHoncot = null;
+
+  let activeGroupId = 'honky';
+  let currentBranchIdx = 0;
+  let currentSkillIdx = 0;
+
+  // ─── DOM REFERENCES ──────────────────────────────────────────────────────
+  // Mode Tabs
+  const studioModeTabs = document.querySelectorAll('.studio-mode-tab, .mode-pill-tab');
+  const heroTopControls = document.getElementById('heroTopControls');
+  const honhachTopControls = document.getElementById('honhachTopControls');
+  const honcotTopControls = document.getElementById('honcotTopControls');
+
+  // Selectors
   const heroSelect = document.getElementById('heroSelect');
+  const honhachSelect = document.getElementById('honhachSelect');
+  const honcotSelect = document.getElementById('honcotSelect');
+
+  // Top Action Buttons
+  const btnGlobalUndo = document.getElementById('btnGlobalUndo');
+  const btnGlobalRedo = document.getElementById('btnGlobalRedo');
+  const btnConnectFolder = document.getElementById('btnConnectFolder');
+  const btnPullFromDisk = document.getElementById('btnPullFromDisk');
+  const btnSaveDirectToDisk = document.getElementById('btnSaveDirectToDisk');
+  const btnImportDBBundle = document.getElementById('btnImportDBBundle');
+  const dbBundleFileInput = document.getElementById('dbBundleFileInput');
+  const btnExportDBBundle = document.getElementById('btnExportDBBundle');
+  const folderStatusBadge = document.getElementById('folderStatusBadge');
+  const unsavedBadge = document.getElementById('unsavedBadge');
+
+  let isDirty = false;
+  function setDirtyState(dirty) {
+    isDirty = dirty;
+    if (!unsavedBadge) return;
+    if (dirty) {
+      unsavedBadge.className = 'unsaved-badge dirty';
+      unsavedBadge.textContent = '● Có thay đổi chưa lưu (Nhấn Lưu Đĩa)';
+    } else {
+      unsavedBadge.className = 'unsaved-badge synced';
+      unsavedBadge.textContent = '● Đã đồng bộ Disk';
+    }
+  }
+
+  // Hero CRUD Buttons
   const btnAddHero = document.getElementById('btnAddHero');
   const btnCloneHero = document.getElementById('btnCloneHero');
   const btnDeleteHero = document.getElementById('btnDeleteHero');
 
-  const viewDesktop = document.getElementById('viewDesktop');
-  const viewPhone = document.getElementById('viewPhone');
-  const editorPreviewContainer = document.getElementById('editorPreviewContainer');
-
-  const btnConnectFolder = document.getElementById('btnConnectFolder');
-  const btnSaveDirectToDisk = document.getElementById('btnSaveDirectToDisk');
-  const folderStatusBadge = document.getElementById('folderStatusBadge');
-  const btnResetDraft = document.getElementById('btnResetDraft');
-
-  // Hero info form
-  const editHeroName   = document.getElementById('editHeroName');
-  const editHeroWusoul = document.getElementById('editHeroWusoul');
-  const editHeroRole   = document.getElementById('editHeroRole');
-  const editHeroTitle  = document.getElementById('editHeroTitle');
-  const editHeroRarity = document.getElementById('editHeroRarity');
-  const editHeroBio    = document.getElementById('editHeroBio');
-
-  // Asset paste zone
-  const assetPasteZone   = document.getElementById('assetPasteZone');
-  const assetFileInput   = document.getElementById('assetFileInput');
-  const assetPreviewBox  = document.getElementById('assetPreviewBox');
-  const assetPreviewImg  = document.getElementById('assetPreviewImg');
-  const assetPreviewLabel= document.getElementById('assetPreviewLabel');
-  const assetPasteTarget = document.getElementById('assetPasteTarget');
-  const btnApplyAsset    = document.getElementById('btnApplyAsset');
-  const btnCancelAsset   = document.getElementById('btnCancelAsset');
-  let currentAssetTarget = 'avatar'; // 'avatar' | 'banner' | 'icon'
-  let pendingAssetDataUrl = null;
-
-  // Left Group Buttons
-  const btnRuleHonky = document.getElementById('btnRuleHonky');
-  const btnRulePassive = document.getElementById('btnRulePassive');
-  const btnRuleNormal = document.getElementById('btnRuleNormal');
-  const btnRuleTienco = document.getElementById('btnRuleTienco');
-  const btnRuleBithuat = document.getElementById('btnRuleBithuat');
-  const skillTypeCostRow = document.getElementById('skillTypeCostRow');
-
-  // Right Inspector Panel Form Fields
-  const inspectorTargetName = document.getElementById('inspectorTargetName');
-  const editSkillName = document.getElementById('editSkillName');
-  const editSkillIcon = document.getElementById('editSkillIcon');
-  const editSkillType = document.getElementById('editSkillType');
-  const editSkillCost = document.getElementById('editSkillCost');
-  const editSkillDesc = document.getElementById('editSkillDesc');
-  const btnQuickInsertKw = document.getElementById('btnQuickInsertKw');
-
-  const btnTemplateNormal = document.getElementById('btnTemplateNormal');
-  const btnTemplatePassive = document.getElementById('btnTemplatePassive');
-  const btnTemplateSoul = document.getElementById('btnTemplateSoul');
-
-  const ringUpgradesEditSection = document.getElementById('ringUpgradesEditSection');
-  const ringMilestonesContainer = document.getElementById('ringMilestonesContainer');
-  const btnAddRingMilestone = document.getElementById('btnAddRingMilestone');
-
-  // Bottom Console Elements
-  const editorLivePreviewFrame = document.getElementById('editorLivePreviewFrame');
-  const toastContainer = document.getElementById('toastContainer');
-  const globalKeywordPopup = document.getElementById('global-keyword-popup');  // Mode Switcher DOM refs
-  const tabModeHero = document.getElementById('tabModeHero');
-  const tabModeHonhach = document.getElementById('tabModeHonhach');
-  const heroTopControls = document.getElementById('heroTopControls');
-  const honhachTopControls = document.getElementById('honhachTopControls');
-  const heroEditorSidebarContainer = document.getElementById('heroEditorSidebarContainer');
-  const honhachEditorSidebarContainer = document.getElementById('honhachEditorSidebarContainer');
-  const honhachPreviewContainer = document.getElementById('honhachPreviewContainer');
-  const honhachLivePreviewFrame = document.getElementById('honhachLivePreviewFrame');
-
-  // Honhach Controls DOM refs
-  const honhachSelect = document.getElementById('honhachSelect');
+  // Honhach CRUD Buttons
   const btnAddHonhach = document.getElementById('btnAddHonhach');
   const btnCloneHonhach = document.getElementById('btnCloneHonhach');
   const btnDeleteHonhach = document.getElementById('btnDeleteHonhach');
 
-  const editHonhachNameVi = document.getElementById('editHonhachNameVi');
-  const editHonhachRole   = document.getElementById('editHonhachRole');
-  const editHonhachRarity = document.getElementById('editHonhachRarity');
-  const editHonhachIcon   = document.getElementById('editHonhachIcon');
-  const btnPasteHonhachIcon = document.getElementById('btnPasteHonhachIcon');
-  const editHonhachDesc   = document.getElementById('editHonhachDesc');
+  // Honcot CRUD Buttons
+  const btnAddHoncot = document.getElementById('btnAddHoncot');
+  const btnCloneHoncot = document.getElementById('btnCloneHoncot');
+  const btnDeleteHoncot = document.getElementById('btnDeleteHoncot');
 
-  const btnTplHonhachBoth = document.getElementById('btnTplHonhachBoth');
-  const btnTplHonhach2    = document.getElementById('btnTplHonhach2');
-  const btnTplHonhach4    = document.getElementById('btnTplHonhach4');
+  // Inspector Containers
+  const heroInspectorContainer = document.getElementById('heroInspectorContainer');
+  const honhachInspectorContainer = document.getElementById('honhachInspectorContainer');
+  const honcotInspectorContainer = document.getElementById('honcotInspectorContainer');
 
-  const honhachSet2StatName = document.getElementById('honhachSet2StatName');
-  const honhachSet2Template = document.getElementById('honhachSet2Template');
-  const btnGenSet2Stars     = document.getElementById('btnGenSet2Stars');
-  const honhachSet2StarRows = document.getElementById('honhachSet2StarRows');
+  // Master Canvas & JSON View
+  const studioInspector = document.getElementById('studioInspector');
+  const studioResizer = document.getElementById('studioResizer');
+  const studioCanvasPanel = document.getElementById('studioCanvasPanel');
+  const masterCanvasFrame = document.getElementById('masterCanvasFrame');
+  const canvasModeTitle = document.getElementById('canvasModeTitle');
 
-  const honhachSet4Template = document.getElementById('honhachSet4Template');
-  const honhachSet4Extra24  = document.getElementById('honhachSet4Extra24');
-  const btnGenSet4Stars     = document.getElementById('btnGenSet4Stars');
-  const honhachSet4StarRows = document.getElementById('honhachSet4StarRows');
+  const studioJsonView = document.getElementById('studioJsonView');
+  const jsonViewTitle = document.getElementById('jsonViewTitle');
+  const jsonViewTextarea = document.getElementById('jsonViewTextarea');
+  const jsonViewAlert = document.getElementById('jsonViewAlert');
+  const btnFormatJsonView = document.getElementById('btnFormatJsonView');
+  const btnCopyJsonView = document.getElementById('btnCopyJsonView');
+  const btnReloadJsonView = document.getElementById('btnReloadJsonView');
+  const btnApplyJsonView = document.getElementById('btnApplyJsonView');
 
-  // State Variables
-  let editorMode = 'hero'; // 'hero' | 'honhach'
-  let heroesList = [];
-  let honhachList = [];
-  let currentHero = null;
-  let currentHonhach = null;
-  let keywordsDict = {};
-  let websiteConfig = null;
-  let activeGroupId = 'honky';
-  let currentBranchIdx = 0;
-  let currentSkillIdx = 0;
-  let currentCroppedIconData = null;
-  let livePreviewVisible = true;
+  // Toast Container
+  const toastContainer = document.getElementById('toastContainer');
 
-  // Panel elements
-  const studioLayout = document.getElementById('studioLayout');
-  const heroEditorCanvasPanel = document.getElementById('heroEditorCanvasPanel');
-  const honhachEditorCanvasPanel = document.getElementById('honhachEditorCanvasPanel');
-  const btnToggleLivePreview = document.getElementById('btnToggleLivePreview');
+  // ─── TOAST HELPER ────────────────────────────────────────────────────────
+  function showToast(msg, type = 'info') {
+    if (!toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    let icon = 'ℹ️';
+    if (type === 'success') { icon = '🎉'; toast.style.borderColor = 'var(--accent-green)'; }
+    if (type === 'danger') { icon = '⚠️'; toast.style.borderColor = 'var(--accent-red)'; }
+    if (type === 'gold') { icon = '✨'; toast.style.borderColor = 'var(--accent-gold)'; }
+    toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 3200);
+  }
 
-  // Layout Visibility Config
-  let layoutVisibility = {
-    avatar: true,
-    banner: true,
-    title: true,
-    bio: true,
-    radial: true,
-    rings: true
-  };
-
-  await initStudio();
+  // ─── INITIALIZATION ──────────────────────────────────────────────────────
 
   async function initStudio() {
-    heroesList = await DataLayer.getHeroesList();
-    keywordsDict = await DataLayer.getKeywords();
-    websiteConfig = await DataLayer.getWebsiteConfig();
-    honhachList = await DataLayer.getHonhachList();
+    try {
+      heroesList = await DataLayer.getHeroesList();
+      keywordsDict = await DataLayer.getKeywords();
+      honhachList = await DataLayer.getHonhachList();
+      honcotList = await DataLayer.getHoncotList();
 
-    populateHeroSelect();
-    populateHonhachSelect();
+      populateHeroSelect();
+      populateHonhachSelect();
+      populateHoncotSelect();
 
-    // Initialize CanvasEditor
-    CanvasEditor.init({
-      hero: null,
-      onSave: (hero, meta) => {
-        currentHero = hero;
-        const fp = meta && meta.fieldPath ? meta.fieldPath : '';
-
-        // ── Sync back to sidebar form fields ──
-        if (editHeroName)   editHeroName.value   = hero.name   || '';
-        if (editHeroWusoul) editHeroWusoul.value = hero.wusoul || '';
-        if (editHeroRole)   editHeroRole.value   = hero.role   || '';
-        if (editHeroTitle)  editHeroTitle.value  = hero.title  || '';
-        if (editHeroBio)    editHeroBio.value    = hero.bio    || '';
-
-        // Sync rarity dropdown in sidebar
-        if (fp === 'rarity') {
-          const rarityEl = document.getElementById('editHeroRarity');
-          if (rarityEl) rarityEl.value = hero.rarity || 'SR';
+      // Try auto-reconnect Local Directory Handle
+      try {
+        const restoredHandle = await DataLayer.restoreProjectDirectory();
+        if (restoredHandle && folderStatusBadge) {
+          folderStatusBadge.textContent = '🟢 Đã kết nối Disk';
+          folderStatusBadge.style.color = '#34d399';
+          folderStatusBadge.style.borderColor = 'var(--accent-green)';
         }
+      } catch (e) {}
 
-        // Reload skill inspector when any skill field changes
-        if (fp.startsWith('skill') || fp.startsWith('branch')) {
-          loadSkillToInspector();
-          // Also update hero select label
-          populateHeroSelect();
-          heroSelect.value = hero.id;
-        }
+      // Initialize CanvasEditor
+      CanvasEditor.init({
+        hero: null,
+        onSave: (hero, meta) => {
+          currentHero = hero;
+          loadHeroToInspector();
+          DataLayer.saveHeroDraft(hero);
+          persistSession();
+          setDirtyState(true);
+        },
+        groupId: activeGroupId,
+        branchIdx: currentBranchIdx
+      });
 
-        // Handle branch switch from canvas (tab click)
-        if (meta && meta.branchChanged) {
-          currentBranchIdx = meta.branchIdx;
-          loadSkillToInspector();
-        }
+      // Restore session or select first items
+      const saved = DataLayer.getSessionState();
+      let initMode = 'hero';
+      let targetHeroId = heroesList.length > 0 ? heroesList[0].id : null;
+      let targetHonhachId = honhachList.length > 0 ? honhachList[0].id : null;
+      let targetHoncotId = honcotList.length > 0 ? honcotList[0].id : null;
 
-        DataLayer.saveHeroDraft(hero);
-        renderLivePreviewCanvas();
-      },
-      groupId: activeGroupId,
-      branchIdx: currentBranchIdx
+      if (saved) {
+        if (saved.editorMode && saved.editorMode !== 'rawjson') initMode = saved.editorMode;
+        if (saved.activeGroupId) activeGroupId = saved.activeGroupId;
+        if (saved.currentBranchIdx !== undefined) currentBranchIdx = saved.currentBranchIdx;
+        if (saved.currentSkillIdx !== undefined) currentSkillIdx = saved.currentSkillIdx;
+        if (saved.heroId && heroesList.some(h => h.id === saved.heroId)) targetHeroId = saved.heroId;
+        if (saved.honhachId && honhachList.some(h => h.id === saved.honhachId)) targetHonhachId = saved.honhachId;
+        if (saved.honcotId && honcotList.some(h => h.id === saved.honcotId)) targetHoncotId = saved.honcotId;
+      }
+
+      if (targetHeroId) await selectHero(targetHeroId);
+      if (targetHonhachId) await selectHonhach(targetHonhachId);
+      if (targetHoncotId) await selectHoncot(targetHoncotId);
+
+      switchMode(initMode);
+      setupEventListeners();
+      setupResizer();
+      setupHistorySync();
+    } catch (err) {
+      console.error('Studio init failed:', err);
+    }
+  }
+
+  function persistSession() {
+    DataLayer.saveSessionState({
+      editorMode: activeMode,
+      activeGroupId: activeGroupId,
+      currentBranchIdx: currentBranchIdx,
+      currentSkillIdx: currentSkillIdx,
+      heroId: currentHero ? currentHero.id : null,
+      honhachId: currentHonhach ? currentHonhach.id : null,
+      honcotId: currentHoncot ? currentHoncot.id : null
+    });
+  }
+
+  // ─── MODE SWITCHER ───────────────────────────────────────────────────────
+  function switchMode(mode) {
+    activeMode = mode;
+    persistSession();
+
+    // Update Mode Tab styles
+    studioModeTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.mode === mode);
     });
 
-
-    // Toggle Live Preview button
-    if (btnToggleLivePreview) {
-      btnToggleLivePreview.addEventListener('click', () => {
-        livePreviewVisible = !livePreviewVisible;
-        const livePanel = document.getElementById('editorPreviewContainer');
-        if (livePanel) livePanel.classList.toggle('hidden', !livePreviewVisible);
-        if (studioLayout) studioLayout.classList.toggle('preview-hidden', !livePreviewVisible);
-        btnToggleLivePreview.textContent = livePreviewVisible ? '👁️ Preview' : '👁️ Hiện Preview';
-        btnToggleLivePreview.style.color = livePreviewVisible ? '' : 'var(--accent-gold)';
-      });
-    }
-
-    if (heroesList.length > 0) {
-      await selectHero(heroesList[0].id);
-    }
-    if (honhachList.length > 0) {
-      await selectHonhach(honhachList[0].id);
-    }
-
-    setupEventListeners();
-    setupHonhachEventListeners();
-  }
-
-  function switchEditorMode(mode) {
-    editorMode = mode;
-    if (mode === 'hero') {
-      tabModeHero.classList.add('active-group');
-      tabModeHonhach.classList.remove('active-group');
-      heroTopControls.style.display = 'flex';
-      honhachTopControls.style.display = 'none';
-      heroEditorSidebarContainer.style.display = 'flex';
-      honhachEditorSidebarContainer.style.display = 'none';
-      // Panel 2 switches
-      if (heroEditorCanvasPanel) heroEditorCanvasPanel.style.display = 'flex';
-      if (honhachEditorCanvasPanel) honhachEditorCanvasPanel.style.display = 'none';
-      // Panel 3 switches
-      editorPreviewContainer.style.display = 'block';
-      honhachPreviewContainer.style.display = 'none';
-      renderLivePreviewCanvas();
-      renderEditorCanvas();
-    } else {
-      tabModeHonhach.classList.add('active-group');
-      tabModeHero.classList.remove('active-group');
-      heroTopControls.style.display = 'none';
-      honhachTopControls.style.display = 'flex';
-      heroEditorSidebarContainer.style.display = 'none';
-      honhachEditorSidebarContainer.style.display = 'flex';
-      // Panel 2 switches
-      if (heroEditorCanvasPanel) heroEditorCanvasPanel.style.display = 'none';
-      if (honhachEditorCanvasPanel) honhachEditorCanvasPanel.style.display = 'flex';
-      // Panel 3 switches
-      editorPreviewContainer.style.display = 'none';
-      honhachPreviewContainer.style.display = 'block';
-      loadHonhachToInspector();
-      renderHonhachLivePreview();
-      // For honhach, editor canvas mirrors the live preview
-      const honhachCanvasFrame = document.getElementById('honhachEditorCanvasFrame');
-      if (honhachCanvasFrame && honhachLivePreviewFrame) {
-        honhachCanvasFrame.innerHTML = honhachLivePreviewFrame.innerHTML;
+    if (mode === 'rawjson') {
+      // Show Raw JSON View, hide 2-panel workspace
+      if (studioInspector) studioInspector.style.display = 'none';
+      if (studioResizer) studioResizer.style.display = 'none';
+      if (studioCanvasPanel) studioCanvasPanel.style.display = 'none';
+      if (studioJsonView) {
+        studioJsonView.classList.add('active');
+        studioJsonView.style.display = 'flex';
       }
+      populateJsonView();
+      return;
+    }
+
+    // Normal 2-Panel Mode
+    if (studioInspector) studioInspector.style.display = 'flex';
+    if (studioResizer) studioResizer.style.display = 'flex';
+    if (studioCanvasPanel) studioCanvasPanel.style.display = 'flex';
+    if (studioJsonView) {
+      studioJsonView.classList.remove('active');
+      studioJsonView.style.display = 'none';
+    }
+
+    // Toggle Sub-toolbars
+    if (heroTopControls) heroTopControls.style.display = (mode === 'hero') ? 'flex' : 'none';
+    if (honhachTopControls) honhachTopControls.style.display = (mode === 'honhach') ? 'flex' : 'none';
+    if (honcotTopControls) honcotTopControls.style.display = (mode === 'honcot') ? 'flex' : 'none';
+
+    // Toggle Inspector Panels
+    if (heroInspectorContainer) heroInspectorContainer.style.display = (mode === 'hero') ? 'flex' : 'none';
+    if (honhachInspectorContainer) honhachInspectorContainer.style.display = (mode === 'honhach') ? 'flex' : 'none';
+    if (honcotInspectorContainer) honcotInspectorContainer.style.display = (mode === 'honcot') ? 'flex' : 'none';
+
+    // Re-render Master Canvas
+    if (mode === 'hero') {
+      if (canvasModeTitle) canvasModeTitle.innerHTML = '👤 HỒN SƯ CANVAS';
+      if (currentHero) {
+        CanvasEditor.setHero(currentHero);
+        CanvasEditor.setGroupAndBranch(activeGroupId, currentBranchIdx);
+        CanvasEditor.render('masterCanvasFrame');
+      }
+    } else if (mode === 'honhach') {
+      if (canvasModeTitle) canvasModeTitle.innerHTML = '🦴 HỒN HẠCH CANVAS';
+      renderHonhachCanvas();
+    } else if (mode === 'honcot') {
+      if (canvasModeTitle) canvasModeTitle.innerHTML = '🦴 HỒN CỐT CANVAS';
+      renderHoncotCanvas();
     }
   }
 
-  /** Render the inline Editor Canvas (Panel 2) for current hero */
-  function renderEditorCanvas() {
-    if (!currentHero) return;
-    CanvasEditor.setHero(currentHero);
-    CanvasEditor.setGroup(activeGroupId);
-    CanvasEditor.setBranch(currentBranchIdx);
-    CanvasEditor.render('heroEditorCanvasFrame');
+  // ─── POPULATE SELECT DROPDOWNS ───────────────────────────────────────────
+  function populateHeroSelect() {
+    if (!heroSelect) return;
+    heroSelect.innerHTML = '';
+    heroesList.forEach(h => {
+      const opt = document.createElement('option');
+      opt.value = h.id;
+      opt.textContent = `${h.name} [${h.rarity || 'SR'}]`;
+      heroSelect.appendChild(opt);
+    });
+    if (currentHero) heroSelect.value = currentHero.id;
   }
 
   function populateHonhachSelect() {
     if (!honhachSelect) return;
-    honhachSelect.innerHTML = honhachList.map(item => `
-      <option value="${item.id}">${item.nameVi} - ${item.rarity || 'SSR'}</option>
-    `).join('');
+    honhachSelect.innerHTML = '';
+    honhachList.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.textContent = `${item.nameVi || item.name} [${item.rarity || 'SSR'}]`;
+      honhachSelect.appendChild(opt);
+    });
+    if (currentHonhach) honhachSelect.value = currentHonhach.id;
   }
 
-  async function selectHonhach(id) {
-    if (!honhachList || honhachList.length === 0) return;
-    currentHonhach = honhachList.find(h => h.id === id) || honhachList[0];
-    if (!currentHonhach) return;
+  function populateHoncotSelect() {
+    if (!honcotSelect) return;
+    honcotSelect.innerHTML = '';
+    honcotList.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.textContent = `${item.nameVi || item.name} [${item.slot || 'head'}]`;
+      honcotSelect.appendChild(opt);
+    });
+    if (currentHoncot) honcotSelect.value = currentHoncot.id;
+  }
 
-    honhachSelect.value = currentHonhach.id;
+  // ─── SELECT ENTITY FUNCTIONS ─────────────────────────────────────────────
+  async function selectHero(heroId) {
+    const hero = await DataLayer.getHeroById(heroId);
+    if (!hero) return;
+    currentHero = hero;
+    if (heroSelect) heroSelect.value = heroId;
+    loadHeroToInspector();
+    CanvasEditor.setHero(currentHero);
+    CanvasEditor.setGroupAndBranch(activeGroupId, currentBranchIdx);
+    if (activeMode === 'hero') CanvasEditor.render('masterCanvasFrame');
+    if (typeof HistoryManager !== 'undefined') HistoryManager.pushState(currentHero);
+  }
 
+  async function selectHonhach(honhachId) {
+    const hh = await DataLayer.getHonhachById(honhachId);
+    if (!hh) return;
+    currentHonhach = hh;
+    if (honhachSelect) honhachSelect.value = honhachId;
     loadHonhachToInspector();
-    renderHonhachLivePreview();
+    if (activeMode === 'honhach') renderHonhachCanvas();
   }
+
+  async function selectHoncot(honcotId) {
+    const hc = await DataLayer.getHoncotById(honcotId);
+    if (!hc) return;
+    currentHoncot = hc;
+    if (honcotSelect) honcotSelect.value = honcotId;
+    loadHoncotToInspector();
+    if (activeMode === 'honcot') renderHoncotCanvas();
+  }
+
+  // ─── HERO INSPECTOR BINDINGS ─────────────────────────────────────────────
+  const editHeroName = document.getElementById('editHeroName');
+  const editHeroWusoul = document.getElementById('editHeroWusoul');
+  const editHeroRole = document.getElementById('editHeroRole');
+  const editHeroRarity = document.getElementById('editHeroRarity');
+  const editHeroTitle = document.getElementById('editHeroTitle');
+  const editHeroBio = document.getElementById('editHeroBio');
+  const editHeroAvatar = document.getElementById('editHeroAvatar');
+  const editHeroBanner = document.getElementById('editHeroBanner');
+
+  const inspBranchTabsList = document.getElementById('inspBranchTabsList');
+  const inspBtnAddBranch = document.getElementById('inspBtnAddBranch');
+
+  const editSkillName = document.getElementById('editSkillName');
+  const editSkillType = document.getElementById('editSkillType');
+  const editSkillCost = document.getElementById('editSkillCost');
+  const editSkillGroup = document.getElementById('editSkillGroup');
+  const editSkillIcon = document.getElementById('editSkillIcon');
+  const editSkillDesc = document.getElementById('editSkillDesc');
+  const ringMilestonesContainer = document.getElementById('ringMilestonesContainer');
+  const btnAddRingMilestone = document.getElementById('btnAddRingMilestone');
+  const inspCustomBlocksList = document.getElementById('inspCustomBlocksList');
+  const inspBtnAddCustomBlock = document.getElementById('inspBtnAddCustomBlock');
+
+  function loadHeroToInspector() {
+    if (!currentHero) return;
+
+    if (editHeroName) editHeroName.value = currentHero.name || '';
+    if (editHeroWusoul) editHeroWusoul.value = currentHero.wusoul || '';
+    if (editHeroRole) editHeroRole.value = currentHero.role || '';
+    if (editHeroRarity) editHeroRarity.value = currentHero.rarity || 'SR';
+    if (editHeroTitle) editHeroTitle.value = currentHero.title || '';
+    if (editHeroBio) editHeroBio.value = currentHero.bio || '';
+    if (editHeroAvatar) editHeroAvatar.value = currentHero.avatar || '';
+    if (editHeroBanner) editHeroBanner.value = currentHero.banner || '';
+
+    // Render Branches
+    renderInspectorBranches();
+
+    // Render Active Skill
+    loadActiveSkillToInspector();
+
+    // Render Custom Blocks
+    renderInspectorCustomBlocks();
+  }
+
+  function renderInspectorBranches() {
+    if (!inspBranchTabsList || !currentHero || !currentHero.branches) return;
+    inspBranchTabsList.innerHTML = '';
+
+    currentHero.branches.forEach((b, idx) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; gap:0.4rem; background:rgba(255,255,255,0.03); padding:0.4rem 0.6rem; border-radius:6px; border:1px solid var(--border-glass);';
+      if (idx === currentBranchIdx) row.style.borderColor = 'var(--accent-cyan)';
+
+      row.innerHTML = `
+        <button class="btn-studio" style="padding:0.2rem 0.5rem; font-size:0.75rem; font-weight:800; ${idx === currentBranchIdx ? 'background:var(--accent-cyan); color:#000;' : ''}">
+          ${idx + 1}
+        </button>
+        <input type="text" class="form-input insp-branch-name" value="${b.name || ('Nhánh ' + (idx + 1))}" data-idx="${idx}" style="flex:1; padding:0.25rem 0.5rem; font-size:0.8rem; font-weight:700;">
+        ${currentHero.branches.length > 1 ? `<button class="btn-studio btn-studio-danger insp-btn-del-branch" data-idx="${idx}" style="padding:0.2rem 0.45rem; font-size:0.75rem;">✕</button>` : ''}
+      `;
+
+      // Branch select
+      row.querySelector('button').addEventListener('click', () => {
+        currentBranchIdx = idx;
+        loadHeroToInspector();
+        CanvasEditor.setGroupAndBranch(activeGroupId, currentBranchIdx);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+
+      // Branch name edit
+      const nameInp = row.querySelector('.insp-branch-name');
+      nameInp.addEventListener('input', (e) => {
+        b.name = e.target.value;
+        DataLayer.saveHeroDraft(currentHero);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+
+      // Branch delete
+      const delBtn = row.querySelector('.insp-btn-del-branch');
+      if (delBtn) {
+        delBtn.addEventListener('click', () => {
+          if (confirm(`Xác nhận xóa nhánh "${b.name}"?`)) {
+            currentHero.branches.splice(idx, 1);
+            if (currentBranchIdx >= currentHero.branches.length) currentBranchIdx = 0;
+            loadHeroToInspector();
+            DataLayer.saveHeroDraft(currentHero);
+            CanvasEditor.setHero(currentHero);
+            CanvasEditor.setGroupAndBranch(activeGroupId, currentBranchIdx);
+            CanvasEditor.render('masterCanvasFrame');
+          }
+        });
+      }
+
+      inspBranchTabsList.appendChild(row);
+    });
+  }
+
+  function getActiveSkill() {
+    if (!currentHero || !currentHero.branches || !currentHero.branches[currentBranchIdx]) return null;
+    const branch = currentHero.branches[currentBranchIdx];
+    if (!branch.skills || branch.skills.length === 0) return null;
+
+    const groupSkills = branch.skills.filter(s => (s.group || s.groupId || 'honky') === activeGroupId);
+    if (groupSkills.length > 0) {
+      if (currentSkillIdx >= groupSkills.length) currentSkillIdx = 0;
+      return groupSkills[currentSkillIdx];
+    }
+    return branch.skills[0];
+  }
+
+  function loadActiveSkillToInspector() {
+    const skill = getActiveSkill();
+    if (!skill) return;
+
+    if (editSkillName) editSkillName.value = skill.name || '';
+    if (editSkillType) editSkillType.value = skill.type || '';
+    if (editSkillCost) editSkillCost.value = skill.cost || '';
+    if (editSkillGroup) editSkillGroup.value = skill.group || skill.groupId || 'honky';
+    if (editSkillIcon) editSkillIcon.value = skill.icon || '';
+    if (editSkillDesc) editSkillDesc.value = skill.description || skill.desc || '';
+
+    // Render Ring Milestones
+    renderInspectorMilestones(skill);
+  }
+
+  function renderInspectorMilestones(skill) {
+    if (!ringMilestonesContainer) return;
+    ringMilestonesContainer.innerHTML = '';
+    const milestones = skill.ringUpgrades || skill.milestones || [];
+
+    milestones.forEach((m, idx) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:flex-start; gap:0.4rem; background:rgba(0,0,0,0.3); padding:0.45rem; border-radius:6px; border:1px solid var(--border-glass); position:relative;';
+
+      row.innerHTML = `
+        <input type="text" class="form-input insp-ring-years" value="${m.years || m.year || ''}" placeholder="1 Vạn" data-idx="${idx}" style="width:75px; font-weight:800; color:var(--accent-purple); padding:0.25rem 0.45rem; font-size:0.75rem;">
+        <textarea class="form-textarea insp-ring-desc" rows="2" placeholder="Mô tả mốc..." data-idx="${idx}" style="flex:1; padding:0.25rem 0.45rem; font-size:0.75rem;">${m.desc || m.description || ''}</textarea>
+        <button class="btn-studio btn-studio-danger insp-btn-del-ring" data-idx="${idx}" style="padding:0.2rem 0.4rem; font-size:0.75rem;" title="Xóa mốc">✕</button>
+      `;
+
+      row.querySelector('.insp-ring-years').addEventListener('input', (e) => {
+        m.years = e.target.value;
+        DataLayer.saveHeroDraft(currentHero);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+
+      row.querySelector('.insp-ring-desc').addEventListener('input', (e) => {
+        m.desc = e.target.value;
+        DataLayer.saveHeroDraft(currentHero);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+
+      row.querySelector('.insp-btn-del-ring').addEventListener('click', () => {
+        milestones.splice(idx, 1);
+        renderInspectorMilestones(skill);
+        DataLayer.saveHeroDraft(currentHero);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+
+      ringMilestonesContainer.appendChild(row);
+    });
+  }
+
+  function renderInspectorCustomBlocks() {
+    if (!inspCustomBlocksList || !currentHero) return;
+    inspCustomBlocksList.innerHTML = '';
+    const customBlocks = currentHero.customBlocks || [];
+
+    customBlocks.forEach((cb, idx) => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:rgba(255,255,255,0.03); border:1px solid rgba(6,182,212,0.3); border-radius:8px; padding:0.6rem;';
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+          <input type="text" class="form-input insp-cb-title" value="${cb.title || ''}" placeholder="Tiêu đề khối" data-idx="${idx}" style="font-weight:800; color:var(--accent-cyan); font-size:0.8rem; width:60%;">
+          <input type="text" class="form-input insp-cb-tag" value="${cb.tag || ''}" placeholder="Tag (e.g. Combo)" data-idx="${idx}" style="font-size:0.72rem; width:30%;">
+          <button class="btn-studio btn-studio-danger insp-btn-del-cb" data-idx="${idx}" style="padding:0.2rem 0.4rem; font-size:0.75rem;">✕</button>
+        </div>
+        <textarea class="form-textarea insp-cb-content" rows="2" placeholder="Nội dung mô tả..." data-idx="${idx}" style="font-size:0.78rem;">${cb.content || ''}</textarea>
+      `;
+
+      card.querySelector('.insp-cb-title').addEventListener('input', (e) => {
+        cb.title = e.target.value;
+        DataLayer.saveHeroDraft(currentHero);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+      card.querySelector('.insp-cb-tag').addEventListener('input', (e) => {
+        cb.tag = e.target.value;
+        DataLayer.saveHeroDraft(currentHero);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+      card.querySelector('.insp-cb-content').addEventListener('input', (e) => {
+        cb.content = e.target.value;
+        DataLayer.saveHeroDraft(currentHero);
+        setDirtyState(true);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+      card.querySelector('.insp-btn-del-cb').addEventListener('click', () => {
+        customBlocks.splice(idx, 1);
+        renderInspectorCustomBlocks();
+        DataLayer.saveHeroDraft(currentHero);
+        setDirtyState(true);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+
+      inspCustomBlocksList.appendChild(card);
+    });
+  }
+
+  function syncHeroBasicFields() {
+    if (!currentHero) return;
+    currentHero.name = editHeroName ? editHeroName.value : currentHero.name;
+    currentHero.wusoul = editHeroWusoul ? editHeroWusoul.value : currentHero.wusoul;
+    currentHero.role = editHeroRole ? editHeroRole.value : currentHero.role;
+    currentHero.rarity = editHeroRarity ? editHeroRarity.value : currentHero.rarity;
+    currentHero.title = editHeroTitle ? editHeroTitle.value : currentHero.title;
+    currentHero.bio = editHeroBio ? editHeroBio.value : currentHero.bio;
+    currentHero.avatar = editHeroAvatar ? editHeroAvatar.value : currentHero.avatar;
+    currentHero.banner = editHeroBanner ? editHeroBanner.value : currentHero.banner;
+
+    DataLayer.saveHeroDraft(currentHero);
+    const idx = heroesList.findIndex(h => h.id === currentHero.id);
+    if (idx >= 0) heroesList[idx] = { id: currentHero.id, name: currentHero.name, role: currentHero.role, rarity: currentHero.rarity, avatar: currentHero.avatar };
+    populateHeroSelect();
+    CanvasEditor.setHero(currentHero);
+    CanvasEditor.render('masterCanvasFrame');
+  }
+
+  function syncSkillFields() {
+    const skill = getActiveSkill();
+    if (!skill) return;
+    skill.name = editSkillName ? editSkillName.value : skill.name;
+    skill.type = editSkillType ? editSkillType.value : skill.type;
+    skill.cost = editSkillCost ? editSkillCost.value : skill.cost;
+    skill.group = editSkillGroup ? editSkillGroup.value : skill.group;
+    skill.groupId = skill.group;
+    skill.icon = editSkillIcon ? editSkillIcon.value : skill.icon;
+    skill.description = editSkillDesc ? editSkillDesc.value : skill.description;
+    skill.desc = skill.description;
+
+    DataLayer.saveHeroDraft(currentHero);
+    CanvasEditor.setHero(currentHero);
+    CanvasEditor.render('masterCanvasFrame');
+  }
+
+  // Bind Hero input events
+  [editHeroName, editHeroWusoul, editHeroRole, editHeroRarity, editHeroTitle, editHeroBio, editHeroAvatar, editHeroBanner].forEach(el => {
+    if (el) el.addEventListener('input', syncHeroBasicFields);
+  });
+  [editSkillName, editSkillType, editSkillCost, editSkillGroup, editSkillIcon, editSkillDesc].forEach(el => {
+    if (el) el.addEventListener('input', syncSkillFields);
+  });
+
+  // Group selector buttons in Inspector
+  ['btnRuleHonky', 'btnRulePassive', 'btnRuleNormal', 'btnRuleTienco', 'btnRuleBithuat'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-group]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeGroupId = btn.getAttribute('data-group');
+        currentSkillIdx = 0;
+        loadActiveSkillToInspector();
+        CanvasEditor.setGroupAndBranch(activeGroupId, currentBranchIdx);
+        CanvasEditor.render('masterCanvasFrame');
+      });
+    }
+  });
+
+  // Add Branch in Inspector
+  if (inspBtnAddBranch) {
+    inspBtnAddBranch.addEventListener('click', () => {
+      if (!currentHero) return;
+      if (!currentHero.branches) currentHero.branches = [];
+      const num = currentHero.branches.length + 1;
+      currentHero.branches.push({
+        id: `branch_${num}`,
+        name: `Nhánh ${num}`,
+        skills: JSON.parse(JSON.stringify(DataLayer.SKILL_TEMPLATE || []))
+      });
+      currentBranchIdx = currentHero.branches.length - 1;
+      loadHeroToInspector();
+      DataLayer.saveHeroDraft(currentHero);
+      CanvasEditor.setHero(currentHero);
+      CanvasEditor.setGroupAndBranch(activeGroupId, currentBranchIdx);
+      CanvasEditor.render('masterCanvasFrame');
+      showToast('Đã thêm nhánh mới!', 'success');
+    });
+  }
+
+  // Add Ring Milestone in Inspector
+  if (btnAddRingMilestone) {
+    btnAddRingMilestone.addEventListener('click', () => {
+      const skill = getActiveSkill();
+      if (!skill) return;
+      if (!skill.ringUpgrades) skill.ringUpgrades = [];
+      skill.ringUpgrades.push({ years: '1 Vạn', desc: '' });
+      renderInspectorMilestones(skill);
+      DataLayer.saveHeroDraft(currentHero);
+      CanvasEditor.render('masterCanvasFrame');
+    });
+  }
+
+  // Add Custom Block in Inspector
+  if (inspBtnAddCustomBlock) {
+    inspBtnAddCustomBlock.addEventListener('click', () => {
+      if (!currentHero) return;
+      if (!currentHero.customBlocks) currentHero.customBlocks = [];
+      currentHero.customBlocks.push({ title: 'Khối Tính Năng Mới', tag: 'Đề xuất', content: '' });
+      renderInspectorCustomBlocks();
+      DataLayer.saveHeroDraft(currentHero);
+      CanvasEditor.render('masterCanvasFrame');
+    });
+  }
+
+  // ─── HONHACH INSPECTOR & CANVAS ───────────────────────────────────────────
+  const editHonhachNameVi = document.getElementById('editHonhachNameVi');
+  const editHonhachRarity = document.getElementById('editHonhachRarity');
+  const editHonhachIcon = document.getElementById('editHonhachIcon');
+  const honhachRolesToggleContainer = document.getElementById('honhachRolesToggleContainer');
+  const editHonhachDesc = document.getElementById('editHonhachDesc');
+  const honhachSet2Input = document.getElementById('honhachSet2Input');
+  const honhachSet4DescInput = document.getElementById('honhachSet4DescInput');
+  const honhachSet4Extra24Input = document.getElementById('honhachSet4Extra24Input');
+  const honhachStarStatsGrid = document.getElementById('honhachStarStatsGrid');
+
+  const ALL_ROLES = ['Cường Công', 'Mẫn Công', 'Khống Chế', 'Phụ Trợ', 'Phòng Ngự'];
 
   function loadHonhachToInspector() {
     if (!currentHonhach) return;
-
-    const editHonhachSet2Star   = document.getElementById('editHonhachSet2Star');
-    const editHonhachSet2Effect = document.getElementById('editHonhachSet2Effect');
-
-    if (editHonhachNameVi) editHonhachNameVi.value = currentHonhach.nameVi || '';
-    if (editHonhachRole)   editHonhachRole.value   = (currentHonhach.roles || ['cuong_cong','man_cong']).join(',');
+    if (editHonhachNameVi) editHonhachNameVi.value = currentHonhach.nameVi || currentHonhach.name || '';
     if (editHonhachRarity) editHonhachRarity.value = currentHonhach.rarity || 'SSR';
-    if (editHonhachIcon)   editHonhachIcon.value   = currentHonhach.icon || 'assets/icons/star_gold.svg';
-    if (editHonhachDesc)   editHonhachDesc.value   = currentHonhach.description || '';
+    if (editHonhachIcon) editHonhachIcon.value = currentHonhach.icon || '';
+    if (editHonhachDesc) editHonhachDesc.value = currentHonhach.description || '';
 
-    // Set 2 fields (1-line description editor)
-    if (editHonhachSet2Star)   editHonhachSet2Star.value   = 2; // Fixed at 2 stars for set 2
-    if (editHonhachSet2Effect) editHonhachSet2Effect.value = typeof currentHonhach.set2 === 'string' ? currentHonhach.set2 : 'Tỷ Lệ Bạo+5,0%';
-
-    // Set 4 fields
-    if (currentHonhach.set4) {
-      if (honhachSet4Template) honhachSet4Template.value = currentHonhach.set4.desc || '';
-      if (honhachSet4Extra24)  honhachSet4Extra24.value  = currentHonhach.set4.extra24 || '';
+    // Roles toggle
+    if (honhachRolesToggleContainer) {
+      honhachRolesToggleContainer.innerHTML = '';
+      const currentRoles = currentHonhach.roles || [currentHonhach.role || 'Cường Công'];
+      ALL_ROLES.forEach(r => {
+        const isSel = currentRoles.includes(r);
+        const btn = document.createElement('button');
+        btn.className = `btn-studio ${isSel ? 'btn-studio-gold' : ''}`;
+        btn.textContent = r;
+        btn.style.fontSize = '0.72rem';
+        btn.addEventListener('click', () => {
+          let updated = [...currentRoles];
+          if (updated.includes(r)) {
+            updated = updated.filter(x => x !== r);
+          } else {
+            updated.push(r);
+          }
+          currentHonhach.roles = updated;
+          loadHonhachToInspector();
+          syncHonhachToMemory();
+        });
+        honhachRolesToggleContainer.appendChild(btn);
+      });
     }
 
-    renderHonhachStarRows();
-  }
+    // Set 2
+    if (honhachSet2Input) {
+      honhachSet2Input.value = (currentHonhach.set2 && currentHonhach.set2.stat) ? currentHonhach.set2.stat : '';
+    }
 
-  function renderHonhachStarRows() {
-    if (!currentHonhach) return;
+    // Set 4
+    if (currentHonhach.set4) {
+      if (honhachSet4DescInput) honhachSet4DescInput.value = currentHonhach.set4.descTemplate || currentHonhach.set4.desc || '';
+      if (honhachSet4Extra24Input) honhachSet4Extra24Input.value = currentHonhach.set4.extra24 || '';
 
-    // Render Set 4 star inputs (6 star values)
-    if (honhachSet4StarRows && currentHonhach.set4) {
-      if (!currentHonhach.set4.stats || currentHonhach.set4.stats.length === 0) {
-        currentHonhach.set4.stats = [7.5, 9.0, 10.5, 12.0, 13.5, 15.0];
-      }
-
-      const defaultStars = [4, 8, 12, 16, 20, 24];
-
-      honhachSet4StarRows.innerHTML = `
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.5rem;">
-          ${currentHonhach.set4.stats.map((val, idx) => `
-            <div style="background:rgba(255,255,255,0.04); padding:0.4rem 0.5rem; border-radius:6px; border:1px solid var(--border-glass); display:flex; align-items:center; justify-content:space-between;">
-              <span class="star-pill" style="background:rgba(245,158,11,0.2); border-color:var(--accent-gold); color:#fef08a; font-size:0.72rem;">${defaultStars[idx]}★</span>
-              <input type="number" step="0.5" class="form-input set4-val-input" data-idx="${idx}" value="${val}" style="width:65px; padding:0.15rem 0.3rem; font-size:0.78rem; text-align:right;">
-            </div>
-          `).join('')}
-        </div>
-      `;
-
-      honhachSet4StarRows.querySelectorAll('.set4-val-input').forEach(inp => {
-        inp.addEventListener('input', (e) => {
-          const idx = parseInt(e.target.getAttribute('data-idx'), 10);
-          if (currentHonhach.set4.stats[idx] !== undefined) {
-            currentHonhach.set4.stats[idx] = parseFloat(e.target.value) || 0;
+      // 6 Stars Grid
+      if (honhachStarStatsGrid) {
+        honhachStarStatsGrid.innerHTML = '';
+        const stars = [4, 8, 12, 16, 20, 24];
+        stars.forEach(s => {
+          const val = (currentHonhach.set4.starStats && currentHonhach.set4.starStats[s]) || '';
+          const wrap = document.createElement('div');
+          wrap.innerHTML = `
+            <span style="font-size:0.7rem; color:var(--accent-gold); font-weight:800;">${s}★</span>
+            <input type="text" class="form-input hh-star-val" data-star="${s}" value="${val}" style="padding:0.25rem 0.45rem; font-size:0.75rem;">
+          `;
+          wrap.querySelector('.hh-star-val').addEventListener('input', (e) => {
+            if (!currentHonhach.set4.starStats) currentHonhach.set4.starStats = {};
+            currentHonhach.set4.starStats[s] = e.target.value;
             syncHonhachToMemory();
-          }
+          });
+          honhachStarStatsGrid.appendChild(wrap);
         });
-      });
+      }
     }
   }
 
   function syncHonhachToMemory() {
     if (!currentHonhach) return;
+    currentHonhach.nameVi = editHonhachNameVi ? editHonhachNameVi.value : currentHonhach.nameVi;
+    currentHonhach.name = currentHonhach.nameVi;
+    currentHonhach.rarity = editHonhachRarity ? editHonhachRarity.value : currentHonhach.rarity;
+    currentHonhach.icon = editHonhachIcon ? editHonhachIcon.value : currentHonhach.icon;
+    currentHonhach.description = editHonhachDesc ? editHonhachDesc.value : currentHonhach.description;
 
-    const editHonhachSet2Star   = document.getElementById('editHonhachSet2Star');
-    const editHonhachSet2Effect = document.getElementById('editHonhachSet2Effect');
+    if (!currentHonhach.set2) currentHonhach.set2 = {};
+    currentHonhach.set2.stat = honhachSet2Input ? honhachSet2Input.value : currentHonhach.set2.stat;
 
-    if (editHonhachNameVi) currentHonhach.nameVi = editHonhachNameVi.value;
-    if (editHonhachRole)   currentHonhach.roles = editHonhachRole.value.split(',');
-    if (editHonhachRarity) currentHonhach.rarity = editHonhachRarity.value;
-    if (editHonhachIcon)   currentHonhach.icon = editHonhachIcon.value;
-    if (editHonhachDesc)   currentHonhach.description = editHonhachDesc.value;
-
-    if (editHonhachSet2Effect) {
-      currentHonhach.set2 = editHonhachSet2Effect.value;
-    }
-
-    if (currentHonhach.set4) {
-      if (honhachSet4Template) currentHonhach.set4.desc = honhachSet4Template.value;
-      if (honhachSet4Extra24)  currentHonhach.set4.extra24 = honhachSet4Extra24.value;
-    }
-
-    populateHonhachSelect();
-    honhachSelect.value = currentHonhach.id;
+    if (!currentHonhach.set4) currentHonhach.set4 = {};
+    currentHonhach.set4.descTemplate = honhachSet4DescInput ? honhachSet4DescInput.value : currentHonhach.set4.descTemplate;
+    currentHonhach.set4.extra24 = honhachSet4Extra24Input ? honhachSet4Extra24Input.value : currentHonhach.set4.extra24;
 
     DataLayer.saveHonhachDraft(currentHonhach);
-    renderHonhachLivePreview();
+    const idx = honhachList.findIndex(h => h.id === currentHonhach.id);
+    if (idx >= 0) honhachList[idx] = currentHonhach;
+    populateHonhachSelect();
+    renderHonhachCanvas();
+    setDirtyState(true);
   }
 
-  function renderHonhachLivePreview() {
-    if (!currentHonhach || !honhachLivePreviewFrame) return;
+  [editHonhachNameVi, editHonhachRarity, editHonhachIcon, editHonhachDesc, honhachSet2Input, honhachSet4DescInput, honhachSet4Extra24Input].forEach(el => {
+    if (el) el.addEventListener('input', syncHonhachToMemory);
+  });
 
-    const rolesList = currentHonhach.roles || ['cuong_cong', 'man_cong'];
-    let rolesDisplay = 'Cường Công / Mẫn Công';
-    if (rolesList.includes('phu_tro') || rolesList.includes('khong_che') || rolesList.includes('phong_thu')) {
-      rolesDisplay = 'Phụ Trợ / Khống Chế / Phòng Thủ';
-    }
+  function renderHonhachCanvas() {
+    if (!masterCanvasFrame || !currentHonhach) return;
+    CanvasEditor.renderHonhachCanvas('masterCanvasFrame', currentHonhach, (hh, meta) => {
+      currentHonhach = hh;
+      loadHonhachToInspector();
+      DataLayer.saveHonhachDraft(hh);
+      const idx = honhachList.findIndex(h => h.id === currentHonhach.id);
+      if (idx >= 0) honhachList[idx] = currentHonhach;
+      populateHonhachSelect();
+      persistSession();
+    });
+  }
 
-    let set2CardHtml = '';
-    if (currentHonhach.set2) {
-      const set2Text = typeof currentHonhach.set2 === 'string' ? currentHonhach.set2 : 'Tỷ Lệ Bạo+5,0%';
-      set2CardHtml = `
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 12px; padding: 1.25rem; flex:1;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid var(--border-glass); padding-bottom:0.5rem;">
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <span style="font-size:1.1rem; color:var(--accent-cyan);">🔷 2件套</span>
-              <span style="font-size:0.8rem; background:rgba(6,182,212,0.2); color:#a5f3fc; padding:0.15rem 0.5rem; border-radius:12px; font-weight:700;">2★</span>
-            </div>
-            <span style="font-size:0.78rem; color:var(--text-sub);">Hiệu Quả 2 Món</span>
+  // ─── HONCOT INSPECTOR & CANVAS ────────────────────────────────────────────
+  const editHoncotName = document.getElementById('editHoncotName');
+  const editHoncotSlot = document.getElementById('editHoncotSlot');
+  const editHoncotWusoulType = document.getElementById('editHoncotWusoulType');
+  const editHoncotIcon = document.getElementById('editHoncotIcon');
+  const editHoncotEnhanceStats = document.getElementById('editHoncotEnhanceStats');
+  const honcotEffectsList = document.getElementById('honcotEffectsList');
+  const btnAddHoncotEffect = document.getElementById('btnAddHoncotEffect');
+
+  function loadHoncotToInspector() {
+    if (!currentHoncot) return;
+    if (editHoncotName) editHoncotName.value = currentHoncot.nameVi || currentHoncot.name || '';
+    if (editHoncotSlot) editHoncotSlot.value = currentHoncot.slot || 'head';
+    if (editHoncotWusoulType) editHoncotWusoulType.value = currentHoncot.wusoulType || 'all';
+    if (editHoncotIcon) editHoncotIcon.value = currentHoncot.icon || '';
+    if (editHoncotEnhanceStats) editHoncotEnhanceStats.value = currentHoncot.enhanceStats || '';
+
+    // Render Effects
+    renderHoncotInspectorEffects();
+  }
+
+  function renderHoncotInspectorEffects() {
+    if (!honcotEffectsList || !currentHoncot) return;
+    honcotEffectsList.innerHTML = '';
+    const effects = currentHoncot.effects || [];
+
+    effects.forEach((eff, idx) => {
+      const starVal = parseInt(eff.star, 10) || (idx + 1);
+      const row = document.createElement('div');
+      row.style.cssText = 'background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); border-radius:8px; padding:0.6rem; position:relative;';
+
+      row.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.45rem; margin-bottom:0.4rem;">
+          <input type="text" class="form-input hc-eff-year" value="${eff.year || ''}" placeholder="1 Vạn" data-idx="${idx}" style="width:85px; font-weight:800; color:var(--accent-cyan); padding:0.25rem 0.45rem; font-size:0.75rem;">
+          <div style="display:inline-flex; align-items:center; gap:0.25rem; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.35); padding:0.15rem 0.5rem; border-radius:12px;">
+            <img src="assets/icons/star_gold.svg" style="width:12px; height:12px;" alt="star">
+            <select class="form-select hc-eff-star" data-idx="${idx}" style="background:transparent; border:none; color:#fef08a; font-size:0.75rem; font-weight:800; padding:0; cursor:pointer;">
+              ${[1, 2, 3, 4, 5, 6].map(s => `<option value="${s}" ${starVal === s ? 'selected' : ''} style="background:#1e293b; color:#fff;">${s}★</option>`).join('')}
+            </select>
           </div>
-          <div style="font-size:0.95rem; color:#a5f3fc; font-weight:700; line-height:1.5; padding:0.75rem 1rem; background:rgba(6,182,212,0.05); border-radius:8px; border:1px dashed rgba(6,182,212,0.3);">
-            ✨ ${set2Text}
-          </div>
+          <button class="btn-studio btn-studio-danger hc-btn-del-eff" data-idx="${idx}" style="margin-left:auto; padding:0.2rem 0.45rem; font-size:0.75rem;">✕</button>
         </div>
+        <textarea class="form-textarea hc-eff-desc" rows="2" placeholder="Mô tả hiệu ứng vạn năm..." data-idx="${idx}" style="font-size:0.78rem;">${eff.desc || ''}</textarea>
       `;
-    }
 
-    let set4CardHtml = '';
-    if (currentHonhach.set4) {
-      const starVals = currentHonhach.set4.stats || [];
-      const minVal = starVals.length > 0 ? starVals[0] : 7.5;
-      const maxVal = starVals.length > 0 ? starVals[starVals.length - 1] : 15.0;
-      const defaultStars = [4, 8, 12, 16, 20, 24];
+      row.querySelector('.hc-eff-year').addEventListener('input', (e) => {
+        eff.year = e.target.value;
+        syncHoncotToMemory();
+      });
+      row.querySelector('.hc-eff-star').addEventListener('change', (e) => {
+        eff.star = parseInt(e.target.value, 10) || 1;
+        syncHoncotToMemory();
+      });
+      row.querySelector('.hc-eff-desc').addEventListener('input', (e) => {
+        eff.desc = e.target.value;
+        syncHoncotToMemory();
+      });
+      row.querySelector('.hc-btn-del-eff').addEventListener('click', () => {
+        effects.splice(idx, 1);
+        renderHoncotInspectorEffects();
+        syncHoncotToMemory();
+      });
 
-      const templateDesc = (currentHonhach.set4.desc || '').replace(/\{stat\}/g, `<span style="color:#fef08a; font-weight:800;">[${minVal}% ~ ${maxVal}%]</span>`);
+      honcotEffectsList.appendChild(row);
+    });
+  }
 
-      const starPillsHtml = starVals.map((val, i) => `
-        <span class="star-pill" style="background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:#fef08a; padding:0.2rem 0.5rem; font-size:0.78rem;">
-          <strong>${defaultStars[i]}★</strong>: ${val}%
-        </span>
-      `).join(' ');
+  function syncHoncotToMemory() {
+    if (!currentHoncot) return;
+    currentHoncot.nameVi = editHoncotName ? editHoncotName.value : currentHoncot.nameVi;
+    currentHoncot.name = currentHoncot.nameVi;
+    currentHoncot.slot = editHoncotSlot ? editHoncotSlot.value : currentHoncot.slot;
+    currentHoncot.wusoulType = editHoncotWusoulType ? editHoncotWusoulType.value : currentHoncot.wusoulType;
+    currentHoncot.icon = editHoncotIcon ? editHoncotIcon.value : currentHoncot.icon;
+    currentHoncot.enhanceStats = editHoncotEnhanceStats ? editHoncotEnhanceStats.value : currentHoncot.enhanceStats;
 
-      const extra24Html = currentHonhach.set4.extra24 ? `
-        <div style="margin-top:0.75rem; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); padding:0.5rem 0.75rem; border-radius:8px; font-size:0.82rem; color:#fef08a;">
-          ✨ <strong>Đột phá 24★:</strong> ${currentHonhach.set4.extra24}
-        </div>
-      ` : '';
+    DataLayer.saveHoncotDraft(currentHoncot);
+    const idx = honcotList.findIndex(h => h.id === currentHoncot.id);
+    if (idx >= 0) honcotList[idx] = currentHoncot;
+    populateHoncotSelect();
+    renderHoncotCanvas();
+    setDirtyState(true);
+  }
 
-      set4CardHtml = `
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 12px; padding: 1.25rem; flex:1.2;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; border-bottom:1px solid var(--border-glass); padding-bottom:0.5rem;">
-            <div style="display:flex; align-items:center; gap:0.5rem;">
-              <span style="font-size:1.1rem; color:var(--accent-gold);">🔶 4件套</span>
-              <span style="font-size:0.8rem; background:rgba(245,158,11,0.2); color:#fef08a; padding:0.15rem 0.5rem; border-radius:12px; font-weight:700;">4/8/12/16/20/24★</span>
-            </div>
-            <span style="font-size:0.78rem; color:var(--text-sub);">Hiệu Quả 4 Món</span>
-          </div>
+  [editHoncotName, editHoncotSlot, editHoncotWusoulType, editHoncotIcon, editHoncotEnhanceStats].forEach(el => {
+    if (el) el.addEventListener('input', syncHoncotToMemory);
+  });
 
-          <!-- Unified Description Block -->
-          <div style="font-size:0.88rem; color:#e2e8f0; line-height:1.6; margin-bottom:0.75rem;">
-            ${templateDesc}
-          </div>
+  if (btnAddHoncotEffect) {
+    btnAddHoncotEffect.addEventListener('click', () => {
+      if (!currentHoncot) return;
+      if (!currentHoncot.effects) currentHoncot.effects = [];
+      const num = currentHoncot.effects.length + 1;
+      currentHoncot.effects.push({ year: `${num * 2} Vạn`, star: Math.min(num, 6), desc: '' });
+      renderHoncotInspectorEffects();
+      syncHoncotToMemory();
+    });
+  }
 
-          <!-- Compact Star Scaling Pills Row -->
-          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.5rem;">
-            ${starPillsHtml}
-          </div>
+  function renderHoncotCanvas() {
+    if (!masterCanvasFrame || !currentHoncot) return;
+    CanvasEditor.renderHoncotCanvas('masterCanvasFrame', currentHoncot, (hc, meta) => {
+      currentHoncot = hc;
+      loadHoncotToInspector();
+      DataLayer.saveHoncotDraft(hc);
+      const idx = honcotList.findIndex(h => h.id === currentHoncot.id);
+      if (idx >= 0) honcotList[idx] = currentHoncot;
+      populateHoncotSelect();
+      persistSession();
+    });
+  }
 
-          ${extra24Html}
-        </div>
-      `;
-    }
+  // ─── RAW JSON FULL-VIEW EDITOR ───────────────────────────────────────────
+  function getActiveRawObject() {
+    if (activeMode === 'honhach') return { type: 'honhach', obj: currentHonhach, name: currentHonhach ? (currentHonhach.nameVi || currentHonhach.name) : 'Hồn Hạch' };
+    if (activeMode === 'honcot') return { type: 'honcot', obj: currentHoncot, name: currentHoncot ? (currentHoncot.nameVi || currentHoncot.name) : 'Hồn Cốt' };
+    return { type: 'hero', obj: currentHero, name: currentHero ? currentHero.name : 'Hồn Sư' };
+  }
 
-    honhachLivePreviewFrame.innerHTML = `
-      <!-- Header Info Block -->
-      <div style="background: var(--bg-surface); padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 1.25rem; border: 1px solid var(--border-glass); display: flex; gap: 1.25rem; align-items: center;">
-        <div style="width: 64px; height: 64px; background: rgba(6,182,212,0.15); border: 1.5px solid var(--accent-cyan); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-          <img src="${currentHonhach.icon || 'assets/icons/star_gold.svg'}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/icons/star_gold.svg'">
-        </div>
-        <div style="flex:1;">
-          <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:0.2rem;">
-            <span class="rarity-badge ${currentHonhach.rarity || 'SSR'}">${currentHonhach.rarity || 'SSR'}</span>
-            <span style="font-size:0.75rem; background:rgba(59,130,246,0.2); border:1px solid var(--primary); color:#93c5fd; padding:0.15rem 0.5rem; border-radius:4px; font-weight:600;">❖ ${rolesDisplay}</span>
-          </div>
-          <h2 style="color: #fff; font-family: var(--font-heading); margin-top: 0.1rem; font-size: 1.35rem;">${currentHonhach.nameVi}</h2>
-          <p style="font-size: 0.82rem; color: var(--text-sub); margin-top: 0.2rem;">${currentHonhach.description || ''}</p>
-        </div>
-      </div>
+  function populateJsonView() {
+    if (!jsonViewTextarea) return;
+    const active = getActiveRawObject();
+    if (jsonViewTitle) jsonViewTitle.textContent = `📜 JSON Gốc: ${active.name} [${active.type.toUpperCase()}]`;
+    jsonViewTextarea.value = active.obj ? JSON.stringify(active.obj, null, 2) : '{}';
+    if (jsonViewAlert) jsonViewAlert.style.display = 'none';
+  }
 
-      <!-- AAA Game Preview Cards Grid -->
-      <div style="display: flex; gap: 1.25rem; margin-bottom: 1.25rem;">
-        ${set2CardHtml}
-        ${set4CardHtml}
-      </div>
+  if (btnFormatJsonView) {
+    btnFormatJsonView.addEventListener('click', () => {
+      try {
+        const parsed = JSON.parse(jsonViewTextarea.value);
+        jsonViewTextarea.value = JSON.stringify(parsed, null, 2);
+        if (jsonViewAlert) {
+          jsonViewAlert.style.display = 'block';
+          jsonViewAlert.style.background = 'rgba(52, 211, 153, 0.15)';
+          jsonViewAlert.style.color = '#6ee7b7';
+          jsonViewAlert.textContent = '✅ Đã định dạng JSON chuẩn!';
+        }
+      } catch (e) {
+        if (jsonViewAlert) {
+          jsonViewAlert.style.display = 'block';
+          jsonViewAlert.style.background = 'rgba(239, 68, 68, 0.15)';
+          jsonViewAlert.style.color = '#fca5a5';
+          jsonViewAlert.textContent = `❌ Lỗi JSON: ${e.message}`;
+        }
+      }
+    });
+  }
 
-      <!-- JSON Inspector Terminal -->
-      <div style="background: #07090e; border: 1px solid var(--border-glass); border-radius: 10px; padding: 1rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.4rem;">
-          <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); font-family: monospace;">CẤU TRÚC DỮ LIỆU (JSON FORMAT)</span>
-          <button id="btnCopyHonhachJson" class="btn-editor btn-editor-ghost" style="font-size: 0.72rem; padding: 0.15rem 0.5rem;">📋 Copy JSON</button>
-        </div>
-        <pre style="font-family: monospace; font-size: 0.8rem; color: #fef08a; margin: 0; max-height: 200px; overflow-y: auto; white-space: pre-wrap;">${JSON.stringify(currentHonhach, null, 2)}</pre>
-      </div>
-    `;
+  if (btnCopyJsonView) {
+    btnCopyJsonView.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(jsonViewTextarea.value);
+        showToast('📋 Đã copy JSON vào Clipboard!', 'success');
+      } catch (e) {
+        jsonViewTextarea.select();
+        document.execCommand('copy');
+        showToast('📋 Đã copy JSON vào Clipboard!', 'success');
+      }
+    });
+  }
 
-    const btnCopyHonhachJson = document.getElementById('btnCopyHonhachJson');
-    if (btnCopyHonhachJson) {
-      btnCopyHonhachJson.addEventListener('click', () => {
-        navigator.clipboard.writeText(JSON.stringify(currentHonhach, null, 2));
-        showToast('Đã copy chuỗi JSON Hồn Hạch!', 'success');
+  if (btnReloadJsonView) {
+    btnReloadJsonView.addEventListener('click', () => {
+      populateJsonView();
+      showToast('🔄 Đã nạp lại JSON từ bộ nhớ RAM!', 'info');
+    });
+  }
+
+  if (btnApplyJsonView) {
+    btnApplyJsonView.addEventListener('click', () => {
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonViewTextarea.value);
+      } catch (e) {
+        if (jsonViewAlert) {
+          jsonViewAlert.style.display = 'block';
+          jsonViewAlert.style.background = 'rgba(239, 68, 68, 0.15)';
+          jsonViewAlert.style.color = '#fca5a5';
+          jsonViewAlert.textContent = `❌ Lỗi cú pháp JSON: ${e.message}`;
+        }
+        return;
+      }
+
+      const active = getActiveRawObject();
+      if (active.type === 'hero') {
+        currentHero = parsed;
+        DataLayer.saveHeroDraft(currentHero);
+        const idx = heroesList.findIndex(h => h.id === currentHero.id);
+        if (idx >= 0) heroesList[idx] = { id: currentHero.id, name: currentHero.name, role: currentHero.role, rarity: currentHero.rarity, avatar: currentHero.avatar };
+        populateHeroSelect();
+        loadHeroToInspector();
+      } else if (active.type === 'honhach') {
+        currentHonhach = parsed;
+        DataLayer.saveHonhachDraft(currentHonhach);
+        const idx = honhachList.findIndex(h => h.id === currentHonhach.id);
+        if (idx >= 0) honhachList[idx] = currentHonhach;
+        populateHonhachSelect();
+        loadHonhachToInspector();
+      } else if (active.type === 'honcot') {
+        currentHoncot = parsed;
+        DataLayer.saveHoncotDraft(currentHoncot);
+        const idx = honcotList.findIndex(h => h.id === currentHoncot.id);
+        if (idx >= 0) honcotList[idx] = currentHoncot;
+        populateHoncotSelect();
+        loadHoncotToInspector();
+      }
+
+      if (typeof HistoryManager !== 'undefined') HistoryManager.pushState(parsed);
+      persistSession();
+
+      if (jsonViewAlert) {
+        jsonViewAlert.style.display = 'block';
+        jsonViewAlert.style.background = 'rgba(52, 211, 153, 0.15)';
+        jsonViewAlert.style.color = '#6ee7b7';
+        jsonViewAlert.textContent = '⚡ Đã áp dụng các thay đổi từ JSON gốc thành công!';
+      }
+      showToast('⚡ Áp dụng JSON thành công!', 'success');
+    });
+  }
+
+  // ─── RESIZER (KÉO CO GIÃN ĐỘ RỘNG) ────────────────────────────────────────
+  function setupResizer() {
+    if (!studioResizer) return;
+    const saved = localStorage.getItem('douluo_studio_left_width');
+    if (saved) document.documentElement.style.setProperty('--left-col-width', `${saved}px`);
+
+    let isResizing = false;
+
+    studioResizer.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isResizing = true;
+      studioResizer.classList.add('resizing');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const newWidth = Math.max(340, Math.min(750, e.clientX));
+      document.documentElement.style.setProperty('--left-col-width', `${newWidth}px`);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        studioResizer.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        const widthVal = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--left-col-width')) || 460;
+        localStorage.setItem('douluo_studio_left_width', widthVal);
+      }
+    });
+  }
+
+  // ─── UNDO / REDO & SHORTCUTS ─────────────────────────────────────────────
+  function setupHistorySync() {
+    if (typeof HistoryManager !== 'undefined') {
+      HistoryManager.onChange(({ canUndo, canRedo }) => {
+        if (btnGlobalUndo) {
+          btnGlobalUndo.disabled = !canUndo;
+          btnGlobalUndo.style.opacity = canUndo ? '1' : '0.4';
+          btnGlobalUndo.style.cursor = canUndo ? 'pointer' : 'not-allowed';
+        }
+        if (btnGlobalRedo) {
+          btnGlobalRedo.disabled = !canRedo;
+          btnGlobalRedo.style.opacity = canRedo ? '1' : '0.4';
+          btnGlobalRedo.style.cursor = canRedo ? 'pointer' : 'not-allowed';
+        }
       });
     }
-  }
 
-  function setupHonhachEventListeners() {
-    if (tabModeHero)    tabModeHero.addEventListener('click', () => switchEditorMode('hero'));
-    if (tabModeHonhach) tabModeHonhach.addEventListener('click', () => switchEditorMode('honhach'));
-
-    if (honhachSelect) {
-      honhachSelect.addEventListener('change', (e) => selectHonhach(e.target.value));
+    if (btnGlobalUndo) {
+      btnGlobalUndo.addEventListener('click', () => {
+        if (typeof HistoryManager === 'undefined' || !HistoryManager.canUndo()) return;
+        const prev = HistoryManager.undo();
+        if (prev && activeMode === 'hero') {
+          currentHero = prev;
+          loadHeroToInspector();
+          CanvasEditor.setHero(currentHero);
+          CanvasEditor.render('masterCanvasFrame');
+          DataLayer.saveHeroDraft(currentHero);
+          showToast('↩️ Hoàn tác (Undo)', 'info');
+        }
+      });
     }
 
+    if (btnGlobalRedo) {
+      btnGlobalRedo.addEventListener('click', () => {
+        if (typeof HistoryManager === 'undefined' || !HistoryManager.canRedo()) return;
+        const next = HistoryManager.redo();
+        if (next && activeMode === 'hero') {
+          currentHero = next;
+          loadHeroToInspector();
+          CanvasEditor.setHero(currentHero);
+          CanvasEditor.render('masterCanvasFrame');
+          DataLayer.saveHeroDraft(currentHero);
+          showToast('↪️ Làm lại (Redo)', 'info');
+        }
+      });
+    }
+
+    // Keyboard Shortcuts (Ctrl+Z, Ctrl+Y, Cmd+Z, Cmd+Shift+Z)
+    window.addEventListener('keydown', (e) => {
+      const isMod = e.ctrlKey || e.metaKey;
+      if (isMod && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        if (typeof HistoryManager !== 'undefined' && HistoryManager.canUndo()) {
+          e.preventDefault();
+          if (btnGlobalUndo) btnGlobalUndo.click();
+        }
+      } else if (isMod && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) {
+        if (typeof HistoryManager !== 'undefined' && HistoryManager.canRedo()) {
+          e.preventDefault();
+          if (btnGlobalRedo) btnGlobalRedo.click();
+        }
+      }
+    });
+  }
+
+  // ─── EVENT LISTENERS ─────────────────────────────────────────────────────
+  function setupEventListeners() {
+    // Mode Switcher Tabs
+    studioModeTabs.forEach(tab => {
+      tab.addEventListener('click', () => switchMode(tab.dataset.mode));
+    });
+
+    // Select Dropdowns
+    if (heroSelect) heroSelect.addEventListener('change', (e) => selectHero(e.target.value));
+    if (honhachSelect) honhachSelect.addEventListener('change', (e) => selectHonhach(e.target.value));
+    if (honcotSelect) honcotSelect.addEventListener('change', (e) => selectHoncot(e.target.value));
+
+    // Hero Top Buttons
+    const templatePickerModal = document.getElementById('templatePickerModal');
+    const tplHeroName = document.getElementById('tplHeroName');
+    const btnConfirmCreateFromTemplate = document.getElementById('btnConfirmCreateFromTemplate');
+
+    if (btnAddHero) {
+      btnAddHero.addEventListener('click', () => {
+        if (templatePickerModal) {
+          if (tplHeroName) tplHeroName.value = 'Hồn Sư Mới';
+          templatePickerModal.classList.add('active');
+        } else {
+          const name = prompt('Nhập tên Hồn Sư mới:', 'Hồn Sư Mới');
+          if (!name) return;
+          const slug = 'hero_' + Date.now().toString().slice(-4);
+          DataLayer.createNewHero(slug, name).then(newHero => {
+            DataLayer.getHeroesList().then(list => {
+              heroesList = list;
+              populateHeroSelect();
+              selectHero(newHero.id);
+              showToast(`Đã tạo Hồn Sư "${name}"!`, 'success');
+              setDirtyState(true);
+            });
+          });
+        }
+      });
+    }
+
+    // Archetype Card Selection in Modal
+    if (templatePickerModal) {
+      templatePickerModal.querySelectorAll('.archetype-card').forEach(card => {
+        card.addEventListener('click', () => {
+          templatePickerModal.querySelectorAll('.archetype-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+        });
+      });
+    }
+
+    // Confirm Create from Template
+    if (btnConfirmCreateFromTemplate) {
+      btnConfirmCreateFromTemplate.addEventListener('click', async () => {
+        const name = (tplHeroName ? tplHeroName.value.trim() : '') || 'Hồn Sư Mới';
+        const selectedCard = templatePickerModal ? templatePickerModal.querySelector('.archetype-card.selected') : null;
+        const archetype = selectedCard ? selectedCard.getAttribute('data-archetype') : 'cuong_cong';
+        const slug = 'hero_' + Date.now().toString().slice(-4);
+
+        const newHero = await DataLayer.createNewHero(slug, name, archetype, 'SSR');
+        heroesList = await DataLayer.getHeroesList();
+        populateHeroSelect();
+        if (templatePickerModal) templatePickerModal.classList.remove('active');
+        await selectHero(newHero.id);
+        setDirtyState(true);
+        showToast(`🎉 Đã tạo Hồn Sư "${name}" theo hệ ${newHero.role}!`, 'success');
+      });
+    }
+
+    if (btnCloneHero) {
+      btnCloneHero.addEventListener('click', async () => {
+        if (!currentHero) return;
+        const cloned = await DataLayer.cloneHero(currentHero.id);
+        if (cloned) {
+          heroesList = await DataLayer.getHeroesList();
+          populateHeroSelect();
+          await selectHero(cloned.id);
+          showToast('Đã nhân bản Hồn Sư!', 'success');
+        }
+      });
+    }
+
+    if (btnDeleteHero) {
+      btnDeleteHero.addEventListener('click', async () => {
+        if (!currentHero) return;
+        if (confirm(`Xác nhận xóa Hồn Sư "${currentHero.name}"?`)) {
+          DataLayer.deleteHero(currentHero.id);
+          heroesList = await DataLayer.getHeroesList();
+          populateHeroSelect();
+          if (heroesList.length > 0) await selectHero(heroesList[0].id);
+          showToast('Đã xóa Hồn Sư.', 'danger');
+        }
+      });
+    }
+
+    // Honhach Top Buttons
     if (btnAddHonhach) {
       btnAddHonhach.addEventListener('click', async () => {
         const nameVi = prompt('Nhập tên Bộ Hồn Hạch mới:', 'Bộ Hồn Hạch Mới');
         if (!nameVi) return;
-        const id = 'honhach_' + Date.now().toString().slice(-4);
-        const newHonhach = await DataLayer.createNewHonhach(id, nameVi);
+        const slug = 'honhach_' + Date.now().toString().slice(-4);
+        const newHonhach = await DataLayer.createNewHonhach(slug, nameVi);
         honhachList = await DataLayer.getHonhachList();
         populateHonhachSelect();
         await selectHonhach(newHonhach.id);
-        showToast(`Đã thêm Bộ Hồn Hạch "${nameVi}"!`, 'success');
+        showToast(`Đã thêm Bộ "${nameVi}"!`, 'success');
       });
     }
 
@@ -509,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           honhachList = await DataLayer.getHonhachList();
           populateHonhachSelect();
           await selectHonhach(cloned.id);
-          showToast('Đã nhân bản Bộ Hồn Hạch thành công!', 'success');
+          showToast('Đã nhân bản Bộ Hồn Hạch!', 'success');
         }
       });
     }
@@ -517,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnDeleteHonhach) {
       btnDeleteHonhach.addEventListener('click', async () => {
         if (!currentHonhach) return;
-        if (confirm(`Xóa Bộ Hồn Hạch "${currentHonhach.nameVi}"? Thao tác không thể hoàn tác.`)) {
+        if (confirm(`Xóa Bộ "${currentHonhach.nameVi || currentHonhach.name}"?`)) {
           DataLayer.deleteHonhach(currentHonhach.id);
           honhachList = await DataLayer.getHonhachList();
           populateHonhachSelect();
@@ -527,890 +1215,640 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    if (btnPasteHonhachIcon) {
-      btnPasteHonhachIcon.addEventListener('click', async () => {
-        try {
-          const text = await navigator.clipboard.readText();
-          if (text && editHonhachIcon) {
-            editHonhachIcon.value = text;
-            syncHonhachToMemory();
-            showToast('Đã dán Icon URL từ Clipboard!', 'success');
-          }
-        } catch (e) {
-          showToast('Lỗi đọc Clipboard: ' + e.message, 'danger');
+    // Honcot Top Buttons
+    if (btnAddHoncot) {
+      btnAddHoncot.addEventListener('click', async () => {
+        const nameVi = prompt('Nhập tên Hồn Cốt mới:', 'Xương Đầu Mới');
+        if (!nameVi) return;
+        const newHoncot = await DataLayer.createNewHoncot(null, nameVi, 'head');
+        honcotList = await DataLayer.getHoncotList();
+        populateHoncotSelect();
+        await selectHoncot(newHoncot.id);
+        showToast(`Đã thêm Hồn Cốt "${nameVi}"!`, 'success');
+      });
+    }
+
+    if (btnCloneHoncot) {
+      btnCloneHoncot.addEventListener('click', async () => {
+        if (!currentHoncot) return;
+        const cloned = await DataLayer.cloneHoncot(currentHoncot.id);
+        if (cloned) {
+          honcotList = await DataLayer.getHoncotList();
+          populateHoncotSelect();
+          await selectHoncot(cloned.id);
+          showToast('Đã nhân bản Hồn Cốt!', 'success');
         }
       });
     }
 
-    // Direct Image File Upload for Honhach Icon
-    const honhachIconFileInput = document.getElementById('honhachIconFileInput');
-    if (honhachIconFileInput) {
-      honhachIconFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            if (editHonhachIcon) editHonhachIcon.value = evt.target.result;
-            syncHonhachToMemory();
-            showToast('Đã tải & cập nhật Icon Hồn Hạch từ file!', 'success');
-          };
-          reader.readAsDataURL(file);
+    if (btnDeleteHoncot) {
+      btnDeleteHoncot.addEventListener('click', async () => {
+        if (!currentHoncot) return;
+        if (confirm(`Xóa Hồn Cốt "${currentHoncot.nameVi || currentHoncot.name}"?`)) {
+          DataLayer.deleteHoncot(currentHoncot.id);
+          honcotList = await DataLayer.getHoncotList();
+          populateHoncotSelect();
+          if (honcotList.length > 0) await selectHoncot(honcotList[0].id);
+          showToast('Đã xóa Hồn Cốt.', 'danger');
         }
       });
     }
 
-    // Direct Clipboard Image Paste Listener for Honhach
-    window.addEventListener('paste', (e) => {
-      if (editorMode !== 'honhach') return;
-      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-      for (let item of items) {
-        if (item.kind === 'file' && item.type.startsWith('image/')) {
-          const blob = item.getAsFile();
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            if (editHonhachIcon) editHonhachIcon.value = evt.target.result;
-            syncHonhachToMemory();
-            showToast('📋 Đã dán ảnh từ Clipboard làm Icon Hồn Hạch!', 'success');
-          };
-          reader.readAsDataURL(blob);
-          break;
-        }
-      }
-    });
-
-    // Reactive inputs for Honhach info
-    const editHonhachSet2Star   = document.getElementById('editHonhachSet2Star');
-    const editHonhachSet2Effect = document.getElementById('editHonhachSet2Effect');
-    const honhachInputs = [editHonhachNameVi, editHonhachRole, editHonhachRarity, editHonhachIcon, editHonhachDesc, editHonhachSet2Star, editHonhachSet2Effect, honhachSet4Template, honhachSet4Extra24];
-    honhachInputs.forEach(inp => {
-      if (inp) {
-        inp.addEventListener('input', () => syncHonhachToMemory());
-      }
-    });
-
-    if (btnGenSet4Stars) {
-      btnGenSet4Stars.addEventListener('click', () => {
-        if (!currentHonhach || !currentHonhach.set4) return;
-        currentHonhach.set4.stars = [
-          { star: 4, value: 7.5, effect: '' },
-          { star: 8, value: 9.0, effect: '' },
-          { star: 12, value: 10.5, effect: '' },
-          { star: 16, value: 12.0, effect: '' },
-          { star: 20, value: 13.5, effect: '' },
-          { star: 24, value: 15.0, effect: '' }
-        ];
-        rebuildSet4EffectsFromTemplate();
-        syncHonhachToMemory();
-        showToast('Đã tự động sinh mốc Bộ 4 (4★ - 24★)!', 'success');
-      });
-    }
-
-    // Quick Template applicators
-    if (btnTplHonhachBoth) {
-      btnTplHonhachBoth.addEventListener('click', () => {
-        if (!currentHonhach) return;
-        currentHonhach.type = 'both';
-        currentHonhach.set2 = {
-          unlockStar: 2,
-          effect: 'Hội tâm suất +5.0%'
-        };
-        currentHonhach.set4 = {
-          template: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng {stat}% sát thương cuối trong 15s. Cooldown 30s.',
-          extra24Star: 'Thời gian kéo dài pháp trận kéo dài lên 22.5s.',
-          stars: [
-            { star: 4, value: 7.5, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 7.5% sát thương cuối trong 15s. Cooldown 30s.' },
-            { star: 8, value: 9.0, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 9.0% sát thương cuối trong 15s. Cooldown 30s.' },
-            { star: 12, value: 10.5, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 10.5% sát thương cuối trong 15s. Cooldown 30s.' },
-            { star: 16, value: 12.0, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 12.0% sát thương cuối trong 15s. Cooldown 30s.' },
-            { star: 20, value: 13.5, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 13.5% sát thương cuối trong 15s. Cooldown 30s.' },
-            { star: 24, value: 15.0, effect: 'Khi Hồn Sư từ tiền đài chuyển xuống hậu đài, ở vị trí cũ để lại pháp trận giúp tăng 15.0% sát thương cuối trong 15s. Cooldown 30s. ✨ Đột phá 24★: Thời gian kéo dài pháp trận kéo dài lên 22.5s.' }
-          ]
-        };
-        loadHonhachToInspector();
-        syncHonhachToMemory();
-        showToast('Áp dụng Template 2+4 Tiêu Chuẩn!', 'success');
-      });
-    }
-
-    if (btnTplHonhach2) {
-      btnTplHonhach2.addEventListener('click', () => {
-        if (!currentHonhach) return;
-        currentHonhach.type = '2-piece';
-        delete currentHonhach.set4;
-        loadHonhachToInspector();
-        syncHonhachToMemory();
-        showToast('Áp dụng Template Chỉ Bộ 2 Món!', 'success');
-      });
-    }
-
-    if (btnTplHonhach4) {
-      btnTplHonhach4.addEventListener('click', () => {
-        if (!currentHonhach) return;
-        currentHonhach.type = '4-piece';
-        delete currentHonhach.set2;
-        loadHonhachToInspector();
-        syncHonhachToMemory();
-        showToast('Áp dụng Template Chỉ Bộ 4 Món!', 'success');
-      });
-    }
-  }
-
-  function populateHeroSelect() {
-    heroSelect.innerHTML = heroesList.map(h => `
-      <option value="${h.id}">${h.name} (${h.title || ''}) - ${h.rarity}</option>
-    `).join('');
-  }
-
-  async function selectHero(id) {
-    currentHero = await DataLayer.getHeroById(id);
-    if (!currentHero) return;
-
-    heroSelect.value = id;
-
-    // Populate hero info form
-    if (editHeroName)   editHeroName.value   = currentHero.name   || '';
-    if (editHeroWusoul) editHeroWusoul.value = currentHero.wusoul || '';
-    if (editHeroRole)   editHeroRole.value   = currentHero.role   || 'Hỗ Trợ';
-    if (editHeroTitle)  editHeroTitle.value  = currentHero.title  || '';
-    if (editHeroRarity) editHeroRarity.value = currentHero.rarity || 'SR';
-    if (editHeroBio)    editHeroBio.value    = currentHero.bio    || '';
-
-    loadSkillToInspector();
-    renderLivePreviewCanvas();
-    renderEditorCanvas();
-  }
-
-  function loadSkillToInspector() {
-    if (!currentHero) return;
-
-    const skillGroupRules = websiteConfig.skillGroupRules || DataLayer.SKILL_GROUP_RULES;
-    const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
-
-    // Show/hide Niên Hạn section
-    if (groupRule.hasRingUpgrades) {
-      ringUpgradesEditSection.style.display = 'block';
-    } else {
-      ringUpgradesEditSection.style.display = 'none';
-    }
-
-    // Show/hide Loại kỹ năng & Tiêu Hao rows for Tiên Cơ and Đánh Thường
-    const hideTypeCost = (activeGroupId === 'tienco' || activeGroupId === 'normal');
-    if (skillTypeCostRow) skillTypeCostRow.style.display = hideTypeCost ? 'none' : 'grid';
-
-    // Highlight active group button
-    document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active-group'));
-    const activeBtn = document.getElementById('btnRule' + activeGroupId.charAt(0).toUpperCase() + activeGroupId.slice(1));
-    if (activeBtn) activeBtn.classList.add('active-group');
-
-    // Get skills filtered by current group from the appropriate branch
-    let availableSkills = [];
-    const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
-    if (branch && branch.skills) {
-      availableSkills = branch.skills.filter(s => s.group === activeGroupId);
-    }
-    // Fallback: search all branches if not found in current branch (for non-branched groups)
-    if (availableSkills.length === 0) {
-      currentHero.branches.forEach(b => {
-        const found = (b.skills || []).filter(s => s.group === activeGroupId);
-        availableSkills.push(...found);
-      });
-    }
-
-    if (currentSkillIdx >= availableSkills.length) currentSkillIdx = 0;
-    const skill = availableSkills[currentSkillIdx] || availableSkills[0];
-
-    if (skill) {
-      // Update inspector target label
-      const groupNames = { normal: 'Đánh Thường', tienco: 'Tiên Cơ', passive: 'Bị Động', honky: 'Hồn Kỹ', bithuat: 'Bí Thuật' };
-      const inspectorTargetName = document.getElementById('inspectorTargetName');
-      if (inspectorTargetName) inspectorTargetName.textContent = `${groupNames[activeGroupId] || activeGroupId} — ${skill.name}`;
-
-      editSkillName.value = skill.name || '';
-      editSkillIcon.value = skill.icon || '';
-      editSkillType.value = skill.type || 'Chủ động';
-      editSkillCost.value = skill.cost || '2 Hồn Lực';
-      editSkillDesc.value = skill.description || '';
-
-      renderRingMilestonesForm(skill);
-    } else {
-      const inspectorTargetName = document.getElementById('inspectorTargetName');
-      if (inspectorTargetName) inspectorTargetName.textContent = 'Không tìm thấy kỹ năng';
-      editSkillName.value = '';
-      editSkillIcon.value = '';
-      editSkillDesc.value = '';
-    }
-  }
-
-  function renderRingMilestonesForm(skill) {
-    if (!skill || !ringMilestonesContainer) return;
-    const upgrades = skill.ringUpgrades || [
-      { year: '10,000 năm', bonus: '', requirements: [{ type: 'star', color: 'gold', count: 4 }] }
-    ];
-
-    ringMilestonesContainer.innerHTML = upgrades.map((u, mIdx) => `
-      <div class="ring-milestone-card" style="background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: 8px; padding: 0.75rem;" data-milestone-idx="${mIdx}">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-          <input type="text" class="form-input milestone-year-input" value="${u.year}" style="width: 130px; font-weight: 700; font-size: 0.8rem; padding: 0.35rem;">
-          <button class="btn-editor btn-editor-danger btn-delete-milestone" data-m-idx="${mIdx}" style="padding: 0.15rem 0.4rem; font-size: 0.7rem;">- Xóa</button>
-        </div>
-        
-        <div class="form-group" style="margin-bottom: 0.5rem;">
-          <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Tác Dụng Nâng Cấp:</label>
-          <input type="text" class="form-input milestone-bonus-input" value="${u.bonus || ''}" style="font-size: 0.82rem; padding: 0.35rem;">
-        </div>
-
-        <div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
-            <label class="form-label" style="font-size: 0.72rem; margin-bottom: 0;">Typed Requirements:</label>
-            <button class="btn-editor btn-editor-ghost btn-add-typed-req" data-m-idx="${mIdx}" style="padding: 0.1rem 0.35rem; font-size: 0.68rem;">+ Req</button>
-          </div>
-          <div class="req-tags-box" style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
-            ${(u.requirements || []).map((reqObj, rIdx) => `
-              <div style="display: flex; align-items: center; gap: 0.25rem; background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass); padding: 0.15rem 0.4rem; border-radius: 6px;">
-                ${DataLayer.renderRequirementHTML(reqObj)}
-                <span class="btn-delete-req" data-m-idx="${mIdx}" data-r-idx="${rIdx}" style="cursor: pointer; color: var(--accent-red); font-weight: 700; margin-left: 0.2rem;">×</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    const yearInputs = ringMilestonesContainer.querySelectorAll('.milestone-year-input');
-    const bonusInputs = ringMilestonesContainer.querySelectorAll('.milestone-bonus-input');
-
-    yearInputs.forEach((inp, idx) => {
-      inp.addEventListener('input', (e) => {
-        if (upgrades[idx]) upgrades[idx].year = e.target.value;
-        syncInspectorToMemory();
-      });
-    });
-
-    bonusInputs.forEach((inp, idx) => {
-      inp.addEventListener('input', (e) => {
-        if (upgrades[idx]) upgrades[idx].bonus = e.target.value;
-        syncInspectorToMemory();
-      });
-    });
-
-    ringMilestonesContainer.querySelectorAll('.btn-delete-milestone').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mIdx = parseInt(btn.getAttribute('data-m-idx'), 10);
-        upgrades.splice(mIdx, 1);
-        skill.ringUpgrades = upgrades;
-        renderRingMilestonesForm(skill);
-        syncInspectorToMemory();
-      });
-    });
-
-    ringMilestonesContainer.querySelectorAll('.btn-add-typed-req').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mIdx = parseInt(btn.getAttribute('data-m-idx'), 10);
-        const optionsText = [
-          '1. 4 Sao Vàng ({ type: "star", color: "gold", count: 4 })',
-          '2. 5 Sao Vàng ({ type: "star", color: "gold", count: 5 })',
-          '3. 1 Sao Đỏ ({ type: "star", color: "red", count: 1 })',
-          '4. 2 Sao Đỏ ({ type: "star", color: "red", count: 2 })',
-          '5. 3 Sao Đỏ ({ type: "star", color: "red", count: 3 })',
-          '6. 5 Sao Đỏ ({ type: "star", color: "red", count: 5 })',
-          '7. Thức Tỉnh Lv.3 ({ type: "awakening", level: 3 })',
-          '8. Hồn Cốt Bậc 2 ({ type: "soulbone", level: 2 })'
-        ].join('\n');
-
-        const choice = prompt(`Chọn loại Yêu Cầu (1-8):\n${optionsText}`, '1');
-        let newReqObj = { type: 'star', color: 'gold', count: 4 };
-
-        if (choice === '2') newReqObj = { type: 'star', color: 'gold', count: 5 };
-        else if (choice === '3') newReqObj = { type: 'star', color: 'red', count: 1 };
-        else if (choice === '4') newReqObj = { type: 'star', color: 'red', count: 2 };
-        else if (choice === '5') newReqObj = { type: 'star', color: 'red', count: 3 };
-        else if (choice === '6') newReqObj = { type: 'star', color: 'red', count: 5 };
-        else if (choice === '7') newReqObj = { type: 'awakening', level: 3 };
-        else if (choice === '8') newReqObj = { type: 'soulbone', level: 2 };
-
-        if (!upgrades[mIdx].requirements) upgrades[mIdx].requirements = [];
-        upgrades[mIdx].requirements.push(newReqObj);
-        renderRingMilestonesForm(skill);
-        syncInspectorToMemory();
-      });
-    });
-
-    ringMilestonesContainer.querySelectorAll('.btn-delete-req').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mIdx = parseInt(btn.getAttribute('data-m-idx'), 10);
-        const rIdx = parseInt(btn.getAttribute('data-r-idx'), 10);
-        if (upgrades[mIdx] && upgrades[mIdx].requirements) {
-          upgrades[mIdx].requirements.splice(rIdx, 1);
-          renderRingMilestonesForm(skill);
-          syncInspectorToMemory();
-        }
-      });
-    });
-  }
-
-  function syncInspectorToMemory() {
-    if (!currentHero) return;
-
-    // Sync hero info fields
-    if (editHeroName   && editHeroName.value)   currentHero.name   = editHeroName.value;
-    if (editHeroWusoul && editHeroWusoul.value) currentHero.wusoul = editHeroWusoul.value;
-    if (editHeroRole)   currentHero.role   = editHeroRole.value;
-    if (editHeroTitle)  currentHero.title  = editHeroTitle.value;
-    if (editHeroRarity) currentHero.rarity = editHeroRarity.value;
-    if (editHeroBio)    currentHero.bio    = editHeroBio.value;
-
-    // Sync skill fields: find skill by group in current branch
-    const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
-    if (branch && branch.skills) {
-      let skill = branch.skills.find(s => s.group === activeGroupId);
-      // Fallback: find in any branch (for non-branched groups)
-      if (!skill) {
-        for (const b of currentHero.branches) {
-          skill = (b.skills || []).find(s => s.group === activeGroupId);
-          if (skill) break;
-        }
-      }
-      if (skill) {
-        skill.name = editSkillName.value;
-        skill.icon = editSkillIcon.value;
-        skill.type = editSkillType?.value || skill.type;
-        skill.cost = editSkillCost?.value || skill.cost;
-        skill.group = activeGroupId;
-        skill.description = editSkillDesc.value;
-      }
-    }
-
-    // Update dropdown label
-    populateHeroSelect();
-    heroSelect.value = currentHero.id;
-
-    DataLayer.saveHeroDraft(currentHero);
-    renderLivePreviewCanvas();
-    renderEditorCanvas();
-  }
-
-  /**
-   * Render Interactive Live Preview Canvas
-   */
-  function renderLivePreviewCanvas() {
-    if (!currentHero) return;
-
-    const skillGroupRules = websiteConfig.skillGroupRules || DataLayer.SKILL_GROUP_RULES;
-    const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
-
-    let availableSkills = [];
-    if (groupRule.hasBranch) {
-      // For branched groups: get skills from current branch, filtered by group
-      const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
-      if (branch) availableSkills = (branch.skills || []).filter(s => s.group === activeGroupId);
-    } else {
-      // For non-branched groups (normal, tienco): search all branches for matching group
-      currentHero.branches.forEach(b => {
-        const matching = (b.skills || []).filter(s => s.group === activeGroupId);
-        availableSkills.push(...matching);
-      });
-    }
-
-    const skill = availableSkills[currentSkillIdx] || availableSkills[0];
-    const parsedDesc = skill ? parseKeywordSyntax(skill.description) : '';
-
-    editorLivePreviewFrame.innerHTML = `
-      <!-- Hero Profile Block (Controlled by Layout Builder Visibility) -->
-      <div style="background: var(--bg-surface); padding: 1rem; border-radius: 12px; margin-bottom: 1rem; border: 1px solid var(--border-glass);">
-        <div style="display: flex; gap: 1rem; align-items: center;">
-          ${layoutVisibility.avatar ? `<img src="${currentHero.avatar}" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover;" onerror="this.src='assets/heroes/oscar/avatar.webp'">` : ''}
-          <div>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <span class="rarity-badge ${currentHero.rarity}">${currentHero.rarity}</span>
-              <span class="role-badge">❖ ${currentHero.role}</span>
-            </div>
-            <h2 style="color: #fff; font-family: var(--font-heading); margin-top: 0.2rem;">${currentHero.name}</h2>
-            ${layoutVisibility.title ? `<div style="color: var(--accent-gold); font-size: 0.85rem;">${currentHero.title || ''} • Võ Hồn: ${currentHero.wusoul}</div>` : ''}
-            ${layoutVisibility.bio ? `<p style="font-size: 0.8rem; color: var(--text-sub); margin-top: 0.3rem;">${currentHero.bio || ''}</p>` : ''}
-          </div>
-        </div>
-      </div>
-
-      <!-- AAA Radial Navigation Menu Component Canvas (Controlled by Layout Builder) -->
-      ${layoutVisibility.radial ? `
-        <div class="radial-menu-wrapper" style="margin-bottom: 1.25rem;">
-          <svg class="radial-orbital-svg" viewBox="0 0 320 320">
-            <circle cx="160" cy="160" r="110" fill="none" stroke="rgba(6, 182, 212, 0.25)" stroke-width="1.5" stroke-dasharray="4,4" />
-            <circle cx="160" cy="160" r="50" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
-            <line x1="160" y1="160" x2="70" y2="70" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
-            <line x1="160" y1="160" x2="250" y2="70" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
-            <line x1="160" y1="160" x2="70" y2="250" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
-            <line x1="160" y1="160" x2="250" y2="250" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
-          </svg>
-
-          <button class="radial-node radial-node-center ${activeGroupId === 'bithuat' ? 'active' : ''}" data-canvas-group="bithuat">
-            <span class="node-icon">🔮</span>
-            <span class="node-label">Bí Thuật</span>
-          </button>
-
-          <button class="radial-node radial-node-tl ${activeGroupId === 'honky' ? 'active' : ''}" data-canvas-group="honky">
-            <span class="node-icon">🔥</span>
-            <span class="node-label">Hồn Kỹ</span>
-          </button>
-
-          <button class="radial-node radial-node-tr ${activeGroupId === 'passive' ? 'active' : ''}" data-canvas-group="passive">
-            <span class="node-icon">🛡️</span>
-            <span class="node-label">Bị Động</span>
-          </button>
-
-          <button class="radial-node radial-node-bl ${activeGroupId === 'tienco' ? 'active' : ''}" data-canvas-group="tienco">
-            <span class="node-icon">⚡</span>
-            <span class="node-label">Tiên Cơ</span>
-          </button>
-
-          <button class="radial-node radial-node-br ${activeGroupId === 'normal' ? 'active' : ''}" data-canvas-group="normal">
-            <span class="node-icon">⚔️</span>
-            <span class="node-label">Đánh Thường</span>
-          </button>
-        </div>
-      ` : ''}
-
-      <!-- Level 2 Branch Toggle Canvas -->
-      ${groupRule.hasBranch ? `
-        <div class="branch-toggle-container" style="margin-bottom: 1rem;">
-          ${currentHero.branches.map((b, idx) => `
-            <div class="branch-toggle-btn ${idx === currentBranchIdx ? 'active' : ''}" data-canvas-branch="${idx}">
-              ${b.branchName}
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-
-      ${skill ? `
-        <div style="background: var(--bg-surface); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-glass);">
-          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-            <div style="width: 48px; height: 48px; background: rgba(59, 130, 246, 0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-              ${skill.icon && skill.icon.includes('/') ? `<img src="${skill.icon}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:1.8rem;">${skill.icon || '⚔️'}</span>`}
-            </div>
-            <div>
-              <h3 style="color: #fff; font-size: 1.2rem;">${skill.name}</h3>
-              <div style="font-size: 0.8rem; color: var(--accent-cyan);">${skill.type} • ${skill.cost}</div>
-            </div>
-          </div>
-
-          <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-size: 0.95rem; color: var(--text-sub); margin-bottom: 1rem; line-height: 1.7;">
-            ${parsedDesc}
-          </div>
-
-          ${layoutVisibility.rings && groupRule.hasRingUpgrades && skill.ringUpgrades ? `
-            <div style="font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 0.5rem;">⭕ Niên Hạn Hồn Hoàn & Star Requirements:</div>
-            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
-              ${(skill.ringUpgrades || []).map(u => `
-                <div style="font-size: 0.8rem; background: rgba(255,255,255,0.03); padding: 0.6rem 0.75rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.3rem;">
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span class="ring-year-tag ${getYearCssClass(u.year)}">${u.year}</span>
-                    <span style="color: var(--text-sub);">${parseKeywordSyntax(u.bonus)}</span>
-                  </div>
-                  ${u.requirements && u.requirements.length > 0 ? `
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.2rem;">
-                      ${u.requirements.map(reqObj => DataLayer.renderRequirementHTML(reqObj)).join('')}
-                    </div>
-                  ` : ''}
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-        </div>
-      ` : '<div style="color: var(--text-muted);">Chưa có kỹ năng</div>'}
-    `;
-
-    attachLiveCanvasInteractivity();
-    attachKeywordClickEvents();
-  }
-
-  function attachLiveCanvasInteractivity() {
-    const radialCanvasNodes = editorLivePreviewFrame.querySelectorAll('[data-canvas-group]');
-    radialCanvasNodes.forEach(node => {
-      node.addEventListener('click', () => {
-        activeGroupId = node.getAttribute('data-canvas-group');
-        currentSkillIdx = 0;
-        loadSkillToInspector();
-        renderLivePreviewCanvas();
-        renderEditorCanvas();
-      });
-    });
-
-    const branchCanvasBtns = editorLivePreviewFrame.querySelectorAll('[data-canvas-branch]');
-    branchCanvasBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentBranchIdx = parseInt(btn.getAttribute('data-canvas-branch'), 10);
-        currentSkillIdx = 0;
-        loadSkillToInspector();
-        renderLivePreviewCanvas();
-        renderEditorCanvas();
-      });
-    });
-  }
-
-  function parseKeywordSyntax(text) {
-    if (!text) return '';
-    return text.replace(/\{([^}]+)\}/g, (match, kwName) => {
-      const info = keywordsDict[kwName];
-      const icon = info ? info.icon : '✨';
-      return `<span class="skill-keyword" data-kw="${kwName}">${icon} ${kwName}</span>`;
-    });
-  }
-
-  function getYearCssClass(yearText) {
-    if (yearText.includes('1,000')) return 'year-1k';
-    if (yearText.includes('10,000') || yearText.includes('2.5 vạn')) return 'year-10k';
-    if (yearText.includes('50,000') || yearText.includes('5 vạn')) return 'year-50k';
-    if (yearText.includes('100,000') || yearText.includes('10 vạn')) return 'year-100k';
-    return 'year-1k';
-  }
-
-  function setupEventListeners() {
-    heroSelect.addEventListener('change', (e) => selectHero(e.target.value));
-
-    // Viewport Simulator (Desktop / Mobile only)
-    viewDesktop.addEventListener('click', () => {
-      viewDesktop.classList.add('active'); viewPhone.classList.remove('active');
-      editorPreviewContainer.className = 'studio-live-preview';
-    });
-    viewPhone.addEventListener('click', () => {
-      viewPhone.classList.add('active'); viewDesktop.classList.remove('active');
-      editorPreviewContainer.className = 'studio-live-preview viewport-phone';
-    });
-
-    // Hero info form reactive
-    const heroInfoFields = [editHeroName, editHeroWusoul, editHeroRole, editHeroTitle, editHeroRarity, editHeroBio];
-    heroInfoFields.forEach(inp => { if (inp) inp.addEventListener('input', syncInspectorToMemory); inp?.addEventListener('change', syncInspectorToMemory); });
-
-    // Asset target selector buttons
-    const assetTargetLabels = { avatar: 'Avatar', banner: 'Banner', icon: 'Skill Icon' };
-    document.querySelectorAll('.asset-target-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.asset-target-btn').forEach(b => b.classList.remove('active-group'));
-        btn.classList.add('active-group');
-        if (btn.id === 'assetTargetAvatar') currentAssetTarget = 'avatar';
-        else if (btn.id === 'assetTargetBanner') currentAssetTarget = 'banner';
-        else if (btn.id === 'assetTargetIcon') currentAssetTarget = 'icon';
-        if (assetPasteTarget) assetPasteTarget.innerHTML = `→ Đang nhắm: <strong style="color:var(--accent-cyan);">${assetTargetLabels[currentAssetTarget]}</strong>`;
-        // Reset preview
-        if (assetPreviewBox) assetPreviewBox.style.display = 'none';
-        pendingAssetDataUrl = null;
-      });
-    });
-
-    // Asset paste zone file input
-    if (assetFileInput) {
-      assetFileInput.addEventListener('change', e => {
-        if (e.target.files && e.target.files[0]) showAssetPreview(e.target.files[0]);
-      });
-    }
-
-    // Apply asset
-    if (btnApplyAsset) {
-      btnApplyAsset.addEventListener('click', () => {
-        if (!pendingAssetDataUrl || !currentHero) return;
-        if (currentAssetTarget === 'avatar') { currentHero.avatar = pendingAssetDataUrl; }
-        else if (currentAssetTarget === 'banner') { currentHero.banner = pendingAssetDataUrl; }
-        else if (currentAssetTarget === 'icon') { editSkillIcon.value = pendingAssetDataUrl; }
-        DataLayer.saveHeroDraft(currentHero);
-        renderLivePreviewCanvas();
-        pendingAssetDataUrl = null;
-        if (assetPreviewBox) assetPreviewBox.style.display = 'none';
-        showToast(`Đã cập nhật ${assetTargetLabels[currentAssetTarget]}!`, 'success');
-      });
-    }
-    if (btnCancelAsset) btnCancelAsset.addEventListener('click', () => { if (assetPreviewBox) assetPreviewBox.style.display = 'none'; pendingAssetDataUrl = null; });
-
-    function showAssetPreview(file) {
-      const reader = new FileReader();
-      reader.onload = ev => {
-        pendingAssetDataUrl = ev.target.result;
-        if (assetPreviewImg) assetPreviewImg.src = pendingAssetDataUrl;
-        const labels = { avatar: 'Avatar', banner: 'Banner', icon: 'Skill Icon' };
-        if (assetPreviewLabel) assetPreviewLabel.textContent = `Sắp áp dụng: ${labels[currentAssetTarget]}`;
-        if (assetPreviewBox) { assetPreviewBox.style.display = 'flex'; }
-        // Hover feedback on paste zone
-        if (assetPasteZone) { assetPasteZone.style.borderColor = 'var(--accent-cyan)'; setTimeout(() => assetPasteZone.style.borderColor = '', 1500); }
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // Paste Skill Icon from Clipboard
-    const btnPasteSkillIcon = document.getElementById('btnPasteSkillIcon');
-    if (btnPasteSkillIcon) {
-      btnPasteSkillIcon.addEventListener('click', async () => {
-        try {
-          const text = await navigator.clipboard.readText();
-          if (text) {
-            editSkillIcon.value = text;
-            syncInspectorToMemory();
-            showToast('Đã dán URL icon từ Clipboard!', 'success');
-          } else {
-            showToast('Clipboard không có văn bản/URL!', 'info');
-          }
-        } catch (err) {
-          showToast('Không thể đọc Clipboard: ' + err.message, 'danger');
-        }
-      });
-    }
-
-    // Inspector Reactive Inputs
-    const inputsToTrack = [editSkillName, editSkillIcon, editSkillType, editSkillCost, editSkillDesc];
-    inputsToTrack.forEach(input => {
-      if (input) {
-        input.addEventListener('input', syncInspectorToMemory);
-        input.addEventListener('change', syncInspectorToMemory);
-      }
-    });
-
-    // Skill Templates
-    btnTemplateNormal.addEventListener('click', () => {
-      activeGroupId = 'normal';
-      editSkillName.value = 'Đánh Thường Cơ Bản';
-      editSkillType.value = 'Chủ động';
-      editSkillCost.value = '0 Hồn Lực';
-      editSkillDesc.value = 'Gây sát thương cơ bản cho mục tiêu.';
-      syncInspectorToMemory();
-      showToast('Đã áp dụng Template Đánh Thường!', 'success');
-    });
-
-    btnTemplatePassive.addEventListener('click', () => {
-      activeGroupId = 'passive';
-      const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
-      const skill = branch ? branch.skills[currentSkillIdx] : null;
-      if (skill) {
-        skill.ringUpgrades = JSON.parse(JSON.stringify(DataLayer.RING_PRESETS.PassiveSkill));
-        loadSkillToInspector();
-        syncInspectorToMemory();
-        showToast('Đã nạp 5 mốc Niên Hạn Bị Động!', 'success');
-      }
-    });
-
-    btnTemplateSoul.addEventListener('click', () => {
-      activeGroupId = 'honky';
-      const branch = currentHero.branches[currentBranchIdx] || currentHero.branches[0];
-      const skill = branch ? branch.skills[currentSkillIdx] : null;
-      if (skill) {
-        skill.ringUpgrades = JSON.parse(JSON.stringify(DataLayer.RING_PRESETS.SoulSkill));
-        loadSkillToInspector();
-        syncInspectorToMemory();
-        showToast('Đã áp dụng Preset Hồn Kỹ!', 'success');
-      }
-    });
-
-    // OCR Console Toggle is handled by inline toggleOcrDrawer() in HTML
-    // (btnToggleConsole no longer exists as a DOM element, toggle is via onclick on header)
-
-    // Asset Explorer — old prompt-based buttons are removed, now handled by asset paste zone
-    // (btnAssetAvatar and btnAssetBanner no longer exist in DOM)
-
-    // Rule Config Tree Triggers
-    btnRuleNormal.addEventListener('click', () => { activeGroupId = 'normal'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
-    btnRulePassive.addEventListener('click', () => { activeGroupId = 'passive'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
-    btnRuleHonky.addEventListener('click', () => { activeGroupId = 'honky'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
-    if (btnRuleTienco) btnRuleTienco.addEventListener('click', () => { activeGroupId = 'tienco'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
-    if (btnRuleBithuat) btnRuleBithuat.addEventListener('click', () => { activeGroupId = 'bithuat'; currentSkillIdx = 0; loadSkillToInspector(); renderLivePreviewCanvas(); });
-
-    // Global paste: route image to asset zone
-    window.addEventListener('paste', (e) => {
-      const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
-      if (!items) return;
-      for (let item of items) {
-        if (item.kind === 'file' && item.type.startsWith('image/')) {
-          const file = item.getAsFile();
-          if (file) {
-            showAssetPreview(file);
-            showToast('🖼️ Đã nhận ảnh → Kiểm tra khu vực "Thay Đổi Ảnh"', 'info');
-          }
-          break; // only process the first image to avoid lag
-        }
-      }
-    });
-
-    // Direct Disk Saving
+    // ─── DISK & DATABASE BUTTONS ───────────────────────────────────────────
     if (btnConnectFolder) {
       btnConnectFolder.addEventListener('click', async () => {
         try {
           await DataLayer.connectLocalProjectDirectory();
           if (folderStatusBadge) {
-            folderStatusBadge.textContent = '🟢 Đã kết nối disk!';
+            folderStatusBadge.textContent = '🟢 Đã kết nối Disk';
             folderStatusBadge.style.color = '#34d399';
-            folderStatusBadge.style.background = 'rgba(52, 211, 153, 0.15)';
           }
-          showToast('📂 Đã kết nối thư mục project local! Bây giờ bạn có thể lưu JSON trực tiếp.', 'success');
+          showToast('📂 Kết nối thư mục local thành công!', 'success');
         } catch (err) {
-          if (err.name === 'AbortError') {
-            showToast('Huỷ kết nối.', 'info');
-          } else {
-            showToast('⚠️ ' + err.message, 'danger');
-          }
+          if (err.name !== 'AbortError') showToast(`⚠️ ${err.message}`, 'danger');
+        }
+      });
+    }
+
+    if (btnPullFromDisk) {
+      btnPullFromDisk.addEventListener('click', async () => {
+        try {
+          showToast('⏳ Đang nạp toàn bộ DB từ máy...', 'info');
+          const res = await DataLayer.pullAllFromLocalDisk();
+          heroesList = await DataLayer.getHeroesList();
+          honhachList = await DataLayer.getHonhachList();
+          honcotList = await DataLayer.getHoncotList();
+          keywordsDict = await DataLayer.getKeywords();
+
+          populateHeroSelect();
+          populateHonhachSelect();
+          populateHoncotSelect();
+
+          if (activeMode === 'hero' && currentHero) await selectHero(currentHero.id);
+          else if (activeMode === 'honhach' && currentHonhach) await selectHonhach(currentHonhach.id);
+          else if (activeMode === 'honcot' && currentHoncot) await selectHoncot(currentHoncot.id);
+
+          showToast(`🎉 Đã nạp ${res.heroesCount} Hồn Sư, ${res.honhachCount} Hồn Hạch, ${res.honcotCount} Hồn Cốt từ máy!`, 'success');
+        } catch (err) {
+          showToast(`⚠️ Lỗi nạp DB: ${err.message}`, 'danger');
         }
       });
     }
 
     if (btnSaveDirectToDisk) {
       btnSaveDirectToDisk.addEventListener('click', async () => {
-        if (!DataLayer.projectDirHandle) {
-          showToast('⚠️ Chưa kết nối Local Disk! Bấm "📂 Kết Nối" trước.', 'danger');
-          return;
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+          document.activeElement.blur();
         }
+
         try {
           showToast('⏳ Đang lưu vào đĩa...', 'info');
-          syncInspectorToMemory();
           await DataLayer.saveAllDirectToDisk();
-          showToast('🎉 Lưu đĩa JSON thành công!', 'success');
+          setDirtyState(false);
+          showToast('🎉 Đã ghi lưu toàn bộ JSON vào đĩa cứng máy tính!', 'success');
         } catch (err) {
-          showToast(`Lỗi lưu đĩa: ${err.message}`, 'danger');
+          showToast(`⚠️ Lỗi lưu đĩa: ${err.message}`, 'danger');
         }
       });
     }
 
-    btnAddHero.addEventListener('click', async () => {
-      const name = prompt('Nhập tên Hồn Sư mới:', 'Hồn Sư Mới');
-      if (!name) return;
-      const slug = 'hero_' + Date.now().toString().slice(-4);
-      const newHero = await DataLayer.createNewHero(slug, name);
-      heroesList = await DataLayer.getHeroesList();
-      populateHeroSelect();
-      await selectHero(newHero.id);
-      showToast(`Đã thêm Hồn Sư "${name}"!`, 'success');
-    });
+    if (btnImportDBBundle && dbBundleFileInput) {
+      btnImportDBBundle.addEventListener('click', () => dbBundleFileInput.click());
+      dbBundleFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          try {
+            const bundle = JSON.parse(ev.target.result);
+            DataLayer.importDatabaseBundle(bundle);
+            heroesList = await DataLayer.getHeroesList();
+            honhachList = await DataLayer.getHonhachList();
+            honcotList = await DataLayer.getHoncotList();
+            keywordsDict = await DataLayer.getKeywords();
 
-    btnCloneHero.addEventListener('click', async () => {
-      if (!currentHero) return;
-      const cloned = await DataLayer.cloneHero(currentHero.id);
-      if (cloned) {
-        heroesList = await DataLayer.getHeroesList();
-        populateHeroSelect();
-        await selectHero(cloned.id);
-        showToast(`Đã nhân bản Hồn Sư!`, 'success');
+            populateHeroSelect();
+            populateHonhachSelect();
+            populateHoncotSelect();
+
+            if (heroesList.length > 0) await selectHero(heroesList[0].id);
+            showToast('📦 Đã import gói Database thành công!', 'success');
+          } catch (err) {
+            showToast(`⚠️ Lỗi import: ${err.message}`, 'danger');
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    if (btnExportDBBundle) {
+      btnExportDBBundle.addEventListener('click', () => {
+        const bundle = DataLayer.exportDatabaseBundle();
+        const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `douluo_database_bundle_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📦 Đã xuất file Database bundle về máy!', 'success');
+      });
+    }
+
+    // ─── V6.0 NEW FEATURES: COMMAND PALETTE, HEALTH, DIFF, EFFECT BUILDER ──
+
+    // 1. UNIVERSAL COMMAND PALETTE (⌘K / Ctrl+K)
+    const btnOpenCmdPalette = document.getElementById('btnOpenCmdPalette');
+    const cmdPaletteBackdrop = document.getElementById('cmdPaletteBackdrop');
+    const cmdPaletteInput = document.getElementById('cmdPaletteInput');
+    const cmdResultsList = document.getElementById('cmdResultsList');
+    let cmdSelectedIndex = 0;
+    let currentCmdResults = [];
+
+    function openCommandPalette() {
+      if (!cmdPaletteBackdrop) return;
+      if (window.CoreServices && CoreServices.CommandPaletteService) {
+        CoreServices.CommandPaletteService.init([
+          { id: 'mode_hero', label: 'Chuyển sang Quản Trị Hồn Sư', icon: '👤', category: 'Chế Độ' },
+          { id: 'mode_honhach', label: 'Chuyển sang Quản Trị Hồn Hạch', icon: '🦴', category: 'Chế Độ' },
+          { id: 'mode_honcot', label: 'Chuyển sang Quản Trị Hồn Cốt', icon: '🦴', category: 'Chế Độ' },
+          { id: 'mode_rawjson', label: 'Chuyển sang Trình Soạn Thảo Raw JSON', icon: '📜', category: 'Chế Độ' }
+        ]);
+      }
+      cmdPaletteBackdrop.classList.add('active');
+      cmdPaletteInput.value = '';
+      renderCommandResults('');
+      setTimeout(() => cmdPaletteInput.focus(), 50);
+    }
+
+    function closeCommandPalette() {
+      if (!cmdPaletteBackdrop) return;
+      cmdPaletteBackdrop.classList.remove('active');
+    }
+
+    function renderCommandResults(query) {
+      if (!cmdResultsList || !window.CoreServices) return;
+      currentCmdResults = CoreServices.CommandPaletteService.search(query);
+      cmdSelectedIndex = 0;
+
+      if (currentCmdResults.length === 0) {
+        cmdResultsList.innerHTML = `<div style="text-align:center; padding:1.5rem; color:var(--text-muted); font-size:0.85rem;">Không tìm thấy kết quả phù hợp cho "${escapeHtml(query)}"</div>`;
+        return;
+      }
+
+      cmdResultsList.innerHTML = currentCmdResults.map((item, idx) => `
+        <div class="cmd-item ${idx === 0 ? 'selected' : ''}" data-index="${idx}">
+          <span class="cmd-item-icon">${item.icon || '⚡'}</span>
+          <div class="cmd-item-info">
+            <div class="cmd-item-title">${escapeHtml(item.label)}</div>
+            <div class="cmd-item-category">${escapeHtml(item.category || '')}</div>
+          </div>
+          ${item.badge ? `<span class="cmd-item-badge">${escapeHtml(item.badge)}</span>` : ''}
+          ${item.shortcut ? `<span class="cmd-shortcut-badge">⌘${escapeHtml(item.shortcut)}</span>` : ''}
+        </div>
+      `).join('');
+
+      // Add click listener
+      cmdResultsList.querySelectorAll('.cmd-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.dataset.index);
+          executeCommand(currentCmdResults[idx]);
+        });
+      });
+    }
+
+    async function executeCommand(item) {
+      if (!item) return;
+      closeCommandPalette();
+
+      if (item.type === 'action') {
+        switch(item.id) {
+          case 'create_hero':
+            if (templatePickerModal) templatePickerModal.classList.add('active');
+            break;
+          case 'create_honhach':
+            if (btnAddHonhach) btnAddHonhach.click();
+            break;
+          case 'create_honcot':
+            if (btnAddHoncot) btnAddHoncot.click();
+            break;
+          case 'open_health':
+            openDataHealthModal();
+            break;
+          case 'open_diff':
+            openDiffModal();
+            break;
+          case 'connect_disk':
+            if (btnConnectFolder) btnConnectFolder.click();
+            break;
+          case 'save_disk':
+            if (btnSaveDirectToDisk) btnSaveDirectToDisk.click();
+            break;
+          case 'export_json':
+            if (btnExportDBBundle) btnExportDBBundle.click();
+            break;
+          case 'open_effect_builder':
+            openEffectBuilderModal();
+            break;
+          case 'goto_viewer':
+            window.open('index.html', '_blank');
+            break;
+          case 'goto_compare':
+            window.open('compare.html', '_blank');
+            break;
+          case 'mode_hero':
+            switchMode('hero');
+            break;
+          case 'mode_honhach':
+            switchMode('honhach');
+            break;
+          case 'mode_honcot':
+            switchMode('honcot');
+            break;
+          case 'mode_rawjson':
+            switchMode('rawjson');
+            break;
+        }
+      } else if (item.type === 'entity_hero') {
+        await switchMode('hero');
+        await selectHero(item.entityId);
+      } else if (item.type === 'entity_honhach') {
+        await switchMode('honhach');
+        await selectHonhach(item.entityId);
+      } else if (item.type === 'entity_keyword') {
+        showToast(`Từ khóa [${item.label}] đang được áp dụng trong từ điển.`, 'info');
+      }
+    }
+
+    if (btnOpenCmdPalette) {
+      btnOpenCmdPalette.addEventListener('click', openCommandPalette);
+    }
+
+    if (cmdPaletteBackdrop) {
+      cmdPaletteBackdrop.addEventListener('click', (e) => {
+        if (e.target === cmdPaletteBackdrop) closeCommandPalette();
+      });
+    }
+
+    if (cmdPaletteInput) {
+      cmdPaletteInput.addEventListener('input', (e) => {
+        renderCommandResults(e.target.value);
+      });
+
+      cmdPaletteInput.addEventListener('keydown', (e) => {
+        const items = cmdResultsList.querySelectorAll('.cmd-item');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          cmdSelectedIndex = (cmdSelectedIndex + 1) % items.length;
+          updateCmdSelection(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          cmdSelectedIndex = (cmdSelectedIndex - 1 + items.length) % items.length;
+          updateCmdSelection(items);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (currentCmdResults[cmdSelectedIndex]) {
+            executeCommand(currentCmdResults[cmdSelectedIndex]);
+          }
+        } else if (e.key === 'Escape') {
+          closeCommandPalette();
+        }
+      });
+    }
+
+    function updateCmdSelection(items) {
+      items.forEach((it, i) => {
+        if (i === cmdSelectedIndex) {
+          it.classList.add('selected');
+          it.scrollIntoView({ block: 'nearest' });
+        } else {
+          it.classList.remove('selected');
+        }
+      });
+    }
+
+    // Global Shortcut Listener (⌘K / Ctrl+K)
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommandPalette();
       }
     });
 
-    btnDeleteHero.addEventListener('click', async () => {
-      if (!currentHero) { showToast('Chưa chọn Hồn Sư nào!', 'danger'); return; }
+    // 2. DATA HEALTH DIAGNOSTIC
+    const btnOpenDataHealth = document.getElementById('btnOpenDataHealth');
+    const dataHealthModal = document.getElementById('dataHealthModal');
+    const btnRerunHealthCheck = document.getElementById('btnRerunHealthCheck');
 
-      // Nâng cao: Nếu chưa kết nối thư mục Local Disk, tự động hỏi người dùng kết nối ngay để xóa sạch file JSON dưới đĩa
-      if (!DataLayer.projectDirHandle) {
-        if (confirm(`Bạn chưa kết nối Thư Mục Local Disk!\nĐể xóa triệt để file JSON của "${currentHero.name}" dưới đĩa cứng local, bạn có muốn bấm kết nối thư mục ngay bây giờ không?`)) {
-          try {
-            await DataLayer.connectLocalProjectDirectory();
-            if (folderStatusBadge) {
-              folderStatusBadge.textContent = '🟢 Đã kết nối disk!';
-              folderStatusBadge.style.color = '#34d399';
-              folderStatusBadge.style.background = 'rgba(52, 211, 153, 0.15)';
+    function openDataHealthModal() {
+      if (!dataHealthModal || !window.CoreServices) return;
+      dataHealthModal.classList.add('active');
+      runDataHealthDiagnostics();
+    }
+
+    function runDataHealthDiagnostics() {
+      const res = CoreServices.DataHealthEngine.runDiagnostics();
+      const scoreRing = document.getElementById('healthScoreRing');
+      const scoreVal = document.getElementById('healthScoreVal');
+      const statsGrid = document.getElementById('healthSummaryStats');
+      const issuesList = document.getElementById('healthIssuesList');
+      const countEl = document.getElementById('healthIssuesCount');
+
+      if (scoreRing && scoreVal) {
+        scoreRing.style.setProperty('--health-score', res.score);
+        scoreVal.textContent = res.score;
+        if (res.score >= 90) scoreVal.style.color = '#6ee7b7';
+        else if (res.score >= 70) scoreVal.style.color = '#fde047';
+        else scoreVal.style.color = '#fca5a5';
+      }
+
+      if (statsGrid) {
+        statsGrid.innerHTML = `
+          <div class="health-stat-pill"><span>👤 Hồn Sư:</span> <strong>${res.summary.heroesCount}</strong></div>
+          <div class="health-stat-pill"><span>🦴 Hồn Hạch:</span> <strong>${res.summary.soulCoresCount}</strong></div>
+          <div class="health-stat-pill"><span>🦴 Hồn Cốt:</span> <strong>${res.summary.soulBonesCount}</strong></div>
+          <div class="health-stat-pill"><span>✨ Từ Khóa:</span> <strong>${res.summary.keywordsCount}</strong></div>
+        `;
+      }
+
+      if (countEl) {
+        countEl.textContent = `${res.errors.length} lỗi, ${res.warnings.length} cảnh báo`;
+      }
+
+      if (issuesList) {
+        if (res.allIssues.length === 0) {
+          issuesList.innerHTML = `<div style="text-align:center; padding:2rem; color:#6ee7b7;">🎉 Dữ liệu đạt độ toàn vẹn 100%! Không có lỗi nào.</div>`;
+        } else {
+          issuesList.innerHTML = res.allIssues.map(issue => `
+            <div class="health-issue-item ${issue.type}" data-entity-type="${issue.entityType}" data-entity-id="${issue.entityId}">
+              <span style="font-size:1.1rem;">${issue.type === 'error' ? '❌' : '⚠️'}</span>
+              <div style="flex:1;">
+                <div style="font-weight:700; color:#fff; display:flex; justify-content:space-between;">
+                  <span>${escapeHtml(issue.entityName)}</span>
+                  <span style="font-size:0.7rem; color:var(--text-muted);">${issue.entityType.toUpperCase()}</span>
+                </div>
+                <div style="color:${issue.type === 'error' ? '#fca5a5' : '#fef08a'}; font-size:0.75rem; margin-top:2px;">
+                  ${escapeHtml(issue.message)}
+                </div>
+              </div>
+            </div>
+          `).join('');
+
+          issuesList.querySelectorAll('.health-issue-item').forEach(el => {
+            el.addEventListener('click', async () => {
+              const eType = el.dataset.entityType;
+              const eId = el.dataset.entityId;
+              dataHealthModal.classList.remove('active');
+              if (eType === 'hero') {
+                await switchMode('hero');
+                await selectHero(eId);
+              } else if (eType === 'honhach') {
+                await switchMode('honhach');
+                await selectHonhach(eId);
+              }
+              showToast(`Đã mở [${eId}] để khắc phục.`, 'info');
+            });
+          });
+        }
+      }
+    }
+
+    if (btnOpenDataHealth) btnOpenDataHealth.addEventListener('click', openDataHealthModal);
+    if (btnRerunHealthCheck) btnRerunHealthCheck.addEventListener('click', runDataHealthDiagnostics);
+
+    // 3. DIFF VIEWER MODAL
+    const btnOpenDiffViewer = document.getElementById('btnOpenDiffViewer');
+    const diffViewerModal = document.getElementById('diffViewerModal');
+    const btnDiffSaveToDisk = document.getElementById('btnDiffSaveToDisk');
+
+    function openDiffModal() {
+      if (!diffViewerModal || !window.CoreServices) return;
+      diffViewerModal.classList.add('active');
+
+      let currentData = null;
+      let title = '';
+      if (activeMode === 'hero' && currentHero) {
+        currentData = currentHero;
+        title = `Hồn Sư: ${currentHero.name}`;
+      } else if (activeMode === 'honhach' && currentHonhach) {
+        currentData = currentHonhach;
+        title = `Bộ Hồn Hạch: ${currentHonhach.nameVi || currentHonhach.id}`;
+      } else if (activeMode === 'honcot' && currentHoncot) {
+        currentData = currentHoncot;
+        title = `Hồn Cốt: ${currentHoncot.nameVi || currentHoncot.id}`;
+      } else {
+        currentData = DataLayer.exportDatabaseBundle();
+        title = 'Toàn Bộ Database';
+      }
+
+      // Read clean base JSON or compare against localStorage
+      const cached = localStorage.getItem('douluo_studio_db');
+      const baseline = cached ? JSON.parse(cached) : {};
+      
+      const diffRes = CoreServices.DiffEngine.computeDiff(baseline[currentData.id] || {}, currentData);
+      
+      const statsEl = document.getElementById('diffViewerStats');
+      const contentEl = document.getElementById('diffViewerContent');
+
+      if (statsEl) {
+        statsEl.innerHTML = `
+          <span style="font-weight:700; color:#fff;">${title}</span>
+          <span style="color:#86efac;">+${diffRes.addedCount} dòng mới</span>
+          <span style="color:#fca5a5;">-${diffRes.removedCount} dòng xóa</span>
+        `;
+      }
+
+      if (contentEl) {
+        contentEl.innerHTML = CoreServices.DiffEngine.renderDiffHTML(diffRes);
+      }
+    }
+
+    if (btnOpenDiffViewer) btnOpenDiffViewer.addEventListener('click', openDiffModal);
+    if (btnDiffSaveToDisk) {
+      btnDiffSaveToDisk.addEventListener('click', async () => {
+        diffViewerModal.classList.remove('active');
+        if (btnSaveDirectToDisk) btnSaveDirectToDisk.click();
+      });
+    }
+
+    // 4. HONHACH EFFECT BUILDER MODAL
+    const btnOpenEffectBuilder = document.getElementById('btnOpenEffectBuilder');
+    const effectBuilderModal = document.getElementById('effectBuilderModal');
+    const bldTriggerSelect = document.getElementById('bldTriggerSelect');
+    const bldActionSelect = document.getElementById('bldActionSelect');
+    const bldEffectSelect = document.getElementById('bldEffectSelect');
+    const bldBaseVal = document.getElementById('bldBaseVal');
+    const bldStepVal = document.getElementById('bldStepVal');
+    const bldDuration = document.getElementById('bldDuration');
+    const bldCooldown = document.getElementById('bldCooldown');
+    const bldPreviewText = document.getElementById('bldPreviewText');
+    const bldPreviewCurve = document.getElementById('bldPreviewCurve');
+    const btnApplyEffectBuilder = document.getElementById('btnApplyEffectBuilder');
+
+    function openEffectBuilderModal() {
+      if (!effectBuilderModal || !window.CoreServices) return;
+      const presets = CoreServices.EffectBuilderEngine.presets;
+
+      if (bldTriggerSelect && bldTriggerSelect.options.length === 0) {
+        bldTriggerSelect.innerHTML = presets.triggers.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+      }
+      if (bldActionSelect && bldActionSelect.options.length === 0) {
+        bldActionSelect.innerHTML = presets.actions.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+      }
+      if (bldEffectSelect && bldEffectSelect.options.length === 0) {
+        bldEffectSelect.innerHTML = presets.effects.map(e => `<option value="${e.name}" data-base="${e.base}" data-step="${e.step}">${e.name}</option>`).join('');
+      }
+
+      effectBuilderModal.classList.add('active');
+      updateEffectBuilderPreview();
+    }
+
+    function updateEffectBuilderPreview() {
+      if (!window.CoreServices || !bldPreviewText) return;
+      const trigger = bldTriggerSelect ? bldTriggerSelect.value : '';
+      const action = bldActionSelect ? bldActionSelect.value : '';
+      const effectName = bldEffectSelect ? bldEffectSelect.value : '';
+      const duration = bldDuration ? bldDuration.value : 15;
+      const cooldown = bldCooldown ? bldCooldown.value : 30;
+      const base = bldBaseVal ? parseFloat(bldBaseVal.value) || 7.5 : 7.5;
+      const step = bldStepVal ? parseFloat(bldStepVal.value) || 1.5 : 1.5;
+
+      const desc = CoreServices.EffectBuilderEngine.buildDescription({ trigger, action, effectName, duration, cooldown });
+      bldPreviewText.textContent = desc;
+
+      const stats = CoreServices.EffectBuilderEngine.generateScalingValues(base, step);
+      if (bldPreviewCurve) {
+        bldPreviewCurve.innerHTML = CoreServices.ScalingGraphRenderer.renderMiniCurve(stats, { width: 320, height: 75, color: '#06B6D4' });
+      }
+    }
+
+    [bldTriggerSelect, bldActionSelect, bldEffectSelect, bldBaseVal, bldStepVal, bldDuration, bldCooldown].forEach(el => {
+      if (el) {
+        el.addEventListener('change', () => {
+          if (el === bldEffectSelect) {
+            const opt = bldEffectSelect.options[bldEffectSelect.selectedIndex];
+            if (opt && opt.dataset.base && bldBaseVal && bldStepVal) {
+              bldBaseVal.value = opt.dataset.base;
+              bldStepVal.value = opt.dataset.step;
             }
-          } catch (e) {
-            console.warn('User canceled or error connecting directory:', e);
           }
-        }
-      }
-
-      if (confirm(`Xác nhận xóa Hồn Sư "${currentHero.name}"?
-
-• Draft trong trình duyệt (localStorage) sẽ bị xóa ngay.
-${DataLayer.projectDirHandle ? '• File data/heroes/' + currentHero.id + '.json và dữ liệu trong data/heroes.json sẽ bị XÓA VĨNH VIỄN khỏi đĩa cứng.' : '• Cảnh báo: Chưa kết nối Local Disk nên file JSON dưới ổ cứng chưa bị xóa.'}
-
-Thao tác này không thể hoàn tác.`)) {
-        const deletedId = currentHero.id;
-
-        // 1. Xóa file {heroId}.json trên disk nếu đã kết nối
-        if (DataLayer.projectDirHandle) {
-          try {
-            await DataLayer.deleteHeroFromDisk(deletedId);
-            showToast(`🗑️ Đã xóa file data/heroes/${deletedId}.json khỏi đĩa cứng!`, 'danger');
-          } catch (e) {
-            showToast(`⚠️ Không xóa được file JSON: ${e.message}`, 'danger');
-          }
-        }
-
-        // 2. Xóa khỏi localStorage và cache trong bộ nhớ
-        DataLayer.deleteHero(deletedId);
-        heroesList = heroesList.filter(h => h.id !== deletedId);
-        try {
-          localStorage.setItem(DataLayer.STORAGE_KEYS.HEROES_INDEX, JSON.stringify(heroesList, null, 2));
-        } catch (e) {
-          console.warn('localStorage Quota error:', e);
-        }
-        currentHero = null;
-
-        // 3. Cập nhật lại file danh sách tổng data/heroes.json trên disk
-        if (DataLayer.projectDirHandle) {
-          try {
-            await DataLayer.writeDirectToLocalDisk('data/heroes.json', JSON.stringify(heroesList, null, 2));
-            showToast(`💾 Đã cập nhật lại file data/heroes.json trên đĩa cứng!`, 'success');
-          } catch (e) {
-            console.warn('Error updating heroes.json on disk:', e);
-          }
-        }
-
-        populateHeroSelect();
-        if (heroesList.length > 0) await selectHero(heroesList[0].id);
-        else editorLivePreviewFrame.innerHTML = '<div style="color:var(--text-muted); padding:2rem; text-align:center;">👤 Chưa có Hồn Sư nào. Bấm "➕ Thêm Hồn Sư" để bắt đầu.</div>';
-        showToast('Đã xóa Hồn Sư thành công.', 'danger');
+          updateEffectBuilderPreview();
+        });
+        el.addEventListener('input', updateEffectBuilderPreview);
       }
     });
-  }
 
-  function attachKeywordClickEvents() {
-    const kwElements = editorLivePreviewFrame.querySelectorAll('.skill-keyword, .kw-badge');
-    kwElements.forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const kwId = el.getAttribute('data-keyword-id') || el.getAttribute('data-kw');
-        showFloatingKeywordPopup(kwId, e.pageX, e.pageY, el);
+    if (btnOpenEffectBuilder) btnOpenEffectBuilder.addEventListener('click', openEffectBuilderModal);
+
+    if (btnApplyEffectBuilder) {
+      btnApplyEffectBuilder.addEventListener('click', () => {
+        if (!currentHonhach) return;
+        const trigger = bldTriggerSelect ? bldTriggerSelect.value : '';
+        const action = bldActionSelect ? bldActionSelect.value : '';
+        const effectName = bldEffectSelect ? bldEffectSelect.value : '';
+        const duration = bldDuration ? bldDuration.value : 15;
+        const cooldown = bldCooldown ? bldCooldown.value : 30;
+        const base = bldBaseVal ? parseFloat(bldBaseVal.value) || 7.5 : 7.5;
+        const step = bldStepVal ? parseFloat(bldStepVal.value) || 1.5 : 1.5;
+
+        const desc = CoreServices.EffectBuilderEngine.buildDescription({ trigger, action, effectName, duration, cooldown });
+        const stats = CoreServices.EffectBuilderEngine.generateScalingValues(base, step);
+        const extra24 = CoreServices.EffectBuilderEngine.buildBreakthrough24(5, 5, effectName);
+
+        if (honhachSet4DescInput) honhachSet4DescInput.value = desc;
+        if (honhachSet4Extra24Input) honhachSet4Extra24Input.value = extra24;
+
+        currentHonhach.set4 = {
+          desc,
+          extra24,
+          stats
+        };
+
+        populateHonhachStarGrid();
+        saveHonhachToMemory();
+        effectBuilderModal.classList.remove('active');
+        showToast('⚡ Đã áp dụng hiệu ứng và 6 mốc sao vào Hồn Hạch!', 'success');
       });
-    });
-  }
-
-  function showFloatingKeywordPopup(kwId, mouseX, mouseY, targetEl) {
-    if (!globalKeywordPopup) return;
-
-    let kwData = keywordsDict[kwId];
-    if (!kwData) {
-      const key = Object.keys(keywordsDict).find(k => keywordsDict[k].name === kwId || k === kwId);
-      if (key) kwData = keywordsDict[key];
     }
 
-    if (!kwData) kwData = { name: kwId, type: 'Tác dụng đặc biệt', icon: '✨', description: `Hiệu ứng: ${kwId}.` };
+    // 5. QUICK DUPLICATE MODAL
+    const quickDuplicateModal = document.getElementById('quickDuplicateModal');
+    const dupModalTitle = document.getElementById('dupModalTitle');
+    const dupNewName = document.getElementById('dupNewName');
+    const dupNewId = document.getElementById('dupNewId');
+    const btnConfirmQuickDuplicate = document.getElementById('btnConfirmQuickDuplicate');
+    let duplicateTargetType = 'hero';
 
-    document.getElementById('popKwIcon').textContent = kwData.icon || '✨';
-    document.getElementById('popKwTitle').textContent = kwData.name || kwId;
-    document.getElementById('popKwType').textContent = `${kwData.type || 'Buff'} • ${kwData.category || 'Hiệu ứng'}`;
-    document.getElementById('popKwDesc').textContent = kwData.description;
+    function openQuickDuplicateModal(type) {
+      duplicateTargetType = type;
+      if (!quickDuplicateModal) return;
 
-    const rect = targetEl.getBoundingClientRect();
-    const popupWidth = 320;
-    let left = window.scrollX + rect.left + rect.width / 2 - popupWidth / 2;
-    let top = window.scrollY + rect.bottom + 8;
+      if (type === 'hero' && currentHero) {
+        dupModalTitle.textContent = `📋 Nhân Bản Hồn Sư: ${currentHero.name}`;
+        dupNewName.value = `${currentHero.name} (Bản sao)`;
+        dupNewId.value = `${currentHero.id}_copy_${Date.now().toString().slice(-3)}`;
+      } else if (type === 'honhach' && currentHonhach) {
+        dupModalTitle.textContent = `📋 Nhân Bản Bộ Hồn Hạch: ${currentHonhach.nameVi || currentHonhach.id}`;
+        dupNewName.value = `${currentHonhach.nameVi || currentHonhach.id} (Bản sao)`;
+        dupNewId.value = `${currentHonhach.id}_copy_${Date.now().toString().slice(-3)}`;
+      } else if (type === 'honcot' && currentHoncot) {
+        dupModalTitle.textContent = `📋 Nhân Bản Hồn Cốt: ${currentHoncot.nameVi || currentHoncot.id}`;
+        dupNewName.value = `${currentHoncot.nameVi || currentHoncot.id} (Bản sao)`;
+        dupNewId.value = `${currentHoncot.id}_copy_${Date.now().toString().slice(-3)}`;
+      }
 
-    if (left < 10) left = 10;
-    if (left + popupWidth > window.innerWidth - 10) left = window.innerWidth - popupWidth - 10;
-
-    globalKeywordPopup.style.left = `${left}px`;
-    globalKeywordPopup.style.top = `${top}px`;
-    globalKeywordPopup.style.display = 'block';
-  }
-
-  function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    const icon = type === 'success' ? '✅' : type === 'danger' ? '⚠️' : 'ℹ️';
-    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
-    toastContainer.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
-
-  // Listen for i18n language change in editor
-  window.addEventListener('languageChanged', () => {
-    if (activeMode === 'hero') {
-      renderLivePreview();
-    } else if (activeMode === 'honhach') {
-      renderHonhachPreview();
+      quickDuplicateModal.classList.add('active');
+      setTimeout(() => dupNewName.focus(), 50);
     }
-  });
+
+    if (btnCloneHero) {
+      btnCloneHero.replaceWith(btnCloneHero.cloneNode(true));
+      document.getElementById('btnCloneHero').addEventListener('click', () => openQuickDuplicateModal('hero'));
+    }
+    if (btnCloneHonhach) {
+      btnCloneHonhach.replaceWith(btnCloneHonhach.cloneNode(true));
+      document.getElementById('btnCloneHonhach').addEventListener('click', () => openQuickDuplicateModal('honhach'));
+    }
+    if (btnCloneHoncot) {
+      btnCloneHoncot.replaceWith(btnCloneHoncot.cloneNode(true));
+      document.getElementById('btnCloneHoncot').addEventListener('click', () => openQuickDuplicateModal('honcot'));
+    }
+
+    if (btnConfirmQuickDuplicate) {
+      btnConfirmQuickDuplicate.addEventListener('click', async () => {
+        const newName = dupNewName.value.trim();
+        const newId = dupNewId.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        if (!newName || !newId) {
+          showToast('Vui lòng nhập tên và ID mới!', 'warning');
+          return;
+        }
+
+        quickDuplicateModal.classList.remove('active');
+
+        if (duplicateTargetType === 'hero' && currentHero) {
+          const cloned = await DataLayer.cloneHero(currentHero.id, newId, newName);
+          heroesList = await DataLayer.getHeroesList();
+          populateHeroSelect();
+          await selectHero(cloned.id);
+          showToast(`🚀 Đã nhân bản thành "${newName}"!`, 'success');
+        } else if (duplicateTargetType === 'honhach' && currentHonhach) {
+          const cloned = await DataLayer.cloneHonhach(currentHonhach.id, newId, newName);
+          honhachList = await DataLayer.getHonhachList();
+          populateHonhachSelect();
+          await selectHonhach(cloned.id);
+          showToast(`🚀 Đã nhân bản Bộ "${newName}"!`, 'success');
+        } else if (duplicateTargetType === 'honcot' && currentHoncot) {
+          const cloned = await DataLayer.cloneHoncot(currentHoncot.id, newId, newName);
+          honcotList = await DataLayer.getHoncotList();
+          populateHoncotSelect();
+          await selectHoncot(cloned.id);
+          showToast(`🚀 Đã nhân bản Hồn Cốt "${newName}"!`, 'success');
+        }
+      });
+    }
+  }
+
+  // Khởi động Studio sau khi tất cả các DOM variables đã được khai báo
+  await initStudio();
 });
 

@@ -71,8 +71,8 @@ const i18n = {
       honhach_banner_title: 'BÁCH KHOA BỘ HỒN HẠCH',
       honhach_banner_desc: 'Tra cứu danh sách Bộ Hồn Hạch 2 món & 4 món, thông số kích hoạt mốc Sao (2★ - 24★) và thuộc tính cường hóa trong Đấu La MMO.',
       honhach_role_title: '❖ PHÂN LOẠI THEO HỆ HỒN SƯ',
-      honhach_set2_title: 'Bộ 2 Món (2件套)',
-      honhach_set4_title: 'Bộ 4 Món (4件套)',
+      honhach_set2_title: 'Bộ 2 Món',
+      honhach_set4_title: 'Bộ 4 Món',
       honhach_breakthrough: 'Đột phá 24★:',
 
       // Edit Studio

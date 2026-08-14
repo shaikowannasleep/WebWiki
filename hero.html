@@ -6,6 +6,7 @@
   <title>Chi Tiết Hồn Sư - Douluo MMO Wiki</title>
   <meta name="description" content="Chi tiết 2 nhánh Hồn Hoàn, Kỹ Năng và Từ Khóa Hồn Sư Đấu La Đại Lục MMO.">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/security.js"></script>
 </head>
 <body>
 
@@ -20,8 +21,9 @@
         <a href="index.html" class="nav-link">Trang Chủ</a>
         <a href="index.html" class="nav-link active">Hồn Sư</a>
         <a href="honhach.html" class="nav-link">Hồn Hạch</a>
-        <a href="#" class="nav-link" onclick="alert('Module Hồn Cốt đang được phát triển.'); return false;">Hồn Cốt</a>
-        <a href="#" class="nav-link" onclick="alert('Module Phù Văn đang được phát triển.'); return false;">Phù Văn</a>
+        <a href="honcot.html" class="nav-link">Hồn Cốt</a>
+        <a href="compare.html" class="nav-link">So Sánh</a>
+        <a href="edit.html" class="nav-link" style="color:var(--accent-gold);">Studio IDE</a>
         <div class="lang-selector-wrapper" id="langSelectorWrapper"></div>
       </nav>
     </div>
@@ -39,6 +41,15 @@
       <!-- Panel 2: Radial Navigation Menu & Skill Items List -->
       <section class="panel-skills-list">
         
+        <!-- Mobile Segmented Navigation Bar (Fallback for screens <= 768px) -->
+        <div class="mobile-skill-group-bar" id="mobileSkillGroupBar">
+          <button class="mobile-group-chip active" data-group-id="bithuat"><span>🔮</span> Bí Thuật</button>
+          <button class="mobile-group-chip" data-group-id="honky"><span>🔥</span> Hồn Kỹ</button>
+          <button class="mobile-group-chip" data-group-id="passive"><span>🛡️</span> Bị Động</button>
+          <button class="mobile-group-chip" data-group-id="tienco"><span>⚡</span> Tiên Cơ</button>
+          <button class="mobile-group-chip" data-group-id="normal"><span>⚔️</span> Đánh Thường</button>
+        </div>
+
         <!-- AAA Game Style Radial Navigation Menu Container -->
         <div class="radial-menu-wrapper" id="radialMenuWrapper">
           <!-- SVG Orbital Ring Overlay -->
@@ -122,13 +133,15 @@
   <!-- Site Footer -->
   <footer class="site-footer">
     <div class="container">
-      <p>© 2026 Douluo MMO Wiki - Hồn Sư Đối Quyết. Static Site powered by GitHub Pages.</p>
+      <p>© 2026 Douluo MMO Wiki - Liệp Hồn Thế Giới. Dev by shaikowannasleep Nếu ai cần bổ sung thông tin gì hay liên hệ hãy liên hệ với mình qua telegram/discord</p>
     </div>
   </footer>
 
   <!-- Scripts -->
   <script src="js/i18n.js"></script>
   <script src="js/data-layer.js"></script>
+  <script src="js/core-services.js"></script>
   <script src="js/hero.js"></script>
+  <script src="js/floating-widget.js"></script>
 </body>
 </html>

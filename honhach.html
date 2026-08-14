@@ -24,6 +24,7 @@
     .star-table-preview tr:last-child td { border-bottom: none; }
     .role-badge-tag { font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 4px; background: rgba(59, 130, 246, 0.2); border: 1px solid var(--primary); color: #93c5fd; font-weight: 600; display: inline-block; }
   </style>
+  <script src="js/security.js"></script>
 </head>
 <body>
 
@@ -38,8 +39,9 @@
         <a href="index.html" class="nav-link">Trang Chủ</a>
         <a href="index.html" class="nav-link">Hồn Sư</a>
         <a href="honhach.html" class="nav-link active">Hồn Hạch</a>
-        <a href="#" class="nav-link" onclick="alert('Module Hồn Cốt đang được phát triển.'); return false;">Hồn Cốt</a>
-        <a href="#" class="nav-link" onclick="alert('Module Phù Văn đang được phát triển.'); return false;">Phù Văn</a>
+        <a href="honcot.html" class="nav-link">Hồn Cốt</a>
+        <a href="compare.html" class="nav-link">So Sánh</a>
+        <a href="edit.html" class="nav-link" style="color:var(--accent-gold);">Studio IDE</a>
         <div class="lang-selector-wrapper" id="langSelectorWrapper"></div>
       </nav>
     </div>
@@ -83,12 +85,14 @@
   <!-- Site Footer -->
   <footer class="site-footer">
     <div class="container">
-      <p>© 2026 Douluo MMO Wiki - Hệ Thống Hồn Hạch. Static Site powered by GitHub Pages.</p>
+      <p>© 2026 Douluo MMO Wiki - Liệp Hồn Thế Giới. Dev by shaikowannasleep Nếu ai cần bổ sung thông tin gì hay liên hệ hãy liên hệ với mình qua telegram/discord</p>
     </div>
   </footer>
 
   <script src="js/i18n.js"></script>
   <script src="js/data-layer.js"></script>
+  <script src="js/core-services.js"></script>
   <script src="js/honhach.js"></script>
+  <script src="js/floating-widget.js"></script>
 </body>
 </html>

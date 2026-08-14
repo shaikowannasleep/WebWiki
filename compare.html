@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>So Sánh Dữ Liệu - Douluo MMO Wiki</title>
+  <meta name="description" content="Chế độ so sánh thuộc tính, hiệu ứng bộ Hồn Hạch và Hồn Sư game Đấu La Đại Lục MMO.">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/security.js"></script>
+</head>
+<body>
+
+  <!-- System Modules Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <span class="logo-icon">🐉</span>
+        <span>DOULUO WIKI</span>
+      </a>
+      <nav class="nav-links" id="mainNavLinks">
+        <a href="index.html" class="nav-link">Trang Chủ</a>
+        <a href="index.html" class="nav-link">Hồn Sư</a>
+        <a href="honhach.html" class="nav-link">Hồn Hạch</a>
+        <a href="honcot.html" class="nav-link">Hồn Cốt</a>
+        <a href="compare.html" class="nav-link active">So Sánh</a>
+        <a href="edit.html" class="nav-link" style="color:var(--accent-gold);">Studio IDE</a>
+        <div class="lang-selector-wrapper" id="langSelectorWrapper"></div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Compare Main Container -->
+  <main class="container compare-container">
+    <section class="hero-banner" style="margin-bottom: 2rem;">
+      <h1>⚖️ CHẾ ĐỘ SO SÁNH (COMPARE MODE)</h1>
+      <p>Đặt 2 Hồn Sư hoặc 2 Bộ Hồn Hạch cạnh nhau để phân tích chiến thuật, hiệu ứng bộ và mức độ tăng tiến.</p>
+      
+      <!-- Compare Type Selector Tabs -->
+      <div style="display:flex; justify-content:center; gap:0.75rem; margin-top:1.5rem;">
+        <button id="tabCompareHonhach" class="filter-btn active" style="font-size:0.9rem; padding:0.6rem 1.25rem;">🦴 So Sánh Hồn Hạch</button>
+        <button id="tabCompareHero" class="filter-btn" style="font-size:0.9rem; padding:0.6rem 1.25rem;">👤 So Sánh Hồn Sư</button>
+      </div>
+    </section>
+
+    <!-- Selector Bar -->
+    <section class="compare-selector-bar">
+      <!-- Left Entity Selector -->
+      <div class="compare-col-header">
+        <label style="font-size:0.8rem; font-weight:800; color:var(--accent-cyan);" id="labelLeftSelect">ĐỐI TƯỢNG THỨ 1 (TRÁI):</label>
+        <select id="compareSelectLeft" class="studio-select" style="background:#0f172a; color:#fff; border:1px solid var(--border-glass); padding:0.6rem 0.8rem; border-radius:8px; font-weight:700; width:100%;">
+          <!-- Options populated dynamically -->
+        </select>
+      </div>
+
+      <!-- VS Badge -->
+      <div class="compare-vs-badge">VS</div>
+
+      <!-- Right Entity Selector -->
+      <div class="compare-col-header">
+        <label style="font-size:0.8rem; font-weight:800; color:var(--accent-gold);" id="labelRightSelect">ĐỐI TƯỢNG THỨ 2 (PHẢI):</label>
+        <select id="compareSelectRight" class="studio-select" style="background:#0f172a; color:#fff; border:1px solid var(--border-glass); padding:0.6rem 0.8rem; border-radius:8px; font-weight:700; width:100%;">
+          <!-- Options populated dynamically -->
+        </select>
+      </div>
+    </section>
+
+    <!-- Side-by-Side Comparison Container -->
+    <section class="compare-grid" id="compareGridContainer">
+      <!-- Left Card Side -->
+      <div class="compare-card-side" id="compareSideLeft">
+        <!-- Rendered by js/compare.js -->
+      </div>
+
+      <!-- Right Card Side -->
+      <div class="compare-card-side" id="compareSideRight">
+        <!-- Rendered by js/compare.js -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 Douluo MMO Wiki - Liệp Hồn Thế Giới. Dev by shaikowannasleep</p>
+    </div>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/data-layer.js"></script>
+  <script src="js/core-services.js"></script>
+  <script src="js/compare.js"></script>
+  <script src="js/floating-widget.js"></script>
+</body>
+</html>
