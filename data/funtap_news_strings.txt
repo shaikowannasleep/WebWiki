@@ -1,0 +1,1825 @@
+defineProperty
+defineProperties
+getOwnPropertyDescriptors
+getOwnPropertySymbols
+hasOwnProperty
+propertyIsEnumerable
+enumerable
+configurable
+var n in t
+var n of hs
+new Promise
+present Yuxi 
+ You and Vue contributors
+
+license MIT
+
+function gi
+const n of e
+createElement
+modulepreload
+const n of document
+querySelectorAll
+new MutationObserver
+const r of n
+const o of r
+addedNodes
+function t
+referrerPolicy
+crossOrigin
+credentials
+charCodeAt
+startsWith
+object Map
+object Set
+object Date
+object Object
+onVnodeBeforeMount
+onVnodeMounted
+onVnodeBeforeUpdate
+onVnodeUpdated
+onVnodeBeforeUnmount
+onVnodeUnmounted
+toUpperCase
+toLowerCase
+parseFloat
+return isNaN
+typeof globalThis
+globalThis
+typeof self
+typeof window
+typeof global
+function _o
+const i in o
+function Jf
+function Kt
+const n in e
+allowfullscreen
+formnovalidate
+novalidate
+function xs
+function _i
+const o in e
+return String
+description
+reactivity v3
+constructor
+_warnOnRun
+get active
+return this
+function ki
+return new Cs
+function As
+new WeakSet
+runIfDirty
+function Ps
+function Si
+function xi
+function Rs
+prevActiveLink
+activeLink
+function Is
+function Ei
+function Ms
+globalVersion
+function Oi
+function Zf
+function Jt
+function Yt
+function Ds
+function Bs
+new WeakMap
+function nt
+function Zt
+return void xr
+else switch
+function Kn
+function ko
+function Mt
+findLastIndex
+lastIndexOf
+reduceRight
+toReversed
+function Li
+function Qt
+function Us
+function Ni
+function Or
+getOwnPropertyNames
+function rd
+_isReadonly
+_isShallow
+__v_isReactive
+__v_isReadonly
+__v_isShallow
+getPrototypeOf
+class Ws extends Vs
+deleteProperty
+class od extends Vs
+function So
+return function
+function ld
+function Ri
+function pd
+isExtensible
+function xo
+function Ii
+function Mi
+function Ft
+function en
+function ht
+function Eo
+function Te
+function Fi
+function Me
+function mt
+function Di
+function zs
+function Qe
+function qs
+_defaultValue
+return void
+function bd
+function Xs
+return new gd
+function _d
+augmentJob
+const z of O
+function hn
+const r in e
+const r of Object
+function Ar
+function Dt
+function Ao
+errorHandler
+throwUnhandledErrorInProduction
+appContext
+function Bi
+function Ui
+function Js
+function Ys
+function Zs
+return void mn
+function Qs
+function No
+function tl
+function In
+function nl
+function Zn
+function gn
+function rl
+__watcherHandles
+function kd
+function ol
+function ji
+transition
+ssFallback
+function Qn
+function il
+function al
+getOwnPropertyDescriptor
+function Nr
+return void e
+__asyncResolved
+setupState
+function sl
+requestIdleCallback
+cancelIdleCallback
+__asyncLoader
+__isKeepAlive
+function xd
+function Ed
+function cl
+isDeactivated
+function Od
+function Ro
+function Nd
+function Rr
+forceUpdate
+__isScriptSetup
+accessCache
+__cssModules
+globalProperties
+function pl
+function Id
+beforeCreate
+beforeMount
+beforeUpdate
+deactivated
+beforeDestroy
+beforeUnmount
+renderTracked
+renderTriggered
+errorCaptured
+serverPrefetch
+inheritAttrs
+components
+directives
+const Ne in he
+const he in a
+const he in i
+const he in l
+function ge
+function hl
+function ml
+function gl
+optionsCache
+optionMergeStrategies
+function Mo
+const a in t
+const r in t
+function vl
+function zi
+function at
+function Mr
+function bl
+function yl
+isNativeTag
+performance
+warnHandler
+compilerOptions
+propsCache
+emitsCache
+function Dd
+_component
+_container
+get config
+set config
+__vue_app__
+runWithContext
+function Bd
+isUnmounted
+modelValue
+modelModifiers
+function _l
+function Fo
+function wl
+propsOptions
+renderCache
+function kl
+function Tl
+function Wd
+propsDefaults
+const a in e
+function Ol
+let s in t
+emitsOptions
+function qi
+skipFactory
+function Cl
+const f in i
+function Al
+pendingBranch
+function Gd
+createText
+createComment
+setElementText
+parentNode
+nextSibling
+setScopeId
+insertStaticContent
+dynamicChildren
+_beginPatch
+const X in J
+beforeEnter
+slotScopeIds
+textContent
+dynamicProps
+const P in m
+const P in _
+exposeProxy
+setupContext
+suspenseId
+asyncResolved
+registerDep
+placeholder
+return void he
+activeBranch
+_hasShadowRoot
+_injectChildStyle
+const X in E
+const X in I
+const E in B
+return void be
+return void Ne
+return void M
+return void p
+return void F
+return void n
+return void x
+delayLeave
+afterLeave
+_isLeaving
+cacheIndex
+return void m
+deactivate
+return void _e
+return void N
+function Ji
+foreignObject
+annotation
+function Fn
+function Rl
+function Il
+function Ml
+function Fl
+__isSuspense
+function qe
+function Bo
+function Bl
+function Ke
+function Ul
+function Uo
+__v_isVNode
+function Ur
+function We
+targetStart
+targetAnchor
+staticCount
+__isTeleport
+function er
+const v in w
+function Vl
+function Wl
+function Yi
+function jt
+function nn
+function Zi
+function Vt
+__VUE_INSTANCE_SETTERS__
+__VUE_SSR_SETTERS__
+function Gl
+__ssrInlineRender
+function zl
+function ea
+function ta
+trustedTypes
+createPolicy
+createHTML
+typeof document
+insertBefore
+removeChild
+createElementNS
+setAttribute
+createTextNode
+querySelector
+previousSibling
+firstChild
+appendChild
+function Wr
+setProperty
+function tp
+function ec
+removeAttributeNS
+setAttributeNS
+removeAttribute
+function tc
+getAttribute
+function np
+stopImmediatePropagation
+addEventListener
+removeEventListener
+stopPropagation
+preventDefault
+currentTarget
+const d of s
+const d in s
+const d in u
+spellcheck
+autocorrect
+return Array
+_trueValue
+_falseValue
+l instanceof SVGElement
+typeof MathMLElement
+l instanceof MathMLElement
+return o instanceof Element
+function ia
+patchObject
+patch object
+patchFunction
+patch function
+function uc
+function tr
+function la
+e instanceof Map
+t instanceof Map
+e instanceof Set
+t instanceof Set
+const n in t
+function fp
+function dp
+function pp
+const g in f
+function dc
+function k
+return ce instanceof Promise
+const z in O
+__NO_SIDE_EFFECTS__ 
+function hp
+ shared v9
+ 2025 kazuya kawaguchi
+  
+ Released under the MIT License
+function gp
+object RegExp
+function hc
+function mc
+function Ot
+function Go
+function qo
+throw new Error
+Invalid value
+compiler v9
+function Xo
+function bc
+function wc
+Use modulo before 
+Expected token
+Invalid token in placeholder
+Unterminated single quote in placeholder
+Unknown escape sequence
+Invalid unicode escape sequence
+Unbalanced closing brace
+Unterminated closing brace
+Empty placeholder
+Not allowed nest placeholder
+Invalid linked format
+Plural must have messages
+Unexpected empty linked modifier
+Unexpected empty linked key
+Unexpected lexical analysis in token
+unhandled codegen node type
+unhandled mimifier node type
+function rr
+new SyntaxError
+function Ep
+function Ap
+function h
+peekOffset
+currentChar
+currentPeek
+skipToPeek
+function Lp
+currentType
+lastOffset
+lastStartLoc
+lastEndLoc
+function g
+function w
+function v
+function A
+function x
+function N
+function O
+function z
+function ee
+function ne
+function Y
+function ae
+function ie
+function ce
+function re
+function oe
+function xe
+function he
+function ve
+function Ne
+function be
+function M
+function H
+function me
+function _e
+currentOffset
+currentPosition
+function Pp
+fromCodePoint
+function Rp
+function o
+function i
+function a
+function l
+function s
+function u
+function f
+nextConsumeToken
+function d
+onCacheKey
+function Ct
+new RegExp
+function Mc
+function fa
+interpolate
+function Ip
+function Fc
+function or
+function ir
+needIndent
+ undefined
+function Mp
+breakLineCode
+indentLevel
+function __msg__ 
+function Wt
+function da
+function Fp
+function kn
+return new Error
+unhandled node type
+function Bp
+case 65279
+function Up
+function jp
+function qc
+function Gp
+pluralIndex
+pluralRules
+function qp
+FALLBACK_TO_TRANSLATE
+CANNOT_FORMAT_NUMBER
+FALLBACK_TO_NUMBER_FORMAT
+CANNOT_FORMAT_DATE
+FALLBACK_TO_DATE_FORMAT
+EXPERIMENTAL_CUSTOM_MESSAGE_COMPILER
+__EXTEND_POINT__
+INVALID_ARGUMENT
+INVALID_DATE_ARGUMENT
+INVALID_ISO_DATE_ARGUMENT
+NOT_SUPPORT_NON_STRING_MESSAGE
+NOT_SUPPORT_LOCALE_PROMISE_VALUE
+NOT_SUPPORT_LOCALE_ASYNC_FUNCTION
+NOT_SUPPORT_LOCALE_TYPE
+function Ht
+function pa
+function Kc
+resolvedOnce
+function Kp
+function Jc
+__localeChainCache
+function Yc
+function Jp
+function Yp
+toLocaleUpperCase
+function nu
+function Qp
+fallbackLocale
+datetimeFormats
+numberFormats
+capitalize
+missingWarn
+fallbackWarn
+fallbackFormat
+unresolving
+postTranslation
+warnHtmlMessage
+escapeParameter
+messageCompiler
+messageResolver
+localeFallbacker
+fallbackContext
+__datetimeFormatters
+__numberFormatters
+__INTLIFY_PROD_DEVTOOLS__
+function ga
+function zr
+function eh
+function th
+function va
+function su
+function ba
+unhandled node on format message part
+function cu
+detectError
+new Function
+function fu
+resolvedMessage
+formaction
+javascript
+1javascript
+function du
+function pu
+function ya
+function hu
+return new Intl
+DateTimeFormat
+datetime format
+formatToParts
+localeMatcher
+timeZoneName
+formatMatcher
+numberingSystem
+fractionalSecondDigits
+function _a
+toISOString
+function gu
+const o in n
+function vu
+NumberFormat
+number format
+currencyDisplay
+currencySign
+useGrouping
+minimumIntegerDigits
+minimumFractionDigits
+maximumFractionDigits
+minimumSignificantDigits
+maximumSignificantDigits
+compactDisplay
+signDisplay
+unitDisplay
+roundingMode
+roundingPriority
+roundingIncrement
+trailingZeroDisplay
+function wa
+function yu
+typeof __INTLIFY_PROD_DEVTOOLS__
+typeof __INTLIFY_JIT_COMPILATION__
+__INTLIFY_JIT_COMPILATION__
+typeof __INTLIFY_DROP_MESSAGE_COMPILER__
+__INTLIFY_DROP_MESSAGE_COMPILER__
+UNEXPECTED_RETURN_TYPE
+MUST_BE_CALL_SETUP_TOP
+NOT_INSTALLED
+NOT_AVAILABLE_IN_LEGACY_MODE
+REQUIRED_VALUE
+INVALID_VALUE
+CANNOT_SETUP_VUE_DEVTOOLS_PLUGIN
+NOT_INSTALLED_WITH_PROVIDE
+UNEXPECTED_ERROR
+NOT_COMPATIBLE_LEGACY_VUE_I18N
+BRIDGE_SUPPORT_VUE_2_ONLY
+MUST_DEFINE_I18N_OPTION_IN_ALLOW_COMPOSITION
+NOT_AVAILABLE_COMPOSITION_IN_LEGACY
+function Je
+__translateVNode
+__datetimeParts
+__numberParts
+__setPluralRules
+__injectWithOption
+function qr
+const t in e
+unsafe key
+function Ko
+const l in a
+function Tu
+function Su
+__i18nGlobal
+mergeLocaleMessage
+mergeDateTimeFormat
+mergeNumberFormat
+function xu
+__INTLIFY_META__
+function Au
+function Ea
+translateExistCompatible
+inheritLocale
+fallbackRoot
+translate exists
+get inheritLocale
+set inheritLocale
+get availableLocales
+return Object
+get modifiers
+get pluralRules
+get isGlobal
+get missingWarn
+set missingWarn
+get fallbackWarn
+set fallbackWarn
+get fallbackRoot
+set fallbackRoot
+get fallbackFormat
+set fallbackFormat
+get warnHtmlMessage
+set warnHtmlMessage
+get escapeParameter
+set escapeParameter
+getLocaleMessage
+setLocaleMessage
+const _e in me
+getPostTranslationHandler
+setPostTranslationHandler
+getMissingHandler
+setMissingHandler
+getDateTimeFormat
+setDateTimeFormat
+getNumberFormat
+setNumberFormat
+function Oa
+silentTranslationWarn
+silentFallbackWarn
+formatFallbackMessages
+pluralizationRules
+warnHtmlInMessage
+escapeParameterHtml
+sharedMessages
+__extender
+get locale
+set locale
+get fallbackLocale
+set fallbackLocale
+get messages
+get datetimeFormats
+get numberFormats
+availableLocales
+get formatter
+set formatter
+get missing
+set missing
+get silentTranslationWarn
+set silentTranslationWarn
+get silentFallbackWarn
+set silentFallbackWarn
+get formatFallbackMessages
+set formatFallbackMessages
+get postTranslation
+set postTranslation
+get warnHtmlInMessage
+set warnHtmlInMessage
+get escapeParameterHtml
+set escapeParameterHtml
+get preserveDirectiveContent
+set preserveDirectiveContent
+get pluralizationRules
+__composer
+getChoiceIndex
+function Lu
+__useComponent
+function Pu
+function Mu
+function Fu
+function lh
+useI18nComponentName
+globalInstall
+composition
+__getInstance
+__i18nWatcher
+getSSRProps
+function Du
+function Aa
+__VUE_I18N_SYMBOL__
+__VUE_I18N_LEGACY_API__
+allowComposition
+function S
+function T
+function G
+function c
+function b
+function y
+function C
+function p
+function m
+function _
+function L
+function R
+function P
+function F
+function q
+function B
+function J
+__composerExtend
+__deleteInstance
+__setInstance
+typeof __VUE_I18N_FULL_INSTALL__
+__VUE_I18N_FULL_INSTALL__
+typeof __VUE_I18N_LEGACY_API__
+return null
+__INTLIFY__
+__INTLIFY_DEVTOOLS_GLOBAL_HOOK__
+ Awakening World
+ Soul Land
+ Soul Land MMO
+ Clash of Spirimasters
+ Monster Academy
+Terms of Service
+Privacy Policy
+footerCopyright
+xA9 2026 37GAMES
+ All Rights Reserved
+section6Nav1
+Gengxin City
+section6Nav2
+Thunder Valley
+section6Nav3
+Aster Forest
+section6Nav4
+Eye of Ice And Fire
+Game Features
+Official Top
+section4Video1
+section4Video2
+Celestial Oxerpent
+section4Video3
+Demonic Tiger
+Announcement
+awselbcombine
+public_images
+auto_system_upload
+1778553928428
+u1EA5u La 
+u1EA5u La MMO
+u1ED1i Quy
+u1EED Lai Kh
+u1EC1u kho
+xF4i Minh C
+u1EEBng Tinh 
+u1EE1ng Nghi Nh
+xEAn Thanh Ng
+u0110ang t
+architecture
+formFactors
+fullVersionList
+platformVersion
+BlackBerry
+Chromecast
+userAgentData
+var n in e
+return typeof e
+var t in e
+Automotive
+Google Chrome
+Microsoft Edge
+Edge WebView2
+Microsoft Edge WebView2
+Chrome WebView
+Android WebView
+Chrome Headless
+HeadlessChrome
+Huawei Browser
+HuaweiBrowser
+MIUI Browser
+Miui Browser
+Opera Mobi
+OperaMobile
+opera mini
+qqbrowserlite
+duckduckgo
+DuckDuckGo
+micromessenger
+like gecko
+Norton Private
+miuibrowser
+bqihoobrowser
+samsungbrowser
+ qtcarbrowser
+musical_ly
+lighthouse
+headlesschrome
+mobile safari
+maemo browser
+compatible
+galaxy nexus
+android tv
+sony tablet 
+Xperia Tablet
+0349hijorstuw
+Fire Phone 
+blackberry
+geeksphone
+xess p17aa
+ energizer 
+blackview 
+sonyericsson
+surface duo
+devicetype
+chromecast
+ Third Generation
+Chromecast 
+playstation 
+steam deck
+smartwatch 3
+windows iot
+large screen
+windows ce
+windows nt
+windows nt 
+mac_powerpc
+smartspeaker
+ SmartSpeaker
+ like android
+openharmony
+rim tablet os
+playstation
+vectorlinux
+elementary os
+ enterprise
+frentopcghs
+serenityos
+isIgnoreRgx
+withClientHints
+getHighEntropyValues
+withFeatureCheck
+detectFeature
+var u in this
+var s in i
+typeof this
+var h in s
+function ef
+function Cn
+function fn
+var i in n
+this instanceof fn
+return new fn
+return new Cn
+getBrowser
+useExtension
+var v in w
+var k in g
+var A in h
+standalone
+maxTouchPoints
+function kh
+__esModule
+object Array
+4283543511
+3981806797
+3301882366
+2277735313
+1291169091
+1390208809
+preprocessor
+excludeIOS11
+swfContainerId
+fingerprintjs2
+userDefinedFonts
+extendedJsFonts
+detectScreenOrientation
+sortPluginsFor
+extraComponents
+enumerateDevices
+pixelRatio
+doNotTrack
+fontsFlash
+NOT_AVAILABLE
+not available
+var p in c
+return navigator
+mediaDevices
+availWidth
+availHeight
+ActiveXObject
+DevalVRXCtrl
+MacromediaFlashPaper
+DOMDocument
+QuickTimeCheckObject
+QuickTimeCheck
+RealPlayer
+ ActiveX Control 
+Dictionary
+ShockwaveFlash
+RealPlayer G2 Control
+return new window
+sessionStorage
+localStorage
+hardwareConcurrency
+msDoNotTrack
+msMaxTouchPoints
+createEvent
+TouchEvent
+ontouchstart
+getContext
+canvas winding
+isPointInPath
+textBaseline
+alphabetic
+dontUseFakeFontInCanvas
+11pt Arial
+Cwm fjordbank glyphs vext quiz
+18pt Arial
+globalCompositeOperation
+clearColor
+DEPTH_TEST
+COLOR_BUFFER_BIT
+DEPTH_BUFFER_BIT
+createBuffer
+bindBuffer
+ARRAY_BUFFER
+new Float32Array
+bufferData
+STATIC_DRAW
+createProgram
+createShader
+VERTEX_SHADER
+shaderSource
+attribute vec2 attrVertex
+varying vec2 varyinTexCoordinate
+uniform vec2 uniformOffset
+varyinTexCoordinate
+attrVertex
+uniformOffset
+gl_Position
+compileShader
+FRAGMENT_SHADER
+precision mediump float
+gl_FragColor
+attachShader
+linkProgram
+useProgram
+vertexPosAttrib
+getAttribLocation
+offsetUniform
+getUniformLocation
+enableVertexAttribArray
+vertexPosArray
+vertexAttribPointer
+drawArrays
+TRIANGLE_STRIP
+extensions
+getSupportedExtensions
+webgl aliased line width range
+getParameter
+ALIASED_LINE_WIDTH_RANGE
+webgl aliased point size range
+ALIASED_POINT_SIZE_RANGE
+webgl alpha bits
+ALPHA_BITS
+webgl antialiasing
+getContextAttributes
+webgl blue bits
+webgl depth bits
+DEPTH_BITS
+webgl green bits
+GREEN_BITS
+webgl max anisotropy
+getExtension
+EXT_texture_filter_anisotropic
+WEBKIT_EXT_texture_filter_anisotropic
+MOZ_EXT_texture_filter_anisotropic
+MAX_TEXTURE_MAX_ANISOTROPY_EXT
+webgl max combined texture image units
+MAX_COMBINED_TEXTURE_IMAGE_UNITS
+webgl max cube map texture size
+MAX_CUBE_MAP_TEXTURE_SIZE
+webgl max fragment uniform vectors
+MAX_FRAGMENT_UNIFORM_VECTORS
+webgl max render buffer size
+MAX_RENDERBUFFER_SIZE
+webgl max texture image units
+MAX_TEXTURE_IMAGE_UNITS
+webgl max texture size
+MAX_TEXTURE_SIZE
+webgl max varying vectors
+MAX_VARYING_VECTORS
+webgl max vertex attribs
+MAX_VERTEX_ATTRIBS
+webgl max vertex texture image units
+MAX_VERTEX_TEXTURE_IMAGE_UNITS
+webgl max vertex uniform vectors
+MAX_VERTEX_UNIFORM_VECTORS
+webgl max viewport dims
+MAX_VIEWPORT_DIMS
+webgl red bits
+webgl renderer
+webgl shading language version
+SHADING_LANGUAGE_VERSION
+webgl stencil bits
+STENCIL_BITS
+webgl vendor
+webgl version
+WEBGL_debug_renderer_info
+webgl unmasked vendor
+UNMASKED_VENDOR_WEBGL
+webgl unmasked renderer
+UNMASKED_RENDERER_WEBGL
+getShaderPrecisionFormat
+precision 
+getElementsByClassName
+offsetHeight
+return window
+windows phone
+Windows Phone
+productSub
+Internet Explorer
+WebGLRenderingContext
+Microsoft Internet Explorer
+msWriteProfilerMark
+msLaunchUri
+in navigator
+msSaveBlob
+hasFlashPlayerVersion
+___fp_swf_loaded
+allowScriptAccess
+experimental
+WEBGL_lose_context
+loseContext
+userLanguage
+browserLanguage
+systemLanguage
+colorDepth
+deviceMemory
+devicePixelRatio
+screenResolution
+availableScreenResolution
+timezoneOffset
+getTimezoneOffset
+new window
+resolvedOptions
+addBehavior
+HTMLElement
+openDatabase
+webglVendorAndRenderer
+hasLiedLanguages
+hasLiedResolution
+hasLiedBrowser
+touchSupport
+Andale Mono
+Arial Black
+Arial Hebrew
+Arial Narrow
+Arial Rounded MT Bold
+Arial Unicode MS
+Bitstream Vera Sans Mono
+Book Antiqua
+Bookman Old Style
+Cambria Math
+Century Gothic
+Century Schoolbook
+Comic Sans
+Comic Sans MS
+Courier New
+Helvetica Neue
+Lucida Bright
+Lucida Calligraphy
+Lucida Console
+Lucida Fax
+LUCIDA GRANDE
+Lucida Handwriting
+Lucida Sans
+Lucida Sans Typewriter
+Lucida Sans Unicode
+Microsoft Sans Serif
+Monotype Corsiva
+MS Outlook
+MS PGothic
+MS Reference Sans Serif
+MS Sans Serif
+MYRIAD PRO
+Palatino Linotype
+Segoe Print
+Segoe Script
+Segoe UI Light
+Segoe UI Semibold
+Segoe UI Symbol
+Times New Roman
+Times New Roman PS
+Trebuchet MS
+Wingdings 2
+Wingdings 3
+Abadi MT Condensed Light
+Academy Engraved LET
+ADOBE CASLON PRO
+Adobe Garamond
+ADOBE GARAMOND PRO
+Albertus Extra Bold
+Albertus Medium
+Amazone BT
+American Typewriter
+American Typewriter Condensed
+AmerType Md BT
+Angsana New
+AngsanaUPC
+Antique Olive
+Apple Chancery
+Apple Color Emoji
+Apple SD Gothic Neo
+Arabic Typesetting
+Aurora Cn BT
+AvantGarde Bk BT
+AvantGarde Md BT
+Bangla Sangam MN
+Bank Gothic
+BankGothic Md BT
+Baskerville
+Baskerville Old Face
+Bauer Bodoni
+Bauhaus 93
+Benguiat Bk BT
+Berlin Sans FB
+Berlin Sans FB Demi
+Bernard MT Condensed
+BernhardFashion BT
+BernhardMod BT
+Big Caslon
+Blackadder ITC
+BlairMdITC TT
+Bodoni 72 Oldstyle
+Bodoni 72 Smallcaps
+Bodoni MT Black
+Bodoni MT Condensed
+Bodoni MT Poster Compressed
+Bookshelf Symbol 7
+Bradley Hand
+Bradley Hand ITC
+Bremen Bd BT
+Britannic Bold
+Browallia New
+BrowalliaUPC
+Brush Script MT
+Californian FB
+Calisto MT
+Calligrapher
+CaslonOpnface BT
+Chalkboard
+Chalkboard SE
+Chalkduster
+Charlesworth
+Charter Bd BT
+Charter BT
+ChelthmITC Bk BT
+Clarendon Condensed
+CloisterBlack BT
+Colonna MT
+Constantia
+Cooper Black
+Copperplate
+Copperplate Gothic
+Copperplate Gothic Bold
+Copperplate Gothic Light
+CopperplGoth Bd BT
+Cordia New
+Cornerstone
+DB LCD Temp
+DilleniaUPC
+Edwardian Script ITC
+English 111 Vivace BT
+Engravers MT
+EngraversGothic BT
+Eras Bold ITC
+Eras Demi ITC
+Eras Light ITC
+Eras Medium ITC
+EucrosiaUPC
+Euphemia UCAS
+Exotc350 Bd BT
+Felix Titling
+Footlight MT Light
+FrankRuehl
+Fransiscan
+Freefrm721 Blk BT
+FreesiaUPC
+Freestyle Script
+French Script MT
+FrnkGothITC Bk BT
+Futura Bk BT
+Futura Lt BT
+Futura Md BT
+Futura ZBlk BT
+FuturaBlack BT
+Galliard BT
+Geometr231 BT
+Geometr231 Hv BT
+Geometr231 Lt BT
+GeoSlab 703 Lt BT
+GeoSlab 703 XBd BT
+Gill Sans MT
+Gill Sans MT Condensed
+Gill Sans MT Ext Condensed Bold
+Gill Sans Ultra Bold
+Gill Sans Ultra Bold Condensed
+Gloucester MT Extra Condensed
+GOTHAM BOLD
+Goudy Old Style
+Goudy Stout
+GoudyHandtooled BT
+GoudyOLSt BT
+Gujarati Sangam MN
+GungsuhChe
+Gurmukhi MN
+Haettenschweiler
+Harlow Solid Italic
+Harrington
+High Tower Text
+Hiragino Kaku Gothic ProN
+Hiragino Mincho ProN
+Hoefler Text
+Humanst 521 Cn BT
+Humanst521 BT
+Humanst521 Lt BT
+Imprint MT Shadow
+Incised901 Bd BT
+Incised901 BT
+Incised901 Lt BT
+INCONSOLATA
+Informal Roman
+Informal011 BT
+INTERSTATE
+Iskoola Pota
+JasmineUPC
+Kabel Bk BT
+Kabel Ult BT
+Kannada Sangam MN
+Kaufmann Bd BT
+Kaufmann BT
+KodchiangUPC
+Korinna BT
+Kristen ITC
+Kunstler Script
+Leelawadee
+Letter Gothic
+Levenim MT
+Lithograph
+Lithograph Light
+Long Island
+Maiandra GD
+Malayalam Sangam MN
+Malgun Gothic
+Marker Felt
+Matisse ITC
+Matura MT Script Capitals
+Microsoft Himalaya
+Microsoft JhengHei
+Microsoft New Tai Lue
+Microsoft PhagsPa
+Microsoft Tai Le
+Microsoft Uighur
+Microsoft YaHei
+Microsoft Yi Baiti
+MingLiU_HKSCS
+Minion Pro
+Miriam Fixed
+Mona Lisa Solid ITC TT
+Mongolian Baiti
+MS LineDraw
+MS PMincho
+MS Reference Specialty
+MS UI Gothic
+News Gothic
+News GothicMT
+NewsGoth BT
+Niagara Engraved
+Niagara Solid
+Noteworthy
+OCR A Extended
+Old Century
+Old English Text MT
+Oriya Sangam MN
+OzHandicraft BT
+Palace Script MT
+Perpetua Titling MT
+PetitaBold
+Plantagenet Cherokee
+Poor Richard
+PosterBodoni BT
+PRINCETOWN LET
+PTBarnum BT
+Pythagoras
+Rage Italic
+Ribbon131 Bd BT
+Rockwell Condensed
+Rockwell Extra Bold
+Sakkal Majalla
+Santa Fe LET
+Savoye LET
+Script MT Bold
+Serifa Th BT
+ShelleyVolante BT
+Shonar Bangla
+Showcard Gothic
+SILKSCREEN
+Simplified Arabic
+Simplified Arabic Fixed
+Sinhala Sangam MN
+Sketch Rockwell
+Small Fonts
+Snell Roundhand
+Souvenir Lt BT
+Staccato222 BT
+Swis721 BlkEx BT
+Swiss911 XCm BT
+Synchro LET
+Tamil Sangam MN
+Telugu Sangam MN
+Tempus Sans ITC
+Traditional Arabic
+TRAJAN PRO
+Tw Cen MT Condensed
+Tw Cen MT Condensed Extra Bold
+TypoUpright BT
+Univers CE 55 Medium
+Univers Condensed
+Viner Hand ITC
+Vladimir Script
+Westminster
+Wide Latin
+ZapfEllipt BT
+ZapfHumnst BT
+ZapfHumnst Dm BT
+Zurich BlkEx BT
+Zurich Ex BT
+getElementsByTagName
+fontWeight
+letterSpacing
+lineHeight
+textTransform
+textDecoration
+textShadow
+whiteSpace
+wordSpacing
+mmmmmmmmmmlli
+fontFamily
+offsetWidth
+pauseBefore
+missing options
+flash not installed
+swf object not loaded
+OfflineAudioContext
+webkitOfflineAudioContext
+createOscillator
+setValueAtTime
+currentTime
+createDynamicsCompressor
+destination
+startRendering
+setTimeout
+oncomplete
+audioTimeout
+clearTimeout
+renderedBuffer
+getChannelData
+disconnect
+return void c
+new Fingerprint
+ is deprecated
+ see https
+fingerprintjs
+addPreprocessedComponent
+void setTimeout
+getPromise
+return new Promise
+x64hash128
+Fingerprint2
+milliseconds
+millisecond
+val is not a non
+empty string or a valid number
+function li
+function r
+formatters
+formatArgs
+return o instanceof Error
+function nf
+typeof process
+in process
+return typeof console
+removeItem
+return typeof window
+documentElement
+WebkitAppearance
+typeof navigator
+applewebkit
+typeof chrome
+lightseagreen
+forestgreen
+dodgerblue
+darkorchid
+return JSON
+UnexpectedJSONParseError
+ArrayBuffer
+toStringTag in e
+iterator in e
+URLSearchParams
+function so
+allOwnKeys
+function sf
+typeof Uint8Array
+Uint8Array
+e instanceof Za
+HTMLFormElement
+isArrayBuffer
+isFormData
+object FormData
+typeof FormData
+e instanceof FormData
+isArrayBufferView
+typeof ArrayBuffer
+isPlainObject
+isUndefined
+isFunction
+isURLSearchParams
+isTypedArray
+isFileList
+function e
+toFlatObject
+kindOfTest
+forEachEntry
+isHTMLForm
+hasOwnProp
+reduceDescriptors
+freezeMethods
+throw Error
+Can not rewrite read
+only method 
+toObjectSet
+toCamelCase
+toFiniteNumber
+isContextDefined
+toJSONObject
+function Se
+captureStackTrace
+AxiosError
+lineNumber
+columnNumber
+ERR_BAD_OPTION_VALUE
+ERR_BAD_OPTION
+ECONNABORTED
+ERR_NETWORK
+ERR_FR_TOO_MANY_REDIRECTS
+ERR_DEPRECATED
+ERR_BAD_RESPONSE
+ERR_BAD_REQUEST
+ERR_CANCELED
+ERR_NOT_SUPPORT
+ERR_INVALID_URL
+isAxiosError
+function Qa
+function hf
+function mf
+function fi
+throw new TypeError
+target must be an object
+metaTokens
+typeof Blob
+toStringTag
+visitor must be a function
+throw new Se
+Blob is not supported
+ Use a Buffer instead
+defaultVisitor
+convertValue
+isVisitable
+data must be an object
+return function d
+Circular reference detected in 
+function gf
+return encodeURIComponent
+function es
+function Dh
+function bf
+synchronous
+silentJSONParsing
+forcedJSONParsing
+clarifyTimeoutError
+typeof URLSearchParams
+ReactNative
+NativeScript
+typeof WorkerGlobalScope
+self instanceof WorkerGlobalScope
+importScripts
+isStandardBrowserEnv
+isStandardBrowserWebWorkerEnv
+function wf
+transitional
+transformRequest
+getContentType
+application
+new FormData
+setContentType
+urlencoded
+formSerializer
+SyntaxError
+transformResponse
+responseType
+xsrfCookieName
+xsrfHeaderName
+maxContentLength
+maxBodyLength
+validateStatus
+authorization
+unmodified
+function lo
+function di
+function Tf
+header name must be a non
+empty string
+e instanceof this
+parser must be boolean
+void delete t
+AxiosHeaders
+static from
+return e instanceof this
+static concat
+static accessor
+function ts
+function Sf
+__CANCEL__
+function co
+CanceledError
+Authorization
+encodeURIComponent
+toGMTString
+decodeURIComponent
+function xf
+function Ef
+lengthComputable
+typeof XMLHttpRequest
+cancelToken
+unsubscribe
+new XMLHttpRequest
+getAllResponseHeaders
+Request failed with status code 
+responseText
+statusText
+paramsSerializer
+onreadystatechange
+readyState
+responseURL
+Request aborted
+Network Error
+timeout of 
+ms exceeded
+timeout exceeded
+timeoutErrorMessage
+withCredentials
+setRequestHeader
+onDownloadProgress
+onUploadProgress
+Unsupported protocol 
+adapterName
+ is not supported by the environment
+ is not available in the build
+Unknown adapter 
+adapter is not a function
+function rs
+throwIfRequested
+throw new co
+function Of
+e instanceof kt
+function _r
+return h in t
+timeoutMessage
+decompress
+beforeRedirect
+httpsAgent
+socketPath
+responseEncoding
+return typeof n
+ Transitional option 
+ has been removed
+assertOptions
+options must be an object
+Unknown option 
+validators
+interceptors
+return Promise
+SwitchingProtocols
+Processing
+EarlyHints
+NonAuthoritativeInformation
+ResetContent
+PartialContent
+MultiStatus
+AlreadyReported
+MultipleChoices
+MovedPermanently
+NotModified
+TemporaryRedirect
+PermanentRedirect
+BadRequest
+Unauthorized
+PaymentRequired
+MethodNotAllowed
+NotAcceptable
+ProxyAuthenticationRequired
+RequestTimeout
+LengthRequired
+PreconditionFailed
+PayloadTooLarge
+UriTooLong
+UnsupportedMediaType
+RangeNotSatisfiable
+ExpectationFailed
+MisdirectedRequest
+UnprocessableEntity
+FailedDependency
+UpgradeRequired
+PreconditionRequired
+TooManyRequests
+RequestHeaderFieldsTooLarge
+UnavailableForLegalReasons
+InternalServerError
+NotImplemented
+BadGateway
+ServiceUnavailable
+GatewayTimeout
+HttpVersionNotSupported
+VariantAlsoNegotiates
+InsufficientStorage
+LoopDetected
+NotExtended
+NetworkAuthenticationRequired
+CancelToken
+executor must be a function
+_listeners
+throw this
+static source
+toFormData
+mergeConfig
+formToJSON
+HttpStatusCode
+passportToken
+_defaultHost
+isWinPhone
+globalInjection
+return __VUE_I18N_LEGACY_API__
+get allowComposition
+__vueI18nExtend
+__disposer
+delete this
+get global
+__instances
+defaultLang
+getUrlLang
+getBrowserLang
+getDefaultLang
+return void this
+getElementById
+appLanguage
+const r in lr
+getAllText
+getTextByKey
+function Jh
+u9bmevtZsw
+61586910441563
+facebookVn
+dauladailucthegioisanhonFT
+aichagag2o6
+95WRABXTMnM
+95VPJ2ZX1nB
+UCZJyK_MsF4wJwfjWQb1eZ0w
+soulland4768
+id6762107883
+id6759644046
+steampowered
+Soul_Land_Awakening_World
+officialTopupNew
+pcDownloadLink
+20Awakening
+20World_official_downloaders_install
+activityDataLayer
+eventReason
+eventValue
+eventReward
+official_slmsea
+manualEvent
+customValue
+isExternal
+globalGetGotoLink
+languageOptions
+isLanguageDropdownOpen
+toggleLanguageDropdown
+closeLanguageDropdown
+selectLanguage
+onMenuItemClick
+return void Nf
+click_button
+scrollIntoView
+menuRootRef
+noopener noreferrer
+ServicePrivacy
+logo footer
+u1EC1u Kho
+ 1900 636 452 
+funtapgames
+xE1 180 ph
+xE9p cung c
+u1EED G1 tr
+u0110T do C
+xE1t thanh
+xF4ng tin 
+u1ECBnh ph
+u1ED9i dung k
+u1EA1i Giao
+u1EDDng Ho
+xE0ng Minh Th
+u1EDDng Xu
+currentNews
+noticeList
+activityList
+strategyList
+currentCategory
+bannerList
+noticePagination
+totalCount
+activityPagination
+strategyPagination
+PUBLISH_TIME
+currentNewsList
+currentPagination
+setCurPage
+setCurrentCategory
+fetchNewsListByType
+getOfficialWebsiteArticleList
+articleType
+articleList
+fetch news list failed
+initAllNews
+yield Promise
+fetchNewsDetail
+getWebsiteArticleById
+fetch news detail failed
+fetchBannerList
+getWebsiteSlice
+homebanner
+n instanceof Error
+Unknown error

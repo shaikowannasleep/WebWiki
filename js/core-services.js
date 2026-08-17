@@ -395,7 +395,10 @@ window.CoreServices = (function() {
         { id: 'save_disk', label: 'Lưu Dữ Liệu Vào Đĩa Cứng Máy Tính', icon: '💾', category: 'Đồng Bộ', shortcut: 'S' },
         { id: 'export_json', label: 'Xuất Toàn Bộ Database Dạng File JSON Bundle', icon: '📦', category: 'Dữ Liệu' },
         { id: 'open_effect_builder', label: 'Mở Trình Dựng Hiệu Ứng Hồn Hạch (Effect Builder)', icon: '⚡', category: 'Công Cụ' },
+        { id: 'open_batch_ocr', label: 'Ghép Nối N Ảnh Chụp & Quét Chữ OCR Kỹ Năng (Batch OCR)', icon: '📸', category: 'Công Cụ', shortcut: 'O' },
         { id: 'goto_viewer', label: 'Xem Website Giao Diện Người Dùng (Viewer)', icon: '🌐', category: 'Điều Hướng' },
+        { id: 'goto_teambuilder', label: 'Mở Trình Xây Dựng Đội Hình (Team Builder 6 Vị Trí)', icon: '👥', category: 'Điều Hướng', shortcut: 'T' },
+        { id: 'goto_honcot_builder', label: 'Mở Trình Giả Lập Setup Hồn Cốt (Soul Bone Builder)', icon: '⚡', category: 'Điều Hướng', shortcut: 'B' },
         { id: 'goto_compare', label: 'Mở Chế Độ So Sánh (Compare Mode)', icon: '⚖️', category: 'Điều Hướng' },
         ...customActions
       ];

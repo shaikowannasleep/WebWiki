@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Builder — Xây Dựng Đội Hình 6 Hồn Sư | Douluo MMO Wiki</title>
+  <meta name="description" content="Trình xây dựng đội hình 6 vị trí Đấu La Đại Lục MMO. Phân tích chỉ số cộng hưởng Synergy, đề xuất Hồn Hạch và chiến thuật tối ưu.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="js/security.js"></script>
+
+  <style>
+    /* ─── TEAM BUILDER ARENA STYLES ───────────────────────────────────────── */
+    .tb-formation-stage {
+      background: linear-gradient(135deg, rgba(18, 26, 43, 0.9), rgba(9, 14, 26, 0.98));
+      border: 1px solid var(--border-glass-bright);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), inset 0 0 50px rgba(6, 182, 212, 0.08);
+      margin-bottom: 2rem;
+    }
+
+    .tb-grid-formation {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .tb-slot-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(16px);
+      border: 2px dashed var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 240px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .tb-slot-card:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.08);
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px var(--accent-cyan-glow);
+    }
+
+    .tb-slot-card.filled {
+      border-style: solid;
+      border-color: var(--border-glass-bright);
+      background: var(--bg-card);
+    }
+
+    .tb-slot-card.filled:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px var(--accent-gold-glow);
+    }
+
+    .tb-slot-position-badge {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .tb-slot-remove-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+
+    .tb-slot-remove-btn:hover {
+      background: #ef4444;
+      color: #fff;
+      transform: scale(1.15);
+    }
+
+    .tb-avatar-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid var(--accent-gold);
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 0 25px var(--accent-gold-glow);
+      background: #000;
+    }
+
+    .tb-avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Synergy Dashboard */
+    .synergy-dashboard-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .synergy-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass-bright);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .synergy-bar-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .synergy-bar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .synergy-progress-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .synergy-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (max-width: 900px) {
+      .tb-grid-formation {
+        grid-template-columns: 1fr 1fr;
+      }
+      .synergy-dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── 1. HEADER ────────────────────────────────────────────────────────── -->
+  <header class="site-header" data-html2canvas-ignore="true">
+    <div class="container nav-wrapper">
+      <a href="index.html" class="brand-logo">
+        <span class="logo-icon">🐉</span>
+        <span>DOULUO WIKI</span>
+      </a>
+      <nav class="nav-links" id="mainNavLinks">
+        <a href="index.html" class="nav-link">Trang Chủ</a>
+        <a href="index.html" class="nav-link">Hồn Sư</a>
+        <a href="honhach.html" class="nav-link">Hồn Hạch</a>
+        <a href="honcot.html" class="nav-link">Hồn Cốt</a>
+        <a href="honcot-builder.html" class="nav-link" style="color:var(--accent-cyan);">⚡ Setup Hồn Cốt</a>
+        <a href="teambuilder.html" class="nav-link active" style="color:var(--accent-gold);">👥 Đội Hình</a>
+        <a href="compare.html" class="nav-link">So Sánh</a>
+        <a href="edit.html" class="nav-link" style="color:var(--accent-gold);">Studio IDE</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ─── 2. MAIN TEAM BUILDER ─────────────────────────────────────────────── -->
+  <main class="container" style="padding-top: 1.5rem; padding-bottom: 4rem;">
+
+    <!-- Banner & Controls -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;" data-html2canvas-ignore="true">
+      <div>
+        <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(251,191,36,0.15); border:1px solid var(--accent-gold); padding:0.25rem 0.75rem; border-radius:20px; font-size:0.78rem; color:#fef08a; font-weight:700; margin-bottom:0.5rem;">
+          <span>👥</span> PRYDWEN-STYLE DOULUO FORMATION BUILDER
+        </div>
+        <h1 style="font-family:var(--font-heading); font-size:2.2rem; font-weight:900; background:linear-gradient(135deg,#fff 40%,var(--accent-gold) 100%); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0;">
+          XÂY DỰNG ĐỘI HÌNH 6 HỒN SƯ
+        </h1>
+      </div>
+
+      <div style="display:flex; gap:0.5rem;">
+        <button class="btn-studio" onclick="clearTeam()">🗑 Xóa Đội</button>
+        <button class="btn-studio btn-studio-gold" onclick="exportTeamImage()">📸 Xuất Ảnh Đội Hình HD</button>
+      </div>
+    </div>
+
+    <!-- ─── 3. FORMATION CANVAS ────────────────────────────────────────────── -->
+    <section class="tb-formation-stage" id="teamCaptureArea">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:0.75rem;">
+        <div>
+          <h3 style="font-family:var(--font-heading); font-size:1.3rem; font-weight:900; color:#fff; margin:0;" id="teamTitleText">ĐỘI HÌNH CHIẾN THUẬT TIÊU CHUẨN</h3>
+          <span style="font-size:0.75rem; color:var(--accent-cyan); font-weight:700;">6 VỊ TRÍ CHIẾN ĐẤU (3 TIỀN ĐÀI · 3 HẬU ĐÀI)</span>
+        </div>
+        <span class="combat-rank-pill" id="teamRankBadge" style="font-size:0.85rem; padding:0.35rem 0.85rem;">HẠNG SSS</span>
+      </div>
+
+      <!-- 6 Slots Grid -->
+      <div class="tb-grid-formation" id="formationGrid">
+        <!-- Slots 0-5 rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ─── 4. SYNERGY DASHBOARD ───────────────────────────────────────────── -->
+    <div class="synergy-dashboard-grid" data-html2canvas-ignore="true">
+      
+      <!-- Synergy Balance Meter -->
+      <div class="synergy-card">
+        <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:800; color:var(--accent-gold); margin-bottom:1rem; display:flex; align-items:center; gap:0.4rem;">
+          <span>⚖️</span> CÂN BẰNG HỆ PHÁI (SYNERGY)
+        </h3>
+
+        <div id="synergyBarsContainer">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div style="margin-top:1.25rem; background:rgba(0,0,0,0.3); border-radius:8px; padding:0.85rem; border:1px solid var(--border-glass);">
+          <div style="font-size:0.75rem; font-weight:800; color:var(--accent-cyan); margin-bottom:0.25rem;">ĐÁNH GIÁ CHIẾN THUẬT:</div>
+          <div style="font-size:0.85rem; color:#fff; line-height:1.5;" id="synergyEvaluationText">Đang phân tích đội hình...</div>
+        </div>
+      </div>
+
+      <!-- Recommended Soul Cores & Strategy -->
+      <div class="synergy-card">
+        <h3 style="font-family:var(--font-heading); font-size:1.15rem; font-weight:800; color:var(--accent-cyan); margin-bottom:1rem; display:flex; align-items:center; gap:0.4rem;">
+          <span>🦴</span> HỒN HẠCH GỢI Ý CHO ĐỘI HÌNH NÀY
+        </h3>
+
+        <div id="teamRecommendedHonhach" style="display:flex; flex-direction:column; gap:0.75rem;">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ─── HERO PICKER MODAL ────────────────────────────────────────────────── -->
+  <div id="heroPickerModal" class="hc-modal-overlay" onclick="closeModal('heroPickerModal', event)">
+    <div class="hc-modal-content" onclick="event.stopPropagation()">
+      <div class="hc-modal-header">
+        <h2 id="pickerTitle">Chọn Hồn Sư Vào Đội</h2>
+        <button class="btn-studio" onclick="closeModal('heroPickerModal')">✕</button>
+      </div>
+      <div class="hc-modal-body" id="heroPickerList">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/data-layer.js"></script>
+  <script src="js/teambuilder.js"></script>
+</body>
+</html>

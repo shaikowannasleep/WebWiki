@@ -3,14 +3,245 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chi Tiết Hồn Sư - Douluo MMO Wiki</title>
-  <meta name="description" content="Chi tiết 2 nhánh Hồn Hoàn, Kỹ Năng và Từ Khóa Hồn Sư Đấu La Đại Lục MMO.">
+  <title>Chi Tiết Kỹ Năng Hồn Sư — Douluo MMO Wiki</title>
+  <meta name="description" content="Chi tiết Trận Đồ Kỹ Năng 5 nhóm chiêu, 2 nhánh Hồn Hoàn, mốc Niên Hạn và giải thích Từ Khóa hiệu ứng game Đấu La Đại Lục MMO.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/style.css">
   <script src="js/security.js"></script>
+
+  <style>
+    /* ─── AAA HERO 3-PANEL RADIANT GRID ───────────────────────────────────── */
+    .hero-3panel-grid {
+      display: grid;
+      grid-template-columns: 310px 410px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+      margin-top: 1.5rem;
+      margin-bottom: 4rem;
+    }
+
+    /* Panel 1: Profile Card */
+    .panel-hero-profile {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass-bright);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      position: sticky;
+      top: 75px;
+    }
+
+    .panel-hero-avatar {
+      width: 100%;
+      height: 310px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 2px solid var(--border-glass);
+      margin-bottom: 1.25rem;
+      background: #000;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .panel-hero-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    .panel-hero-avatar.rarity-sp {
+      border-color: #ef4444;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.5), 0 0 60px rgba(168, 85, 247, 0.3);
+      animation: auraPulsing 3s infinite ease-in-out;
+    }
+
+    .panel-hero-avatar.rarity-ssr {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 25px rgba(251, 191, 36, 0.45);
+    }
+
+    @keyframes auraPulsing {
+      0%, 100% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.4), 0 0 50px rgba(168, 85, 247, 0.2); }
+      50% { box-shadow: 0 0 45px rgba(239, 68, 68, 0.7), 0 0 80px rgba(168, 85, 247, 0.45); }
+    }
+
+    /* Panel 2: Radial HUD & Skill List */
+    .panel-skills-list {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass-bright);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Enhanced Holographic Radial Wheel */
+    .radial-menu-wrapper {
+      position: relative;
+      width: 330px;
+      height: 330px;
+      margin: 0 auto;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.18) 0%, rgba(18, 26, 43, 0.95) 70%);
+      border-radius: 50%;
+      border: 1.5px solid var(--border-glass-bright);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), inset 0 0 25px rgba(6, 182, 212, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radial-orbital-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      animation: rotateOrbit 30s linear infinite;
+    }
+
+    @keyframes rotateOrbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .radial-node {
+      position: absolute;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: #0d1527;
+      border: 2px solid var(--border-glass);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      user-select: none;
+      z-index: 10;
+    }
+
+    .radial-node:hover {
+      transform: scale(1.15);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 28px rgba(6, 182, 212, 0.7);
+    }
+
+    .radial-node.active {
+      border-color: var(--accent-cyan);
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.45), rgba(59, 130, 246, 0.45));
+      box-shadow: 0 0 35px rgba(6, 182, 212, 0.9), inset 0 0 15px rgba(6, 182, 212, 0.6);
+      transform: scale(1.08);
+    }
+
+    .radial-node-center {
+      width: 98px;
+      height: 98px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 15;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.5) 0%, rgba(13, 21, 39, 0.98) 100%);
+      border: 2.5px solid var(--accent-cyan);
+      box-shadow: 0 0 35px rgba(6, 182, 212, 0.7);
+    }
+
+    .radial-node-center:hover { transform: translate(-50%, -50%) scale(1.12); }
+    .radial-node-center.active { transform: translate(-50%, -50%) scale(1.08); }
+
+    .radial-node-tl { top: 8%; left: 8%; width: 76px; height: 76px; }
+    .radial-node-tr { top: 8%; right: 8%; width: 76px; height: 76px; }
+    .radial-node-bl { bottom: 8%; left: 8%; width: 76px; height: 76px; }
+    .radial-node-br { bottom: 8%; right: 8%; width: 76px; height: 76px; }
+
+    .node-icon { font-size: 1.5rem; line-height: 1; }
+    .radial-node-center .node-icon { font-size: 2.1rem; }
+    .node-label { font-size: 0.72rem; font-weight: 800; color: #fff; margin-top: 0.2rem; white-space: nowrap; }
+    .radial-node-center .node-label { font-size: 0.82rem; color: #a5f3fc; }
+
+    /* Branch Switcher Container */
+    .branch-toggle-container {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(6, 9, 19, 0.75);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-glass-bright);
+    }
+
+    .branch-toggle-btn {
+      flex: 1;
+      padding: 0.65rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-sub);
+      text-align: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .branch-toggle-btn.active {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.35), rgba(217, 119, 6, 0.35));
+      border: 1px solid var(--accent-gold);
+      color: #fef08a;
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.4);
+    }
+
+    /* Skill Items Under Radial */
+    .skill-list-item {
+      background: rgba(18, 26, 43, 0.65);
+      border: 1px solid var(--border-glass);
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .skill-list-item:hover, .skill-list-item.active {
+      background: rgba(59, 130, 246, 0.22);
+      border-color: var(--primary);
+      box-shadow: 0 0 20px var(--primary-glow);
+      transform: translateX(5px);
+    }
+
+    /* Panel 3: Display Panel */
+    .panel-skill-display {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass-bright);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      min-height: 540px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-3panel-grid {
+        grid-template-columns: 1fr;
+      }
+      .panel-hero-profile {
+        position: static;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- System Modules Navigation Header -->
+  <!-- ─── 1. GLOBAL SITE NAVIGATION ────────────────────────────────────────── -->
   <header class="site-header">
     <div class="container nav-wrapper">
       <a href="index.html" class="brand-logo">
@@ -22,6 +253,8 @@
         <a href="index.html" class="nav-link active">Hồn Sư</a>
         <a href="honhach.html" class="nav-link">Hồn Hạch</a>
         <a href="honcot.html" class="nav-link">Hồn Cốt</a>
+        <a href="honcot-builder.html" class="nav-link" style="color:var(--accent-cyan);">⚡ Setup Hồn Cốt</a>
+        <a href="teambuilder.html" class="nav-link" style="color:var(--accent-gold);">👥 Đội Hình</a>
         <a href="compare.html" class="nav-link">So Sánh</a>
         <a href="edit.html" class="nav-link" style="color:var(--accent-gold);">Studio IDE</a>
         <div class="lang-selector-wrapper" id="langSelectorWrapper"></div>
@@ -29,97 +262,101 @@
     </div>
   </header>
 
-  <!-- Non-Fullscreen Side-by-Side 3-Panel Layout with Radial Menu -->
+  <!-- ─── 2. MAIN 3-PANEL RADIANT STAGE ────────────────────────────────────── -->
   <main class="container hero-detail-section">
     <div class="hero-3panel-grid">
 
-      <!-- Panel 1: Hero Profile (Clean, no 1-100 stats) -->
+      <!-- ═════════════════════════════════════════════════════════════════════
+           PANEL 1: HERO PROFILE (Avatar, Wusoul, Title, Bio, Quick Stats)
+           ═════════════════════════════════════════════════════════════════════ -->
       <aside class="panel-hero-profile" id="panelHeroProfile">
         <!-- Dynamically rendered by hero.js -->
       </aside>
 
-      <!-- Panel 2: Radial Navigation Menu & Skill Items List -->
+      <!-- ═════════════════════════════════════════════════════════════════════
+           PANEL 2: 5-NODE RADIAL ORBITAL HUD + BRANCH 1 / 2 SWITCHER + LIST
+           ═════════════════════════════════════════════════════════════════════ -->
       <section class="panel-skills-list">
         
-        <!-- Mobile Segmented Navigation Bar (Fallback for screens <= 768px) -->
+        <!-- Mobile Segmented Bar (Screens <= 768px) -->
         <div class="mobile-skill-group-bar" id="mobileSkillGroupBar">
-          <button class="mobile-group-chip active" data-group-id="bithuat"><span>🔮</span> Bí Thuật</button>
-          <button class="mobile-group-chip" data-group-id="honky"><span>🔥</span> Hồn Kỹ</button>
+          <button class="mobile-group-chip active" data-group-id="honky"><span>🔥</span> Hồn Kỹ</button>
           <button class="mobile-group-chip" data-group-id="passive"><span>🛡️</span> Bị Động</button>
           <button class="mobile-group-chip" data-group-id="tienco"><span>⚡</span> Tiên Cơ</button>
-          <button class="mobile-group-chip" data-group-id="normal"><span>⚔️</span> Đánh Thường</button>
+          <button class="mobile-group-chip" data-group-id="bithuat"><span>🔮</span> Bí Thuật</button>
+          <button class="mobile-group-chip" data-group-id="normal"><span>⚔️</span> Thường</button>
         </div>
 
-        <!-- AAA Game Style Radial Navigation Menu Container -->
+        <!-- The Signature Holographic Radial HUD (5 Nodes) -->
         <div class="radial-menu-wrapper" id="radialMenuWrapper">
-          <!-- SVG Orbital Ring Overlay -->
-          <svg class="radial-orbital-svg" viewBox="0 0 320 320">
-            <circle cx="160" cy="160" r="110" fill="none" stroke="rgba(6, 182, 212, 0.25)" stroke-width="1.5" stroke-dasharray="4,4" />
-            <circle cx="160" cy="160" r="50" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
-            <!-- Connection Lines -->
-            <line x1="160" y1="160" x2="70" y2="70" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
-            <line x1="160" y1="160" x2="250" y2="70" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
-            <line x1="160" y1="160" x2="70" y2="250" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
-            <line x1="160" y1="160" x2="250" y2="250" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1" />
+          <!-- Animated Orbital SVG Rings & Particle Connections -->
+          <svg class="radial-orbital-svg" viewBox="0 0 330 330">
+            <circle cx="165" cy="165" r="115" fill="none" stroke="rgba(6, 182, 212, 0.3)" stroke-width="1.5" stroke-dasharray="6,6" />
+            <circle cx="165" cy="165" r="55" fill="none" stroke="rgba(251, 191, 36, 0.25)" stroke-width="1" />
+            <line x1="165" y1="165" x2="72" y2="72" stroke="rgba(6, 182, 212, 0.35)" stroke-width="1.5" />
+            <line x1="165" y1="165" x2="258" y2="72" stroke="rgba(6, 182, 212, 0.35)" stroke-width="1.5" />
+            <line x1="165" y1="165" x2="72" y2="258" stroke="rgba(6, 182, 212, 0.35)" stroke-width="1.5" />
+            <line x1="165" y1="165" x2="258" y2="258" stroke="rgba(6, 182, 212, 0.35)" stroke-width="1.5" />
           </svg>
 
-          <!-- Center Node: Bí Thuật -->
-          <button class="radial-node radial-node-center active" data-group-id="bithuat">
+          <!-- 1. Center Node: BÍ THUẬT (Ultimate Magic) -->
+          <button class="radial-node radial-node-center" data-group-id="bithuat" title="Bí Thuật Cực Phẩm">
             <span class="node-icon">🔮</span>
             <span class="node-label">Bí Thuật</span>
           </button>
 
-          <!-- 10h Node (Top-Left): Hồn Kỹ -->
-          <button class="radial-node radial-node-tl" data-group-id="honky">
+          <!-- 2. 10h Node: HỒN KỸ (Active Soul Skill) -->
+          <button class="radial-node radial-node-tl active" data-group-id="honky" title="Hồn Kỹ Chủ Động">
             <span class="node-icon">🔥</span>
             <span class="node-label">Hồn Kỹ</span>
           </button>
 
-          <!-- 2h Node (Top-Right): Bị Động -->
-          <button class="radial-node radial-node-tr" data-group-id="passive">
+          <!-- 3. 2h Node: BỊ ĐỘNG (Passive Skill) -->
+          <button class="radial-node radial-node-tr" data-group-id="passive" title="Kỹ Năng Bị Động">
             <span class="node-icon">🛡️</span>
             <span class="node-label">Bị Động</span>
           </button>
 
-          <!-- 8h Node (Bottom-Left): Tiên Cơ -->
-          <button class="radial-node radial-node-bl" data-group-id="tienco">
+          <!-- 4. 8h Node: TIÊN CƠ (Special Mechanism) -->
+          <button class="radial-node radial-node-bl" data-group-id="tienco" title="Tiên Cơ Đột Phá">
             <span class="node-icon">⚡</span>
             <span class="node-label">Tiên Cơ</span>
           </button>
 
-          <!-- 4h Node (Bottom-Right): Đánh Thường -->
-          <button class="radial-node radial-node-br" data-group-id="normal">
+          <!-- 5. 4h Node: ĐÁNH THƯỜNG (Basic Attack) -->
+          <button class="radial-node radial-node-br" data-group-id="normal" title="Đánh Thường">
             <span class="node-icon">⚔️</span>
             <span class="node-label">Đánh Thường</span>
           </button>
         </div>
 
-        <!-- Level 2: Branch Toggle -->
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.75rem;">
-          <div class="branch-toggle-container" id="branchToggleContainer" style="display: none; flex: 1;">
-            <!-- Branch Switcher Buttons populated by hero.js -->
+        <!-- Branch 1 / Branch 2 Switcher Bar -->
+        <div style="display:flex; flex-direction:column; gap:0.4rem;">
+          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">CHỌN NHÁNH HỒN HOÀN:</span>
+          <div class="branch-toggle-container" id="branchToggleContainer">
+            <!-- Populated dynamically by hero.js -->
           </div>
-          <button id="btnCompareToggle" class="btn-editor btn-editor-ghost" style="display: none; font-size: 0.75rem; padding: 0.4rem 0.6rem; white-space: nowrap;" title="So sánh 2 nhánh">
-            <span class="icon">⚖️</span> So sánh
-          </button>
         </div>
 
         <!-- Skill Items List for Active Group/Branch -->
-        <div class="skill-items-container" id="skillItemsContainer">
-          <!-- Skill Items populated by hero.js -->
+        <div style="display:flex; flex-direction:column; gap:0.6rem;" id="skillItemsContainer">
+          <!-- Populated dynamically by hero.js -->
         </div>
+
       </section>
 
-      <!-- Panel 3: Selected Skill Description & Requirement Display -->
+      <!-- ═════════════════════════════════════════════════════════════════════
+           PANEL 3: DETAILED SKILL COMBAT DISPLAY + SOUL RING PROGRESSION
+           ═════════════════════════════════════════════════════════════════════ -->
       <section class="panel-skill-display" id="panelSkillDisplay">
-        <!-- Dynamically rendered by hero.js -->
+        <!-- Populated dynamically by hero.js -->
       </section>
 
     </div>
   </main>
 
-  <!-- Global Keyword Floating Tooltip Cursor Popup -->
-  <div id="global-keyword-popup" class="global-keyword-popup" style="display: none;">
+  <!-- ─── GLOBAL KEYWORD POPUP ─────────────────────────────────────────────── -->
+  <div id="global-keyword-popup" class="global-keyword-popup" style="display:none;">
     <div class="popup-header">
       <span class="popup-icon" id="popKwIcon">✨</span>
       <div>
@@ -133,7 +370,7 @@
   <!-- Site Footer -->
   <footer class="site-footer">
     <div class="container">
-      <p>© 2026 Douluo MMO Wiki - Liệp Hồn Thế Giới. Dev by shaikowannasleep Nếu ai cần bổ sung thông tin gì hay liên hệ hãy liên hệ với mình qua telegram/discord</p>
+      <p>© 2026 Douluo MMO Wiki — Trận Đồ Kỹ Năng & Bách Khoa Hồn Sư. Dev by shaikowannasleep</p>
     </div>
   </footer>
 

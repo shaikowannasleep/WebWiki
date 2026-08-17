@@ -1,7 +1,9 @@
 /**
- * Hero Detail Module V2.2 - Douluo MMO Wiki
- * Features Radial Navigation Menu (Center: Bí Thuật, 10h: Hồn Kỹ, 2h: Bị Động, 8h: Tiên Cơ, 4h: Đánh Thường),
- * Rule Engine Driven Skill Groups & Typed Requirement Objects Renderer with Star Assets.
+ * Hero Detail Module V6.6 - Douluo MMO Wiki
+ * 3-Panel Radial HUD Architecture:
+ * - Panel 1: Hero Profile & Core Combat Summary
+ * - Panel 2: Holographic 5-Node Radial Wheel HUD + Branch 1/2 Switcher + Skill Selector
+ * - Panel 3: Combat Summary Card + In-Game Skill Description + Soul Ring Progression Tiers
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -10,472 +12,319 @@ document.addEventListener('DOMContentLoaded', async () => {
   const branchToggleContainer = document.getElementById('branchToggleContainer');
   const skillItemsContainer = document.getElementById('skillItemsContainer');
   const panelSkillDisplay = document.getElementById('panelSkillDisplay');
-  const globalKeywordPopup = document.getElementById('global-keyword-popup');
-  const btnCompareToggle = document.getElementById('btnCompareToggle');
 
   if (!panelHeroProfile) return;
 
   const urlParams = new URLSearchParams(window.location.search);
   let heroId = urlParams.get('id');
 
-  let [heroData, keywordsDict, websiteConfig] = await Promise.all([
+  let [heroData, keywordsDict, websiteConfig, heroesList] = await Promise.all([
     heroId ? DataLayer.getHeroById(heroId) : null,
     DataLayer.getKeywords(),
-    DataLayer.getWebsiteConfig()
+    DataLayer.getWebsiteConfig(),
+    DataLayer.getHeroesList()
   ]);
 
-  // Fallback: If specified heroId is invalid or missing, load the first available hero from heroes index
-  if (!heroData) {
-    const heroesList = await DataLayer.getHeroesList();
-    if (heroesList && heroesList.length > 0) {
-      heroId = heroesList[0].id;
-      heroData = await DataLayer.getHeroById(heroId);
-    }
+  // Fallback to first hero if ID is missing or invalid
+  if (!heroData && heroesList && heroesList.length > 0) {
+    heroId = heroesList[0].id;
+    heroData = await DataLayer.getHeroById(heroId);
   }
 
   if (!heroData) {
     panelHeroProfile.innerHTML = `
       <div style="text-align: center; padding: 2rem; color: var(--text-sub);">
         <h2>⚠️ Không tìm thấy Hồn Sư</h2>
-        <p>Hiện chưa có dữ liệu Hồn Sư nào trong hệ thống.</p>
-        <a href="index.html" class="btn-view-detail" style="margin-top:1rem;"> Quay về Trang Chủ</a>
+        <a href="index.html" class="btn-studio btn-studio-primary" style="margin-top:1rem; display:inline-block;">Quay về Trang Chủ</a>
       </div>
     `;
     return;
   }
 
-  document.title = `${heroData.name} (${heroData.title || ''}) - Douluo MMO Wiki`;
+  document.title = `${heroData.name} (${heroData.wusoul || heroData.role}) — Douluo MMO Wiki`;
 
-  const skillGroupRules = websiteConfig.skillGroupRules || DataLayer.SKILL_GROUP_RULES;
-  let activeGroupId = 'honky'; // Default: Hồn Kỹ
-  let activeBranchIndex = 0;
-  let activeSkillIndex = 0;
-  let isCompareMode = false;
+  let activeGroupId = 'honky'; // 'honky' | 'passive' | 'tienco' | 'bithuat' | 'normal'
+  let activeBranchIdx = 0;
+  let activeSkillIdx = 0;
 
-  renderHeroProfilePanel(heroData);
+  // 1. Initial Render
+  renderHeroProfile(heroData, keywordsDict);
   setupRadialMenuListeners();
-  setupCompareToggle();
   renderPanel2And3();
 
-  function renderHeroProfilePanel(data) {
-    const heroName = i18n.translateConcept(data.name);
-    const heroRole = i18n.translateConcept(data.role);
-    const heroTitle = data.title ? i18n.translateConcept(data.title) : '';
-    const heroWusoul = i18n.translateConcept(data.wusoul);
-    const rarityClass = data.rarity === 'SP' ? 'rarity-sp' : (data.rarity === 'SSR' ? 'rarity-ssr' : '');
+  /* =========================================================================
+     1. PANEL 1: HERO PROFILE & QUICK STATS
+     ========================================================================= */
+
+  function renderHeroProfile(hero, keywords) {
+    const rarityClass = hero.rarity === 'SP' ? 'rarity-sp' : (hero.rarity === 'SSR' ? 'rarity-ssr' : '');
+    
+    // Extract core mechanics from skills
+    const usedKeywords = new Set();
+    if (Array.isArray(hero.branches)) {
+      hero.branches.forEach(b => {
+        if (Array.isArray(b.skills)) {
+          b.skills.forEach(sk => {
+            if (sk.description) {
+              const matches = sk.description.match(/\{([a-zA-Z0-9_\u00C0-\u1EF9]+)\}/g);
+              if (matches) {
+                matches.forEach(m => usedKeywords.add(m.replace(/[{}]/g, '')));
+              }
+            }
+          });
+        }
+      });
+    }
+
+    let kwPillsHtml = '';
+    if (usedKeywords.size > 0) {
+      kwPillsHtml = Array.from(usedKeywords).slice(0, 4).map(kKey => {
+        const kw = keywords[kKey];
+        return `<span class="combat-kw-tag" data-keyword="${kKey}"><span>${kw ? kw.icon : '✨'}</span> ${kw ? kw.name : kKey}</span>`;
+      }).join(' ');
+    }
 
     panelHeroProfile.innerHTML = `
       <div class="panel-hero-avatar ${rarityClass}">
-        <img src="${data.avatar}" alt="${heroName}" onerror="this.src='assets/heroes/oscar/avatar.webp'">
+        <img src="${hero.avatar || 'assets/heroes/default/avatar.webp'}" alt="${hero.name}" onerror="this.src='assets/heroes/oscar/avatar.webp'">
       </div>
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-        <span class="rarity-badge ${data.rarity}">${data.rarity}</span>
-        <span class="role-badge">❖ ${heroRole}</span>
-      </div>
-      <h1 class="panel-hero-name">${heroName}</h1>
-      <div class="panel-hero-title">${heroTitle}</div>
-      <div style="font-size: 0.88rem; color: var(--text-sub); margin-bottom: 0.75rem;">${i18n.t('wusoul_label')} <strong>${heroWusoul}</strong></div>
-      <p class="panel-hero-bio" style="line-height: 1.7; font-size: 0.9rem;">${data.bio ? i18n.translateConcept(data.bio) : ''}</p>
-    `;
-  }
-
-  /**
-   * Radial Navigation Menu Event Setup (100% Matching Game Screenshot)
-   */
-  function setupRadialMenuListeners() {
-    const radialNodes = radialMenuWrapper ? radialMenuWrapper.querySelectorAll('.radial-node') : [];
-    const mobileChips = document.querySelectorAll('#mobileSkillGroupBar .mobile-group-chip');
-
-    function syncActiveGroup(groupId) {
-      activeGroupId = groupId;
-      activeSkillIndex = 0;
-
-      radialNodes.forEach(n => {
-        n.classList.toggle('active', n.getAttribute('data-group-id') === groupId);
-      });
-      mobileChips.forEach(c => {
-        c.classList.toggle('active', c.getAttribute('data-group-id') === groupId);
-      });
-      renderPanel2And3();
-    }
-
-    // Set initial active state
-    radialNodes.forEach(node => {
-      node.classList.toggle('active', node.getAttribute('data-group-id') === activeGroupId);
-      node.addEventListener('click', () => {
-        const groupId = node.getAttribute('data-group-id');
-        if (groupId !== activeGroupId) syncActiveGroup(groupId);
-      });
-    });
-
-    mobileChips.forEach(chip => {
-      chip.classList.toggle('active', chip.getAttribute('data-group-id') === activeGroupId);
-      chip.addEventListener('click', () => {
-        const groupId = chip.getAttribute('data-group-id');
-        if (groupId !== activeGroupId) syncActiveGroup(groupId);
-      });
-    });
-  }
-
-  function setupCompareToggle() {
-    if (!btnCompareToggle) return;
-    const gridContainer = document.querySelector('.hero-3panel-grid');
-    
-    btnCompareToggle.addEventListener('click', () => {
-      isCompareMode = !isCompareMode;
-      if (isCompareMode) {
-        btnCompareToggle.classList.add('active');
-        btnCompareToggle.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2))';
-        btnCompareToggle.style.borderColor = 'var(--accent-cyan)';
-        btnCompareToggle.style.color = '#a5f3fc';
-        if (gridContainer) gridContainer.classList.add('compare-active');
-      } else {
-        btnCompareToggle.classList.remove('active');
-        btnCompareToggle.style.background = '';
-        btnCompareToggle.style.borderColor = '';
-        btnCompareToggle.style.color = '';
-        if (gridContainer) gridContainer.classList.remove('compare-active');
-      }
-      renderSkillDisplay();
-    });
-  }
-
-  /**
-   * Rule Engine Driven Panel 2 & 3 Rendering
-   */
-  function renderPanel2And3() {
-    const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
-    const hasBranch = groupRule.hasBranch;
-
-    let availableSkills = [];
-
-    if (hasBranch) {
-      branchToggleContainer.style.display = 'flex';
-      if (btnCompareToggle && heroData.branches.length >= 2) {
-        btnCompareToggle.style.display = 'inline-flex';
-      } else if (btnCompareToggle) {
-        btnCompareToggle.style.display = 'none';
-      }
-      renderBranchToggle(heroData.branches);
-
-      const branch = heroData.branches[activeBranchIndex] || heroData.branches[0];
-      if (branch && branch.skills) {
-        availableSkills = branch.skills.filter(s => !s.group || s.group === activeGroupId || activeGroupId === 'honky');
-        if (availableSkills.length === 0) availableSkills = branch.skills;
-      }
-    } else {
-      branchToggleContainer.style.display = 'none';
-      if (btnCompareToggle) btnCompareToggle.style.display = 'none';
-      isCompareMode = false;
-      if (btnCompareToggle) {
-        btnCompareToggle.classList.remove('active');
-        btnCompareToggle.style.background = '';
-        btnCompareToggle.style.borderColor = '';
-        btnCompareToggle.style.color = '';
-      }
-      const gridContainer = document.querySelector('.hero-3panel-grid');
-      if (gridContainer) gridContainer.classList.remove('compare-active');
-
-      heroData.branches.forEach(b => {
-        const matching = b.skills.filter(s => s.group === activeGroupId);
-        availableSkills.push(...matching);
-      });
-
-      if (availableSkills.length === 0 && heroData.branches[0]) {
-        const idxMap = { normal: 0, tienco: 1 };
-        const idx = idxMap[activeGroupId] !== undefined ? idxMap[activeGroupId] : 0;
-        if (heroData.branches[0].skills[idx]) {
-          availableSkills = [heroData.branches[0].skills[idx]];
-        }
-      }
-    }
-
-    if (availableSkills.length === 0) {
-      skillItemsContainer.innerHTML = `
-        <div style="color: var(--text-muted); font-size: 0.88rem; padding: 1.5rem; text-align: center;">
-          Không có kỹ năng thuộc nhóm này.
-        </div>
-      `;
-      panelSkillDisplay.innerHTML = `<div style="color: var(--text-muted);">Vui lòng chọn nhóm kỹ năng khác.</div>`;
-      return;
-    }
-
-    if (activeSkillIndex >= availableSkills.length) activeSkillIndex = 0;
-
-    skillItemsContainer.innerHTML = availableSkills.map((s, idx) => `
-      <div class="skill-list-item ${idx === activeSkillIndex ? 'active' : ''}" data-skill-idx="${idx}">
-        <div class="skill-item-icon" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
-          ${s.icon && s.icon.includes('/') ? `<img src="${s.icon}" style="width:100%; height:100%; object-fit:cover;">` : (s.icon || '⚔️')}
-        </div>
-        <div class="skill-item-info">
-          <div class="skill-item-name">${s.name}</div>
-          <div class="skill-item-meta">
-            <span>${s.type}</span> • <span>${s.cost}</span>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    const items = skillItemsContainer.querySelectorAll('.skill-list-item');
-    items.forEach(item => {
-      item.addEventListener('click', () => {
-        const idx = parseInt(item.getAttribute('data-skill-idx'), 10);
-        activeSkillIndex = idx;
-        items.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        renderSkillDisplay();
-      });
-    });
-
-    renderSkillDisplay();
-  }
-
-  function renderBranchToggle(branches) {
-    if (!branchToggleContainer) return;
-    branchToggleContainer.innerHTML = branches.map((b, idx) => `
-      <button class="branch-toggle-btn ${idx === activeBranchIndex ? 'active' : ''}" data-branch-idx="${idx}">
-        ${b.branchName}
-      </button>
-    `).join('');
-
-    const btns = branchToggleContainer.querySelectorAll('.branch-toggle-btn');
-    btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = parseInt(btn.getAttribute('data-branch-idx'), 10);
-        if (idx !== activeBranchIndex) {
-          activeBranchIndex = idx;
-          activeSkillIndex = 0;
-          btns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          renderPanel2And3();
-        }
-      });
-    });
-  }
-
-  function getSkillForBranch(bIdx, sIdx) {
-    const b = heroData.branches[bIdx];
-    if (!b || !b.skills) return null;
-    let filteredSkills = b.skills.filter(s => !s.group || s.group === activeGroupId || activeGroupId === 'honky');
-    if (filteredSkills.length === 0) filteredSkills = b.skills;
-    return filteredSkills[sIdx] || null;
-  }
-
-  function renderSingleSkillHTML(skill, branchName = '') {
-    const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
-    const hasRingUpgrades = groupRule.hasRingUpgrades;
-    const parsedDesc = parseKeywordMarkup(skill.description);
-
-    // Extract unique keywords mentioned in description
-    const kwMatches = (skill.description || '').match(/\{([a-zA-Z0-9_\u00C0-\u1EF9]+)\}/g) || [];
-    const uniqueKws = [...new Set(kwMatches.map(k => k.replace(/[{}]/g, '')))].filter(k => k !== 'stat');
-
-    const kwPillsHTML = uniqueKws.map(k => {
-      const kwObj = (keywordsDict && keywordsDict[k]) || { name: k, icon: '✨', type: 'Hiệu ứng' };
-      return `<span class="combat-kw-tag keyword-item" data-keyword="${k}"><span>${kwObj.icon || '✨'}</span> ${kwObj.name || k}</span>`;
-    }).join('');
-
-    return `
-      ${branchName ? `<div class="skill-branch-label" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.75rem; border-bottom: 1px solid rgba(251, 191, 36, 0.3); padding-bottom: 0.35rem; display: inline-block;">${branchName}</div>` : ''}
-      <div class="skill-detail-header" style="${branchName ? 'margin-bottom: 0.75rem; padding-bottom: 0.5rem;' : ''}">
-        <div class="skill-detail-large-icon" style="overflow:hidden; display:flex; align-items:center; justify-content:center;">
-          ${skill.icon && skill.icon.includes('/') ? `<img src="${skill.icon}" style="width:100%; height:100%; object-fit:cover;">` : (skill.icon || '⚔️')}
-        </div>
-        <div class="skill-detail-title-box">
-          <h3>${skill.name}</h3>
-          <div class="skill-stats-pills">
-            <span class="skill-pill">Loại: ${skill.type}</span>
-            <span class="skill-pill">Tiêu hao: ${skill.cost}</span>
-            <span class="skill-pill">Hồi chiêu: ${skill.cooldown}</span>
-          </div>
-        </div>
+      
+      <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+        <span class="rarity-badge ${hero.rarity || 'SSR'}">${hero.rarity || 'SSR'}</span>
+        <span class="role-badge">❖ ${hero.role}</span>
       </div>
 
-      <!-- Tactical Combat Summary Box -->
-      <div class="combat-summary-card">
-        <div class="combat-summary-header">
-          <span class="combat-summary-title">⚡ COMBAT SUMMARY</span>
-          <span style="font-size: 0.68rem; color: var(--text-muted);">Quick Tactical Scan</span>
-        </div>
-        <div class="combat-stats-grid">
-          <div class="combat-stat-cell">
-            <span class="combat-stat-label">Tiêu Hao</span>
-            <span class="combat-stat-value" style="color:var(--accent-gold);">${skill.cost || '0 Hồn Lực'}</span>
-          </div>
-          <div class="combat-stat-cell">
-            <span class="combat-stat-label">Hồi Chiêu</span>
-            <span class="combat-stat-value" style="color:var(--accent-cyan);">${skill.cooldown || '0 lượt'}</span>
-          </div>
-          <div class="combat-stat-cell">
-            <span class="combat-stat-label">Cơ Chế</span>
-            <span class="combat-stat-value">${skill.type || 'Chủ động'}</span>
-          </div>
-        </div>
-        ${uniqueKws.length > 0 ? `
-          <div class="combat-keywords-row">
-            <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; margin-right:0.25rem;">Hiệu Ứng:</span>
-            ${kwPillsHTML}
-          </div>
-        ` : ''}
+      <h1 class="panel-hero-name">${hero.name}</h1>
+      <div class="panel-hero-title">${hero.title || ''}</div>
+      <div style="font-size:0.88rem; color:var(--text-sub); margin-bottom:0.75rem;">
+        Võ Hồn: <strong style="color:#fff;">${hero.wusoul || 'Chưa cập nhật'}</strong>
       </div>
 
-      <div class="skill-description-box" style="${branchName ? 'font-size: 0.88rem; padding: 1rem;' : ''}">
-        <div style="font-size:0.72rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem; letter-spacing:0.5px;">MÔ TẢ CHI TIẾT</div>
-        ${parsedDesc}
-      </div>
+      <p class="panel-hero-bio" style="line-height:1.6; font-size:0.88rem; margin-bottom:1rem;">${hero.bio || ''}</p>
 
-      ${hasRingUpgrades && skill.ringUpgrades ? `
-        <div class="ring-upgrades-section">
-          <div class="ring-upgrades-title">
-            <span>⭕ Hiệu Ứng Niên Hạn</span>
-          </div>
-          <div class="ring-upgrades-list">
-            ${(skill.ringUpgrades || []).map(upgrade => {
-              const yearClass = getYearCssClass(upgrade.year);
-              const parsedBonus = parseKeywordMarkup(upgrade.bonus);
-              return `
-                <div class="ring-upgrade-card" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; ${branchName ? 'padding: 0.6rem 0.85rem;' : ''}">
-                  <div style="display: flex; align-items: center; gap: 0.75rem; width: 100%;">
-                    <span class="ring-year-tag ${yearClass}" style="${branchName ? 'padding: 0.15rem 0.5rem; font-size: 0.72rem;' : ''}">${upgrade.year}</span>
-                    <span class="ring-bonus-text" style="${branchName ? 'font-size: 0.82rem;' : ''}">${parsedBonus}</span>
-                  </div>
-                  ${upgrade.requirements && upgrade.requirements.length > 0 ? `
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.25rem;">
-                      ${upgrade.requirements.map(reqObj => DataLayer.renderRequirementHTML(reqObj)).join('')}
-                    </div>
-                  ` : ''}
-                </div>
-              `;
-            }).join('')}
+      ${kwPillsHtml ? `
+        <div style="border-top:1px solid var(--border-glass); padding-top:0.75rem;">
+          <div style="font-size:0.72rem; color:var(--text-muted); font-weight:800; text-transform:uppercase; margin-bottom:0.4rem;">CƠ CHẾ CỐT LÕI:</div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem;">
+            ${kwPillsHtml}
           </div>
         </div>
       ` : ''}
     `;
   }
 
-  function renderSkillDisplay() {
-    const groupRule = skillGroupRules[activeGroupId] || { hasBranch: false, hasRingUpgrades: false };
-    
-    if (isCompareMode && groupRule.hasBranch && heroData.branches.length >= 2) {
-      const skill1 = getSkillForBranch(0, activeSkillIndex);
-      const skill2 = getSkillForBranch(1, activeSkillIndex);
-      
-      if (skill1 && skill2) {
-        panelSkillDisplay.innerHTML = `
-          <div class="skill-compare-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
-            <div class="compare-col" style="border-right: 1px solid var(--border-glass); padding-right: 1.5rem;">
-              ${renderSingleSkillHTML(skill1, heroData.branches[0].branchName)}
-            </div>
-            <div class="compare-col">
-              ${renderSingleSkillHTML(skill2, heroData.branches[1].branchName)}
-            </div>
-          </div>
-        `;
-        attachKeywordClickEvents();
-        return;
-      }
+  /* =========================================================================
+     2. PANEL 2: 5-NODE RADIAL MENU & BRANCH SWITCHER
+     ========================================================================= */
+
+  function setupRadialMenuListeners() {
+    const radialNodes = radialMenuWrapper ? radialMenuWrapper.querySelectorAll('.radial-node') : [];
+    const mobileChips = document.querySelectorAll('#mobileSkillGroupBar .mobile-group-chip');
+
+    function syncGroup(groupId) {
+      activeGroupId = groupId;
+      activeSkillIdx = 0; // Reset skill selection to first in group
+
+      radialNodes.forEach(n => n.classList.toggle('active', n.getAttribute('data-group-id') === groupId));
+      mobileChips.forEach(c => c.classList.toggle('active', c.getAttribute('data-group-id') === groupId));
+
+      renderPanel2And3();
     }
 
-    // Default Single View
-    let skill = null;
-    if (groupRule.hasBranch) {
-       skill = getSkillForBranch(activeBranchIndex, activeSkillIndex);
-    } else {
-       // Single pool
-       let allSkills = [];
-       heroData.branches.forEach(b => {
-         allSkills.push(...b.skills.filter(s => s.group === activeGroupId));
-       });
-       if (allSkills.length === 0 && heroData.branches[0]) {
-         const idxMap = { normal: 0, tienco: 1 };
-         const idx = idxMap[activeGroupId] !== undefined ? idxMap[activeGroupId] : 0;
-         allSkills = [heroData.branches[0].skills[idx]];
-       }
-       skill = allSkills[activeSkillIndex];
-    }
-
-    if (!skill) {
-      panelSkillDisplay.innerHTML = `<div style="color: var(--text-muted);">Không tìm thấy thông tin kỹ năng.</div>`;
-      return;
-    }
-
-    panelSkillDisplay.innerHTML = renderSingleSkillHTML(skill);
-    panelSkillDisplay.classList.remove('fade-in-skill');
-    void panelSkillDisplay.offsetWidth; // trigger reflow for animation restart
-    panelSkillDisplay.classList.add('fade-in-skill');
-    attachKeywordClickEvents();
-  }
-
-  function parseKeywordMarkup(text) {
-    if (!text) return '';
-    return text.replace(/\{([^}]+)\}/g, (match, kwName) => {
-      let foundKey = Object.keys(keywordsDict).find(k => k === kwName || keywordsDict[k].name === kwName);
-      const kwObj = foundKey ? keywordsDict[foundKey] : null;
-      const icon = kwObj ? kwObj.icon : '✨';
-      const keyId = foundKey || kwName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      return `<span class="skill-keyword" data-keyword-id="${keyId}">${icon} ${kwName}</span>`;
+    radialNodes.forEach(node => {
+      node.addEventListener('click', () => {
+        const gid = node.getAttribute('data-group-id');
+        if (gid) syncGroup(gid);
+      });
     });
-  }
 
-  function getYearCssClass(yearText) {
-    if (yearText.includes('1,000')) return 'year-1k';
-    if (yearText.includes('10,000')) return 'year-10k';
-    if (yearText.includes('25,000') || yearText.includes('2.5 vạn')) return 'year-10k';
-    if (yearText.includes('50,000') || yearText.includes('5 vạn')) return 'year-50k';
-    if (yearText.includes('100,000') || yearText.includes('10 vạn')) return 'year-100k';
-    return 'year-1k';
-  }
-
-  function attachKeywordClickEvents() {
-    const kwElements = document.querySelectorAll('.skill-keyword, .kw-badge');
-    kwElements.forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const kwId = el.getAttribute('data-keyword-id') || el.getAttribute('data-kw');
-        showFloatingKeywordPopup(kwId, e.pageX, e.pageY, el);
+    mobileChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        const gid = chip.getAttribute('data-group-id');
+        if (gid) syncGroup(gid);
       });
     });
   }
 
-  function showFloatingKeywordPopup(kwId, mouseX, mouseY, targetEl) {
-    if (!globalKeywordPopup) return;
+  function renderPanel2And3() {
+    const branches = heroData.branches || [];
 
-    let kwData = keywordsDict[kwId];
-    if (!kwData) {
-      const key = Object.keys(keywordsDict).find(k => keywordsDict[k].name === kwId || k === kwId);
-      if (key) kwData = keywordsDict[key];
+    // 1. Render Branch Switcher Buttons
+    branchToggleContainer.innerHTML = '';
+    if (branches.length > 0) {
+      branches.forEach((b, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `branch-toggle-btn ${idx === activeBranchIdx ? 'active' : ''}`;
+        btn.textContent = b.branchName || `Nhánh ${idx + 1}`;
+        btn.onclick = () => {
+          activeBranchIdx = idx;
+          activeSkillIdx = 0;
+          renderPanel2And3();
+        };
+        branchToggleContainer.appendChild(btn);
+      });
     }
 
-    if (!kwData) {
-      kwData = { name: kwId, type: 'Tác dụng đặc biệt', icon: '✨', description: `Hiệu ứng: ${kwId}.` };
+    const currentBranch = branches[activeBranchIdx] || branches[0] || { skills: [] };
+    const allSkillsInBranch = currentBranch.skills || [];
+
+    // 2. Filter skills matching activeGroupId
+    const matchingSkills = allSkillsInBranch.filter(sk => {
+      if (!sk.groupId && activeGroupId === 'honky') return true; // Default fallback
+      return sk.groupId === activeGroupId;
+    });
+
+    const displayList = matchingSkills.length > 0 ? matchingSkills : allSkillsInBranch;
+
+    // 3. Render Skill List underneath Radial
+    skillItemsContainer.innerHTML = '';
+    if (displayList.length === 0) {
+      skillItemsContainer.innerHTML = `
+        <div style="text-align:center; padding:1.5rem; color:var(--text-muted); font-size:0.85rem; background:rgba(0,0,0,0.2); border-radius:8px;">
+          Chưa có chiêu thức trong nhóm này.
+        </div>
+      `;
+    } else {
+      displayList.forEach((sk, idx) => {
+        const item = document.createElement('div');
+        item.className = `skill-list-item ${idx === activeSkillIdx ? 'active' : ''}`;
+        item.innerHTML = `
+          <div class="skill-item-icon">${sk.icon && sk.icon.includes('/') ? `<img src="${sk.icon}" style="width:100%; height:100%; border-radius:8px; object-fit:cover;">` : (sk.icon || '🔥')}</div>
+          <div style="flex:1; min-width:0;">
+            <div class="skill-item-name">${sk.name || 'Chưa đặt tên'}</div>
+            <div class="skill-item-meta">${sk.type || 'Kỹ Năng'} · ${sk.cost || '0 Hồn Lực'}</div>
+          </div>
+        `;
+        item.onclick = () => {
+          activeSkillIdx = idx;
+          renderPanel2And3();
+        };
+        skillItemsContainer.appendChild(item);
+      });
     }
 
-    document.getElementById('popKwIcon').textContent = kwData.icon || '✨';
-    document.getElementById('popKwTitle').textContent = kwData.name || kwId;
-    document.getElementById('popKwType').textContent = `${kwData.type || 'Buff'} • ${kwData.category || 'Hiệu ứng'}`;
-    document.getElementById('popKwDesc').textContent = kwData.description;
-
-    const rect = targetEl.getBoundingClientRect();
-    const popupWidth = 320;
-    let left = window.scrollX + rect.left + rect.width / 2 - popupWidth / 2;
-    let top = window.scrollY + rect.bottom + 8;
-
-    if (left < 10) left = 10;
-    if (left + popupWidth > window.innerWidth - 10) left = window.innerWidth - popupWidth - 10;
-
-    globalKeywordPopup.style.left = `${left}px`;
-    globalKeywordPopup.style.top = `${top}px`;
-    globalKeywordPopup.style.display = 'block';
+    // 4. Render Panel 3 Display
+    const selectedSkill = displayList[activeSkillIdx] || displayList[0];
+    renderSkillDisplay(selectedSkill, currentBranch);
   }
 
-  document.addEventListener('click', (e) => {
-    if (globalKeywordPopup && !globalKeywordPopup.contains(e.target)) {
-      globalKeywordPopup.style.display = 'none';
-    }
-  });
+  /* =========================================================================
+     3. PANEL 3: COMBAT SUMMARY & SOUL RING PROGRESSION DISPLAY
+     ========================================================================= */
 
-  window.addEventListener('languageChanged', () => {
-    renderHeroProfilePanel(heroData);
-    renderPanel2And3();
-  });
+  function renderSkillDisplay(sk, branch) {
+    if (!panelSkillDisplay) return;
+
+    if (!sk) {
+      panelSkillDisplay.innerHTML = `
+        <div style="text-align:center; padding:4rem 1rem; color:var(--text-muted);">
+          <div style="font-size:3rem; margin-bottom:1rem;">⚔️</div>
+          <h3>Chọn một chiêu thức để xem chi tiết</h3>
+        </div>
+      `;
+      return;
+    }
+
+    // Keyword markup replacement
+    let formattedDesc = sk.description || 'Chưa có mô tả';
+    formattedDesc = formattedDesc.replace(/\{([a-zA-Z0-9_\u00C0-\u1EF9]+)\}/g, (match, p1) => {
+      const kw = keywordsDict[p1];
+      const kwName = kw ? kw.name : p1;
+      const kwIcon = kw ? kw.icon : '✨';
+      return `<span class="skill-keyword" data-keyword="${p1}"><span>${kwIcon}</span> ${kwName}</span>`;
+    });
+
+    // Soul Ring Milestones
+    let ringsHtml = '';
+    if (Array.isArray(sk.ringUpgrades) && sk.ringUpgrades.length > 0) {
+      ringsHtml = `
+        <div class="ring-upgrades-section">
+          <div class="ring-upgrades-title">⭕ MỐC ĐỘT PHÁ NIÊN HẠN HỒN HOÀN:</div>
+          <div class="ring-upgrades-list">
+            ${sk.ringUpgrades.map(ring => {
+              const yearClass = (ring.year || '').includes('100,000') || (ring.year || '').includes('100k') ? 'year-100k' :
+                                ((ring.year || '').includes('50,000') || (ring.year || '').includes('50k') || (ring.year || '').includes('25,000') ? 'year-50k' :
+                                ((ring.year || '').includes('10,000') || (ring.year || '').includes('10k') ? 'year-10k' : 'year-1k'));
+              
+              let reqHtml = '';
+              if (Array.isArray(ring.requirements)) {
+                reqHtml = ring.requirements.map(req => `
+                  <span style="font-size:0.75rem; color:var(--accent-gold); margin-left:auto; display:inline-flex; align-items:center; gap:0.25rem;">
+                    ★ ${req.count || 1} Sao (${req.color === 'red' ? 'Đỏ' : 'Vàng'})
+                  </span>
+                `).join('');
+              }
+
+              let bonusText = ring.bonus || '';
+              bonusText = bonusText.replace(/\{([a-zA-Z0-9_\u00C0-\u1EF9]+)\}/g, (match, p1) => {
+                const kw = keywordsDict[p1];
+                return `<span class="skill-keyword" data-keyword="${p1}"><span>${kw ? kw.icon : '✨'}</span> ${kw ? kw.name : p1}</span>`;
+              });
+
+              return `
+                <div class="ring-upgrade-card">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="ring-year-tag ${yearClass}">● ${ring.year}</span>
+                    ${reqHtml}
+                  </div>
+                  <div style="font-size:0.88rem; color:#fff; line-height:1.5; margin-top:0.25rem;">${bonusText}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    panelSkillDisplay.innerHTML = `
+      <!-- Combat Summary HUD Card -->
+      <div class="combat-summary-card">
+        <div class="combat-summary-header">
+          <div class="combat-summary-title">
+            <span>⚡ THÔNG SỐ TÁC CHIẾN</span>
+          </div>
+          <span style="font-size:0.75rem; font-weight:800; color:var(--accent-gold);">${sk.type || 'Chủ Động'}</span>
+        </div>
+
+        <div class="combat-stats-grid">
+          <div class="combat-stat-cell">
+            <span class="combat-stat-label">TIÊU HAO</span>
+            <span class="combat-stat-value" style="color:var(--accent-cyan);">${sk.cost || '0 Hồn Lực'}</span>
+          </div>
+          <div class="combat-stat-cell">
+            <span class="combat-stat-label">HỒI CHIÊU (CD)</span>
+            <span class="combat-stat-value" style="color:var(--accent-gold);">${sk.cooldown || '0 lượt'}</span>
+          </div>
+          <div class="combat-stat-cell">
+            <span class="combat-stat-label">MỤC TIÊU</span>
+            <span class="combat-stat-value">${sk.target || 'Toàn Thể'}</span>
+          </div>
+          <div class="combat-stat-cell">
+            <span class="combat-stat-label">PHÂN LOẠI</span>
+            <span class="combat-stat-value" style="color:#fca5a5;">${sk.groupId ? sk.groupId.toUpperCase() : 'HONKY'}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill Header Title & Large Icon -->
+      <div class="skill-detail-header">
+        <div class="skill-detail-large-icon">${sk.icon && sk.icon.includes('/') ? `<img src="${sk.icon}" style="width:100%; height:100%; border-radius:12px; object-fit:cover;">` : (sk.icon || '🔥')}</div>
+        <div class="skill-detail-title-box">
+          <h3>${sk.name || 'Chưa đặt tên'}</h3>
+          <div class="skill-stats-pills">
+            <span class="skill-pill">❖ Nhánh: ${branch.branchName || 'Nhánh 1'}</span>
+            <span class="skill-pill">⚡ ${sk.type || 'Kỹ Năng'}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill Description -->
+      <div class="skill-description-box">
+        ${formattedDesc}
+      </div>
+
+      <!-- Soul Ring Progression -->
+      ${ringsHtml}
+    `;
+  }
 });

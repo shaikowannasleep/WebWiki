@@ -463,21 +463,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     milestones.forEach((m, idx) => {
       const row = document.createElement('div');
-      row.style.cssText = 'display:flex; align-items:flex-start; gap:0.4rem; background:rgba(0,0,0,0.3); padding:0.45rem; border-radius:6px; border:1px solid var(--border-glass); position:relative;';
+      const yearText = m.year || m.years || '';
+      const yearColor = yearText.includes('100,000') || yearText.includes('100k') || yearText.includes('100 vạn') ? 'var(--accent-gold)' :
+                        (yearText.includes('50,000') || yearText.includes('50k') || yearText.includes('5 vạn') ? 'var(--accent-red)' :
+                        (yearText.includes('10,000') || yearText.includes('10k') || yearText.includes('1 vạn') ? 'var(--accent-cyan)' : 'var(--accent-purple)'));
+
+      row.style.cssText = `display:flex; align-items:flex-start; gap:0.4rem; background:rgba(0,0,0,0.4); padding:0.5rem; border-radius:6px; border:1px solid var(--border-glass); border-left:3px solid ${yearColor}; position:relative;`;
+
+      const bonusVal = m.bonus || m.desc || m.description || '';
 
       row.innerHTML = `
-        <input type="text" class="form-input insp-ring-years" value="${m.years || m.year || ''}" placeholder="1 Vạn" data-idx="${idx}" style="width:75px; font-weight:800; color:var(--accent-purple); padding:0.25rem 0.45rem; font-size:0.75rem;">
-        <textarea class="form-textarea insp-ring-desc" rows="2" placeholder="Mô tả mốc..." data-idx="${idx}" style="flex:1; padding:0.25rem 0.45rem; font-size:0.75rem;">${m.desc || m.description || ''}</textarea>
+        <input type="text" class="form-input insp-ring-years" value="${yearText}" placeholder="1 Vạn" data-idx="${idx}" style="width:85px; font-weight:800; color:${yearColor}; padding:0.3rem 0.45rem; font-size:0.75rem;">
+        <textarea class="form-textarea insp-ring-desc" rows="2" placeholder="Hiệu ứng đột phá mốc niên hạn..." data-idx="${idx}" style="flex:1; padding:0.3rem 0.5rem; font-size:0.78rem; line-height:1.4;">${bonusVal}</textarea>
         <button class="btn-studio btn-studio-danger insp-btn-del-ring" data-idx="${idx}" style="padding:0.2rem 0.4rem; font-size:0.75rem;" title="Xóa mốc">✕</button>
       `;
 
       row.querySelector('.insp-ring-years').addEventListener('input', (e) => {
+        m.year = e.target.value;
         m.years = e.target.value;
         DataLayer.saveHeroDraft(currentHero);
         CanvasEditor.render('masterCanvasFrame');
       });
 
       row.querySelector('.insp-ring-desc').addEventListener('input', (e) => {
+        m.bonus = e.target.value;
         m.desc = e.target.value;
         DataLayer.saveHeroDraft(currentHero);
         CanvasEditor.render('masterCanvasFrame');
@@ -1450,8 +1459,18 @@ document.addEventListener('DOMContentLoaded', async () => {
           case 'open_effect_builder':
             openEffectBuilderModal();
             break;
+          case 'open_batch_ocr':
+            const batchModal = document.getElementById('batchOCRModal');
+            if (batchModal) batchModal.classList.add('active');
+            break;
           case 'goto_viewer':
             window.open('index.html', '_blank');
+            break;
+          case 'goto_teambuilder':
+            window.open('teambuilder.html', '_blank');
+            break;
+          case 'goto_honcot_builder':
+            window.open('honcot-builder.html', '_blank');
             break;
           case 'goto_compare':
             window.open('compare.html', '_blank');
@@ -1848,7 +1867,251 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // ═════════════════════════════════════════════════════════════════════════
+  // 14. BATCH SCREENSHOT OCR & STITCHER PIPELINE
+  // ═════════════════════════════════════════════════════════════════════════
+  function setupBatchOCRModal() {
+    const btnOpenBatchOCR = document.getElementById('btnOpenBatchOCR');
+    const batchOCRModal = document.getElementById('batchOCRModal');
+    const batchDropzone = document.getElementById('batchDropzone');
+    const batchScreenshotInput = document.getElementById('batchScreenshotInput');
+    const batchThumbnailsContainer = document.getElementById('batchThumbnailsContainer');
+    const batchThumbnailsList = document.getElementById('batchThumbnailsList');
+    const batchImageCountLabel = document.getElementById('batchImageCountLabel');
+    const btnStitchImages = document.getElementById('btnStitchImages');
+    const btnCopyStitchedImage = document.getElementById('btnCopyStitchedImage');
+    const btnDownloadStitchedImage = document.getElementById('btnDownloadStitchedImage');
+    const btnStartOCR = document.getElementById('btnStartOCR');
+    const batchOCRProgress = document.getElementById('batchOCRProgress');
+    const batchOCRProgressText = document.getElementById('batchOCRProgressText');
+    const stitchedPreviewImg = document.getElementById('stitchedPreviewImg');
+    const noStitchedPlaceholder = document.getElementById('noStitchedPlaceholder');
+    const batchOCRRawText = document.getElementById('batchOCRRawText');
+    const btnParseDouluoText = document.getElementById('btnParseDouluoText');
+    const btnApplyParsedSkillToInspector = document.getElementById('btnApplyParsedSkillToInspector');
+
+    if (!btnOpenBatchOCR || !batchOCRModal) return;
+
+    btnOpenBatchOCR.addEventListener('click', () => {
+      batchOCRModal.classList.add('active');
+      renderThumbnails();
+    });
+
+    if (batchScreenshotInput) {
+      batchScreenshotInput.addEventListener('change', async (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          await BatchOCRStitcher.addFiles(e.target.files);
+          renderThumbnails();
+          batchScreenshotInput.value = '';
+        }
+      });
+    }
+
+    if (batchDropzone) {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        batchDropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          batchDropzone.style.borderColor = 'var(--accent-cyan)';
+          batchDropzone.style.background = 'rgba(6,182,212,0.12)';
+        });
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        batchDropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          batchDropzone.style.borderColor = '';
+          batchDropzone.style.background = '';
+        });
+      });
+      batchDropzone.addEventListener('drop', async (e) => {
+        if (e.dataTransfer && e.dataTransfer.files) {
+          await BatchOCRStitcher.addFiles(e.dataTransfer.files);
+          renderThumbnails();
+        }
+      });
+    }
+
+    window.addEventListener('paste', async (e) => {
+      if (!batchOCRModal.classList.contains('active')) return;
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      let added = false;
+      for (const item of items) {
+        if (item.type && item.type.indexOf('image') !== -1) {
+          const blob = item.getAsFile();
+          await BatchOCRStitcher.addClipboardBlob(blob);
+          added = true;
+        }
+      }
+      if (added) {
+        renderThumbnails();
+        showToast('📋 Đã dán ảnh từ Clipboard!', 'info');
+      }
+    });
+
+    function renderThumbnails() {
+      const images = BatchOCRStitcher.getImages();
+      if (batchImageCountLabel) {
+        batchImageCountLabel.textContent = images.length > 0 ? `Đã nạp ${images.length} ảnh chụp màn hình (kéo thả để chỉnh thứ tự)` : 'Hỗ trợ số lượng N ảnh tùy ý (kéo thả hoặc Ctrl+V)';
+      }
+
+      if (images.length === 0) {
+        if (batchThumbnailsContainer) batchThumbnailsContainer.style.display = 'none';
+        if (stitchedPreviewImg) stitchedPreviewImg.style.display = 'none';
+        if (noStitchedPlaceholder) noStitchedPlaceholder.style.display = 'block';
+        return;
+      }
+
+      if (batchThumbnailsContainer) batchThumbnailsContainer.style.display = 'flex';
+
+      batchThumbnailsList.innerHTML = images.map((item, idx) => `
+        <div style="position:relative; width:90px; height:120px; border-radius:8px; border:1.5px solid var(--border-glass-bright); overflow:hidden; background:#000; flex-shrink:0; display:flex; flex-direction:column;">
+          <span style="position:absolute; top:4px; left:4px; font-size:0.65rem; font-weight:800; background:rgba(0,0,0,0.7); color:#a5f3fc; padding:0.1rem 0.35rem; border-radius:4px; z-index:2;">#${idx + 1}</span>
+          <img src="${item.dataUrl}" style="width:100%; height:100%; object-fit:cover;">
+          <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(6,9,19,0.85); display:flex; justify-content:space-between; padding:2px 4px; z-index:2;">
+            <button class="btn-studio" style="padding:1px 4px; font-size:0.65rem;" onclick="reorderBatchImg(${idx}, ${idx - 1})" ${idx === 0 ? 'disabled' : ''}>▲</button>
+            <button class="btn-studio" style="padding:1px 4px; font-size:0.65rem;" onclick="reorderBatchImg(${idx}, ${idx + 1})" ${idx === images.length - 1 ? 'disabled' : ''}>▼</button>
+            <button class="btn-studio" style="padding:1px 4px; font-size:0.65rem; color:#fca5a5;" onclick="removeBatchImg('${item.id}')">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.removeBatchImg = function(id) {
+      BatchOCRStitcher.removeImage(id);
+      renderThumbnails();
+    };
+
+    window.reorderBatchImg = function(from, to) {
+      BatchOCRStitcher.reorderImage(from, to);
+      renderThumbnails();
+    };
+
+    window.clearBatchImages = function() {
+      BatchOCRStitcher.clearImages();
+      renderThumbnails();
+    };
+
+    if (btnStitchImages) {
+      btnStitchImages.addEventListener('click', () => {
+        const stitchedUrl = BatchOCRStitcher.stitchVertical();
+        if (!stitchedUrl) {
+          showToast('Vui lòng thêm ít nhất 1 ảnh để ghép!', 'warning');
+          return;
+        }
+        if (stitchedPreviewImg) {
+          stitchedPreviewImg.src = stitchedUrl;
+          stitchedPreviewImg.style.display = 'block';
+        }
+        if (noStitchedPlaceholder) noStitchedPlaceholder.style.display = 'none';
+        showToast('🧩 Đã ghép nối thành 1 ảnh dọc liên tục!', 'success');
+      });
+    }
+
+    if (btnCopyStitchedImage) {
+      btnCopyStitchedImage.addEventListener('click', async () => {
+        try {
+          await BatchOCRStitcher.copyStitchedToClipboard();
+          showToast('📋 Đã sao chép ảnh dài vào Clipboard! Bạn có thể dán (Ctrl+V) vào Google Lens / ChatGPT.', 'success');
+        } catch (err) {
+          showToast('Không thể sao chép ảnh: ' + err.message, 'warning');
+        }
+      });
+    }
+
+    if (btnDownloadStitchedImage) {
+      btnDownloadStitchedImage.addEventListener('click', () => {
+        const stitchedUrl = BatchOCRStitcher.stitchVertical();
+        if (!stitchedUrl) {
+          showToast('Chưa có ảnh để tải về!', 'warning');
+          return;
+        }
+        const a = document.createElement('a');
+        a.href = stitchedUrl;
+        a.download = `Douluo_Skill_Stitched_${Date.now()}.png`;
+        a.click();
+      });
+    }
+
+    if (btnStartOCR) {
+      btnStartOCR.addEventListener('click', async () => {
+        try {
+          if (batchOCRProgress) batchOCRProgress.style.display = 'flex';
+          if (btnStartOCR) btnStartOCR.disabled = true;
+
+          const langSelect = document.getElementById('batchOCRLang');
+          const lang = langSelect ? langSelect.value : 'vie';
+
+          const text = await BatchOCRStitcher.runOCR((pct, msg) => {
+            if (batchOCRProgressText) batchOCRProgressText.textContent = `${msg} (${pct}%)`;
+          }, lang);
+
+          if (batchOCRRawText) batchOCRRawText.value = text;
+          showToast('🔍 Đã hoàn tất quét OCR văn bản!', 'success');
+        } catch (err) {
+          showToast('Lỗi khi quét OCR: ' + err.message, 'error');
+        } finally {
+          if (batchOCRProgress) batchOCRProgress.style.display = 'none';
+          if (btnStartOCR) btnStartOCR.disabled = false;
+        }
+      });
+    }
+
+    if (btnParseDouluoText) {
+      btnParseDouluoText.addEventListener('click', () => {
+        const text = batchOCRRawText ? batchOCRRawText.value : '';
+        if (!text.trim()) {
+          showToast('Chưa có văn bản để phân tích!', 'warning');
+          return;
+        }
+        const parsed = BatchOCRStitcher.parseDouluoSkillText(text);
+        if (parsed) {
+          showToast(`⚡ Đã nhận diện chiêu: "${parsed.name}" (${parsed.ringUpgrades.length} mốc Hồn Hoàn)`, 'info');
+        }
+      });
+    }
+
+    if (btnApplyParsedSkillToInspector) {
+      btnApplyParsedSkillToInspector.addEventListener('click', () => {
+        const text = batchOCRRawText ? batchOCRRawText.value : '';
+        const parsed = BatchOCRStitcher.parseDouluoSkillText(text);
+        if (!parsed) {
+          showToast('Vui lòng nhập hoặc quét văn bản chiêu trước!', 'warning');
+          return;
+        }
+
+        if (currentMode !== 'hero' || !currentHero) {
+          showToast('Vui lòng chuyển sang tab Hồn Sư để áp dụng kỹ năng!', 'warning');
+          return;
+        }
+
+        const branches = currentHero.branches || [];
+        const currentBranch = branches[activeBranchIndex] || branches[0];
+        if (!currentBranch || !currentBranch.skills || !currentBranch.skills[activeSkillIndex]) {
+          showToast('Không tìm thấy vị trí kỹ năng đang chọn trong Hồn Sư!', 'warning');
+          return;
+        }
+
+        const targetSkill = currentBranch.skills[activeSkillIndex];
+        if (parsed.name) targetSkill.name = parsed.name;
+        if (parsed.type) targetSkill.type = parsed.type;
+        if (parsed.cost) targetSkill.cost = parsed.cost;
+        if (parsed.cooldown) targetSkill.cooldown = parsed.cooldown;
+        if (parsed.description) targetSkill.description = parsed.description;
+        if (parsed.ringUpgrades && parsed.ringUpgrades.length > 0) {
+          targetSkill.ringUpgrades = parsed.ringUpgrades;
+        }
+
+        renderInspector();
+        renderCanvas();
+        markDirty();
+
+        batchOCRModal.classList.remove('active');
+        showToast(`🚀 Đã áp dụng thành công chiêu "${targetSkill.name}" vào Form!`, 'success');
+      });
+    }
+  }
+
   // Khởi động Studio sau khi tất cả các DOM variables đã được khai báo
+  setupBatchOCRModal();
   await initStudio();
 });
 

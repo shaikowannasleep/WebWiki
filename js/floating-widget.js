@@ -257,6 +257,67 @@
     }
 
     btnContactFabToggle.addEventListener('click', () => toggleMenu());
+
+    // 6. Interactive Knowledge-Graph Keyword Tooltip Pipeline
+    let keywordsCache = null;
+    const popupEl = document.getElementById('global-keyword-popup');
+
+    async function showKeywordTooltip(e, keywordKey) {
+      if (!popupEl) return;
+      if (!keywordsCache && window.DataLayer) {
+        keywordsCache = await DataLayer.getKeywords();
+      }
+
+      const kw = (keywordsCache && keywordsCache[keywordKey]) ? keywordsCache[keywordKey] : {
+        name: keywordKey,
+        type: 'Cơ Chế Kỹ Năng',
+        description: `Thuộc tính hoặc hiệu ứng kỹ năng đặc thù [${keywordKey}] trong game Đấu La Đại Lục MMO.`,
+        icon: '✨'
+      };
+
+      const iconEl = document.getElementById('popKwIcon');
+      const titleEl = document.getElementById('popKwTitle');
+      const typeEl = document.getElementById('popKwType');
+      const descEl = document.getElementById('popKwDesc');
+
+      if (iconEl) iconEl.textContent = kw.icon || '✨';
+      if (titleEl) titleEl.textContent = kw.name || keywordKey;
+      if (typeEl) typeEl.textContent = kw.type || 'Hiệu Ứng / Cơ Chế';
+      if (descEl) descEl.innerHTML = kw.description || 'Chưa có mô tả chi tiết.';
+
+      popupEl.style.display = 'block';
+      const x = Math.min(window.innerWidth - 340, Math.max(10, e.pageX - 160));
+      const y = e.pageY + 18;
+      popupEl.style.left = `${x}px`;
+      popupEl.style.top = `${y}px`;
+    }
+
+    function hideKeywordTooltip() {
+      if (popupEl) popupEl.style.display = 'none';
+    }
+
+    document.addEventListener('mouseover', (e) => {
+      const target = e.target.closest('.skill-keyword, .combat-kw-tag, [data-keyword]');
+      if (target) {
+        const kKey = target.getAttribute('data-keyword');
+        if (kKey) showKeywordTooltip(e, kKey);
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      const target = e.target.closest('.skill-keyword, .combat-kw-tag, [data-keyword]');
+      if (target && popupEl && popupEl.style.display === 'block') {
+        const x = Math.min(window.innerWidth - 340, Math.max(10, e.pageX - 160));
+        const y = e.pageY + 18;
+        popupEl.style.left = `${x}px`;
+        popupEl.style.top = `${y}px`;
+      }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+      const target = e.target.closest('.skill-keyword, .combat-kw-tag, [data-keyword]');
+      if (target) hideKeywordTooltip();
+    });
   }
 
   // Run on load

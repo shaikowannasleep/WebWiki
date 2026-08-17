@@ -26,6 +26,8 @@
         <a href="index.html" class="nav-link" data-i18n="nav_heroes">Hồn Sư</a>
         <a href="honhach.html" class="nav-link" data-i18n="nav_honhach">Hồn Hạch</a>
         <a href="honcot.html" class="nav-link" data-i18n="nav_honcot">Hồn Cốt</a>
+        <a href="honcot-builder.html" class="nav-link" style="color:var(--accent-cyan);">⚡ Setup Hồn Cốt</a>
+        <a href="teambuilder.html" class="nav-link" style="color:var(--accent-gold);">👥 Đội Hình</a>
         <a href="compare.html" class="nav-link">So Sánh</a>
         <a href="edit.html" class="nav-link" style="color:var(--accent-gold);">Studio IDE</a>
         <div class="lang-selector-wrapper" id="langSelectorWrapper"></div>
@@ -33,43 +35,34 @@
     </div>
   </header>
 
-  <!-- Main Hero Section -->
-  <main class="container">
-    <section class="hero-banner-box">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; position: relative; z-index: 1;">
-        <div>
-          <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(6, 182, 212, 0.15); border: 1px solid var(--accent-cyan); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.78rem; color: #a5f3fc; font-weight: 700; margin-bottom: 0.75rem;">
+  <!-- Main Hero Section - Full Viewport Funtap Style -->
+  <main class="funtap-main">
+    <section class="funtap-hero-section">
+      <div class="funtap-hero-content">
+        <div class="hero-text-block">
+          <div class="hero-live-badge">
             <span class="pulse-live-dot"></span> WIKI V3.1 LIVE DATABASE
           </div>
-          <h1 style="font-family: var(--font-heading); font-size: 2.5rem; font-weight: 900; letter-spacing: -0.5px; background: linear-gradient(135deg, #ffffff 40%, var(--accent-cyan) 80%, var(--accent-gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">
-            TRA CỨU KỸ NĂNG HỒN SƯ
+          <h1 class="hero-title-vw">
+            TRA CỨU<br>HỒN SƯ
           </h1>
-          <p style="font-size: 1rem; color: var(--text-sub); max-width: 780px; line-height: 1.6;">
+          <p class="hero-desc-vw">
             Bách khoa toàn thư Đấu La Đại Lục MMO: Hồn Sư Đối Quyết. Tra cứu chi tiết 2 Nhánh Hồn Hoàn, thông số kỹ năng, mốc Niên Hạn và giải thích Từ Khóa hiệu ứng tức thì.
           </p>
         </div>
       </div>
 
       <!-- Quick Stats Counter Bar -->
-      <div class="hero-stats-bar">
-        <div class="stat-pill-badge">
-          <span>👥 Hồn Sư:</span>
-          <strong id="statHeroCount">--</strong>
-        </div>
-        <div class="stat-pill-badge">
-          <span>🦴 Bộ Hồn Hạch:</span>
-          <strong>8+ Bộ</strong>
-        </div>
-        <div class="stat-pill-badge">
-          <span>⚡ Nhánh Hồn Hoàn:</span>
-          <strong>2 Nhánh / Hồn Sư</strong>
-        </div>
-        <div class="stat-pill-badge">
-          <span>✨ Tra Cứu Từ Khóa:</span>
-          <strong>Tự Động Pop-up</strong>
-        </div>
+      <div class="hero-stats-bar-vw">
+        <div class="stat-pill-badge"><span>👥 Hồn Sư:</span><strong id="statHeroCount">--</strong></div>
+        <div class="stat-pill-badge"><span>🦴 Hồn Hạch:</span><strong>8+</strong></div>
+        <div class="stat-pill-badge"><span>⚡ Nhánh:</span><strong>2/HS</strong></div>
+        <div class="stat-pill-badge"><span>✨ Từ Khóa:</span><strong>Pop-up</strong></div>
       </div>
     </section>
+
+    <!-- Content Area Container -->
+    <div class="container" style="position: relative; z-index: 10;">
 
     <!-- Search & System Role Filter Panel (Sub-panel structure) -->
     <section class="search-filter-section">
@@ -129,6 +122,7 @@
     <section class="hero-grid" id="heroGrid">
       <!-- Dynamically populated by app.js -->
     </section>
+    </div> <!-- End container -->
   </main>
 
   <!-- Global Keyword Mouse Floating Tooltip (Requirement 3 V2) -->
