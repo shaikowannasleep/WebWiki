@@ -7,9 +7,17 @@ Thumbs.db
 .env
 .env.*
 
-# AI & Internal Guidelines
+# AI & Internal Guidelines / Private Docs & Prompts
 AI_GUIDELINE.md
 ProjectSpec.md
+PROJECT_SPECIFICATION.md
+PROJECT_OVERVIEW.md
+*.prompt
+*.prompts
+prompts/
+.agents/
+.gemini/
+scratch/
 
 # Build & dependencies
 node_modules/
