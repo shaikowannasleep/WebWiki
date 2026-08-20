@@ -46,4 +46,24 @@
   if (window.top !== window.self) {
     window.top.location = window.self.location;
   }
+
+  // Universal Modal Click-Outside and ESC Key Closer (Applied project-wide)
+  document.addEventListener('click', function(e) {
+    if (e.target && (e.target.classList.contains('global-modal-backdrop') || e.target.classList.contains('modal-backdrop') || e.target.classList.contains('modal-overlay'))) {
+      e.target.classList.remove('active');
+      if (e.target.style.display && e.target.style.display !== 'none') {
+        e.target.style.display = 'none';
+      }
+      document.body.style.overflow = '';
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.global-modal-backdrop.active, .modal-backdrop.active, .modal-overlay.active, .modal.active').forEach(function(m) {
+        m.classList.remove('active');
+      });
+      document.body.style.overflow = '';
+    }
+  });
 })();

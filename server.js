@@ -42,6 +42,120 @@ function createServer(port) {
     const parsedUrl = url.parse(req.url);
     let pathname = decodeURIComponent(parsedUrl.pathname);
 
+    // Handle API endpoints
+    if (pathname.startsWith('/api/')) {
+      if (req.method === 'GET' && pathname === '/api/screenshots') {
+        const screenshotsDir = path.join(__dirname, 'screenshots');
+        let files = [];
+        if (fs.existsSync(screenshotsDir)) {
+          files = fs.readdirSync(screenshotsDir)
+            .filter(f => /\.(png|jpe?g|webp)$/i.test(f))
+            .map(f => {
+              const stat = fs.statSync(path.join(screenshotsDir, f));
+              return {
+                name: f,
+                url: `/screenshots/${encodeURIComponent(f)}`,
+                size: stat.size,
+                mtime: stat.mtime
+              };
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, count: files.length, files }));
+        return;
+      }
+
+      if (req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body || '{}');
+
+            if (pathname === '/api/save-honcot') {
+              const honcotFile = path.join(__dirname, 'data', 'honcot.json');
+              let list = [];
+              if (fs.existsSync(honcotFile)) {
+                try {
+                  list = JSON.parse(fs.readFileSync(honcotFile, 'utf8') || '[]');
+                } catch(e) { list = []; }
+              }
+              const item = data.item;
+              if (!item || !item.id) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'Thiếu thông tin item hoặc id' }));
+                return;
+              }
+              const existingIdx = list.findIndex(h => h.id === item.id);
+              if (existingIdx >= 0) {
+                list[existingIdx] = item;
+              } else {
+                list.push(item);
+              }
+              fs.writeFileSync(honcotFile, JSON.stringify(list, null, 2), 'utf8');
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, count: list.length, item }));
+              return;
+            }
+
+            if (pathname === '/api/save-batch-honcot') {
+              const honcotFile = path.join(__dirname, 'data', 'honcot.json');
+              let list = [];
+              if (fs.existsSync(honcotFile)) {
+                try {
+                  list = JSON.parse(fs.readFileSync(honcotFile, 'utf8') || '[]');
+                } catch(e) { list = []; }
+              }
+              const items = data.items || [];
+              let added = 0, updated = 0;
+              for (const item of items) {
+                if (!item || !item.id) continue;
+                const idx = list.findIndex(h => h.id === item.id);
+                if (idx >= 0) {
+                  list[idx] = item;
+                  updated++;
+                } else {
+                  list.push(item);
+                  added++;
+                }
+              }
+              fs.writeFileSync(honcotFile, JSON.stringify(list, null, 2), 'utf8');
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, total: list.length, added, updated }));
+              return;
+            }
+
+            if (pathname === '/api/upload-icon') {
+              const { filename, base64Data } = data;
+              if (!base64Data) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ success: false, error: 'Thiếu base64Data' }));
+                return;
+              }
+              const uploadsDir = path.join(__dirname, 'assets', 'uploads');
+              if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+              const safeName = (filename || `icon_${Date.now()}`).replace(/[^a-zA-Z0-9_-]/g, '_') + '.png';
+              const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
+              const buffer = Buffer.from(cleanBase64, 'base64');
+              const targetPath = path.join(uploadsDir, safeName);
+              fs.writeFileSync(targetPath, buffer);
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, iconPath: `assets/uploads/${safeName}` }));
+              return;
+            }
+
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: 'Endpoint không tồn tại' }));
+          } catch(err) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: false, error: err.message }));
+          }
+        });
+        return;
+      }
+    }
+
     // Default to index.html if root
     if (pathname === '/') {
       pathname = '/index.html';

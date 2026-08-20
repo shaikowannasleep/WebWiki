@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trình Trích Xuất & Scan Hồn Cốt - Douluo Studio Tool</title>
+  <meta name="description" content="Công cụ tự động bóc tách thông tin Hồn Cốt từ ảnh chụp màn hình, tự động crop icon, dịch Hán Việt và tạo JSON chuẩn cho Douluo MMO Wiki.">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    :root {
+      --winform-bg: #0b1120;
+      --winform-card: #151f32;
+      --winform-border: #233554;
+      --winform-header: #1e293b;
+      --winform-accent: #38bdf8;
+      --winform-gold: #fbbf24;
+      --winform-green: #34d399;
+    }
+
+    body {
+      background-color: var(--winform-bg);
+      color: #f1f5f9;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Winform App Top Bar */
+    .app-toolbar {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--winform-border);
+      padding: 0.6rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .app-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .app-badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--winform-accent);
+      border: 1px solid var(--winform-accent);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .app-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 0;
+    }
+    .app-actions {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+    }
+    .btn-tool {
+      background: #1e293b;
+      border: 1px solid var(--winform-border);
+      color: #cbd5e1;
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-tool:hover {
+      background: #334155;
+      color: #fff;
+      border-color: #475569;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      border-color: #38bdf8;
+    }
+    .btn-primary:hover {
+      background: #0284c7;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #fff;
+      border-color: #34d399;
+    }
+    .btn-success:hover {
+      background: #10b981;
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #fff;
+      border-color: #fbbf24;
+    }
+
+    /* 3-Column Layout */
+    .app-workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 340px 1fr 380px;
+      gap: 1rem;
+      padding: 1rem;
+      height: calc(100vh - 60px);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    @media (max-width: 1200px) {
+      .app-workspace {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: auto;
+      }
+    }
+
+    /* Winform Panels */
+    .panel {
+      background: var(--winform-card);
+      border: 1px solid var(--winform-border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .panel-header {
+      background: #182234;
+      border-bottom: 1px solid var(--winform-border);
+      padding: 0.6rem 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .panel-header span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--winform-accent);
+    }
+    .panel-body {
+      padding: 0.9rem;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    /* Drop Zone / Image Box */
+    .drop-zone {
+      border: 2px dashed #3b82f6;
+      background: rgba(30, 58, 138, 0.15);
+      border-radius: 8px;
+      padding: 1.25rem 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      background: rgba(30, 58, 138, 0.35);
+      border-color: #60a5fa;
+    }
+    .drop-zone-icon {
+      font-size: 2rem;
+      margin-bottom: 0.4rem;
+    }
+    .drop-zone-text {
+      font-size: 0.85rem;
+      color: #93c5fd;
+      font-weight: 600;
+    }
+    .drop-zone-hint {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+    }
+
+    /* Canvas / Image Preview Container */
+    .image-preview-box {
+      background: #090e17;
+      border: 1px solid var(--winform-border);
+      border-radius: 6px;
+      position: relative;
+      min-height: 180px;
+      max-height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .image-preview-box img {
+      max-width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      user-select: none;
+    }
+
+    /* Icon Cropper Widget */
+    .icon-crop-section {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--winform-border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .icon-preview-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 2px solid var(--winform-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 0 15px rgba(251, 191, 36, 0.25);
+    }
+    .icon-preview-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .icon-crop-controls {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    /* Form Fields */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+    .form-input, .form-select, .form-textarea {
+      background: #090e17;
+      border: 1px solid var(--winform-border);
+      color: #f8fafc;
+      padding: 0.45rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--winform-accent);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+
+    /* Effects Table / List */
+    .effects-builder {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .effect-row-card {
+      background: #0d1524;
+      border: 1px solid var(--winform-border);
+      border-radius: 6px;
+      padding: 0.5rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+    }
+    .effect-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .effect-year-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--winform-accent);
+    }
+    .effect-star-badge {
+      font-size: 0.72rem;
+      color: var(--winform-gold);
+    }
+
+    /* JSON Editor & Previews */
+    .json-code-box {
+      background: #050811;
+      border: 1px solid var(--winform-border);
+      border-radius: 6px;
+      color: #38bdf8;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+      padding: 0.75rem;
+      flex: 1;
+      resize: none;
+      white-space: pre;
+      line-height: 1.4;
+      outline: none;
+    }
+
+    /* Notification Toasts */
+    #toastContainer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9999;
+    }
+    .toast {
+      background: #1e293b;
+      border: 1px solid var(--winform-border);
+      border-left: 4px solid var(--winform-accent);
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      animation: slideIn 0.2s ease-out;
+    }
+    .toast.success { border-left-color: var(--winform-green); }
+    .toast.error { border-left-color: #ef4444; }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Toolbar -->
+  <header class="app-toolbar">
+    <div class="app-title-group">
+      <span class="app-badge">STUDIO TOOL</span>
+      <h1 class="app-title">⚡ Trình Trích Xuất & Scan Hồn Cốt (WinForm Studio)</h1>
+    </div>
+    <div class="app-actions">
+      <a href="honcot.html" class="btn-tool" target="_blank">📖 Bách Khoa Hồn Cốt</a>
+      <a href="honcot-builder.html" class="btn-tool" target="_blank">⚙️ Builder Hồn Cốt</a>
+      <a href="edit.html" class="btn-tool" target="_blank">🛠️ Studio IDE</a>
+      <button class="btn-tool btn-primary" id="btnAutoScan">🚀 Tự Động Bóc Tách (OCR/Text)</button>
+      <button class="btn-tool btn-success" id="btnSaveToSystem">💾 Lưu Vào Data</button>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Workspace -->
+  <main class="app-workspace">
+
+    <!-- CỘT 1: NHẬN DIỆN ẢNH & CROP ICON -->
+    <section class="panel">
+      <div class="panel-header">
+        <span>📸 1. Ảnh Chụp & Icon Hồn Cốt</span>
+        <span style="font-size:0.7rem;color:#64748b;">Ctrl+V / Paste</span>
+      </div>
+      <div class="panel-body">
+        
+        <!-- Screenshots Gallery from screenshots/ folder -->
+        <div class="form-group" style="background: rgba(15,23,42,0.8); border: 1px solid var(--winform-border); border-radius: 6px; padding: 0.6rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.4rem;">
+            <label class="form-label" style="color:var(--winform-accent); margin:0;">📁 Ảnh từ thư mục screenshots/ (<span id="screenshotCount">0</span>)</label>
+            <button class="btn-tool" id="btnRefreshScreenshots" style="padding:0.15rem 0.4rem; font-size:0.7rem;">🔄 Tải lại</button>
+          </div>
+          <div id="screenshotsGrid" style="display:flex; gap:0.4rem; overflow-x:auto; padding-bottom:4px; max-height:85px;">
+            <span style="color:#64748b; font-size:0.75rem;">Đang tải ảnh từ thư mục...</span>
+          </div>
+        </div>
+
+        <!-- Drop / Paste Zone -->
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*" style="display:none;" multiple>
+          <div class="drop-zone-icon">📋</div>
+          <div class="drop-zone-text">Nhấn Cmd+V để dán ảnh</div>
+          <div class="drop-zone-hint">hoặc kéo thả / click để chọn ảnh từ máy</div>
+        </div>
+
+        <!-- Image Preview Container -->
+        <div class="form-group">
+          <label class="form-label" style="display:flex; justify-content:space-between;">
+            <span>Ảnh đang chọn</span>
+            <span id="imgInfoText" style="color:#fbbf24; font-size:0.7rem;"></span>
+          </label>
+          <div class="image-preview-box" id="previewContainer">
+            <span style="color:#64748b;font-size:0.8rem;" id="noImgText">Chưa có ảnh</span>
+            <img id="currentScreenshot" src="" style="display:none;" alt="Screenshot">
+          </div>
+        </div>
+
+        <!-- Icon Crop Section -->
+        <div class="form-group">
+          <label class="form-label">Icon Hồn Cốt (Cắt Tròn Alpha Chuẩn HD)</label>
+          <div class="icon-crop-section">
+            <div class="icon-preview-circle">
+              <img id="iconPreview" src="assets/icons/honcot_rightarm.png" alt="Icon preview">
+            </div>
+            <div class="icon-crop-controls">
+              <button class="btn-tool" id="btnAutoCropIcon" style="font-size:0.75rem;padding:0.3rem 0.5rem;">✂️ Cắt Icon Trung Tâm</button>
+              <button class="btn-tool btn-gold" id="btnUploadIcon" style="font-size:0.75rem;padding:0.3rem 0.5rem;">☁️ Lưu Icon Vào Assets</button>
+            </div>
+          </div>
+          <input type="text" id="iconPathInput" class="form-input" style="font-size:0.75rem;" value="assets/uploads/honcot_thienquannghivuong_rightarm.png" placeholder="Đường dẫn icon">
+        </div>
+
+        <!-- Raw Text OCR Box -->
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Văn Bản Nhận Diện (OCR / Paste Text)</label>
+          <textarea id="rawOcrText" class="form-textarea" style="height:120px;font-size:0.78rem;" placeholder="Dán văn bản tiếng Trung hoặc nội dung scan tại đây để bóc tách..."></textarea>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CỘT 2: THÔNG SỐ VÀ CÁC MỐC NIÊN ĐẠI -->
+    <section class="panel">
+      <div class="panel-header">
+        <span>⚙️ 2. Thông Tin Chi Tiết & Mốc Niên Đại</span>
+        <button class="btn-tool" id="btnAddEffectRow" style="padding:0.2rem 0.5rem;font-size:0.72rem;">➕ Thêm Mốc</button>
+      </div>
+      <div class="panel-body">
+        
+        <!-- Row 1: Tên Hán Việt & Tên Dịch -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tên Gốc / Hán Việt</label>
+            <input type="text" id="inputName" class="form-input" value="Thiên Quân Nghĩ Vương Hữu Tí Cốt" placeholder="千鈞蟻王右臂骨...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tên Tiếng Việt Hiển Thị</label>
+            <input type="text" id="inputNameVi" class="form-input" value="Xương Tay Phải Thiên Quân Nghĩ Vương" placeholder="Xương Tay Phải...">
+          </div>
+        </div>
+
+        <!-- Row 2: Vị trí Slot & ID -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Vị Trí (Slot)</label>
+            <select id="selectSlot" class="form-select">
+              <option value="head">👑 Xương Đầu (Head)</option>
+              <option value="body">🛡️ Xương Thân (Body)</option>
+              <option value="left_arm">🦾 Tay Trái (Left Arm)</option>
+              <option value="right_arm" selected>🦾 Tay Phải (Right Arm)</option>
+              <option value="left_leg">🦵 Chân Trái (Left Leg)</option>
+              <option value="right_leg">🦵 Chân Phải (Right Leg)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mã Định Danh (ID)</label>
+            <input type="text" id="inputId" class="form-input" value="honcot_rightarm_thienquannghivuong" placeholder="honcot_...">
+          </div>
+        </div>
+
+        <!-- Kỹ Năng / Chỉ Số Gốc -->
+        <div class="form-group">
+          <label class="form-label">Kỹ Năng Hồn Cốt Gốc (HTML/Text)</label>
+          <textarea id="inputEnhanceStats" class="form-textarea" style="height:75px;" placeholder="Mô tả chiêu thức gốc..."></textarea>
+        </div>
+
+        <!-- Danh sách mốc niên đại (1v -> 10v) -->
+        <div class="form-group">
+          <label class="form-label">Mốc Niên Đại & Hiệu Ứng Sao (1 Vạn -> 10 Vạn)</label>
+          <div class="effects-builder" id="effectsContainer">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CỘT 3: LIVE JSON OUTPUT & ACTIONS -->
+    <section class="panel">
+      <div class="panel-header">
+        <span>📜 3. JSON Output & Tích Hợp</span>
+        <button class="btn-tool btn-primary" id="btnCopyJson" style="padding:0.2rem 0.5rem;font-size:0.72rem;">📋 Copy JSON</button>
+      </div>
+      <div class="panel-body">
+        
+        <textarea id="jsonOutput" class="json-code-box" readonly></textarea>
+
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
+          <button class="btn-tool btn-success" id="btnSaveBottom" style="justify-content:center;padding:0.65rem;">
+            💾 Lưu Trực Tiếp Vào data/honcot.json
+          </button>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn-tool" id="btnTestBuilder" style="flex:1;justify-content:center;">
+              ⚡ Mở Trong Builder
+            </button>
+            <button class="btn-tool" id="btnResetForm" style="flex:1;justify-content:center;">
+              🔄 Làm Mới
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toastContainer"></div>
+
+  <script>
+    // Dictionary for Douluo Soul Bones (Từ điển Hán Việt & Game)
+    const DICTIONARY = {
+      slots: {
+        '頭部骨': 'head', '頭骨': 'head', '头部骨': 'head',
+        '軀幹骨': 'body', '躯干骨': 'body',
+        '左臂骨': 'left_arm',
+        '右臂骨': 'right_arm',
+        '左腿骨': 'left_leg',
+        '右腿骨': 'right_leg'
+      },
+      slotNamesVi: {
+        'head': 'Xương Đầu',
+        'body': 'Xương Thân',
+        'left_arm': 'Xương Tay Trái',
+        'right_arm': 'Xương Tay Phải',
+        'left_leg': 'Xương Chân Trái',
+        'right_leg': 'Xương Chân Phải'
+      },
+      terms: {
+        '千鈞蟻王': 'Thiên Quân Nghĩ Vương',
+        '千鈞': 'Thiên Quân',
+        '泰坦巨猿': 'Thái Thán Cự Viên',
+        '天青牛蟒': 'Thiên Thanh Ngưu Mãng',
+        '暗金恐爪熊': 'Ám Kim Khủng Trảo Hùng',
+        '邪眸白虎': 'Tà Mâu Bạch Hổ',
+        '傷害提升': 'Sát thương tăng',
+        '冷卻時間降低': 'Thời gian hồi chiêu giảm',
+        '冷卻時間': 'Thời gian hồi chiêu',
+        '生效': 'kích hoạt',
+        '攻擊力': 'sức tấn công',
+        '最大血量': 'máu tối đa',
+        '血量': 'lượng máu',
+        '秒': 'giây'
+      }
+    };
+
+    // State
+    let currentEffects = [
+      { year: "1 Vạn", star: 2, desc: "Sát thương tăng 10%." },
+      { year: "2.5 Vạn", star: 3, desc: "Thời gian hồi chiêu giảm 15 giây." },
+      { year: "5 Vạn", star: 4, desc: "Khi lượng máu hiện tại dưới 50% máu tối đa, Thiên Quân Kiến gây thêm 100% sát thương công kích." },
+      { year: "8 Vạn", star: 5, desc: "Hiệu ứng tăng sát thương nâng lên mức 20%." },
+      { year: "10 Vạn", star: 6, desc: "Thời gian hồi chiêu giảm 15 giây." }
+    ];
+    let loadedImage = null;
+
+    // Elements
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const currentScreenshot = document.getElementById('currentScreenshot');
+    const noImgText = document.getElementById('noImgText');
+    const iconPreview = document.getElementById('iconPreview');
+    const iconPathInput = document.getElementById('iconPathInput');
+    const rawOcrText = document.getElementById('rawOcrText');
+    const inputName = document.getElementById('inputName');
+    const inputNameVi = document.getElementById('inputNameVi');
+    const selectSlot = document.getElementById('selectSlot');
+    const inputId = document.getElementById('inputId');
+    const inputEnhanceStats = document.getElementById('inputEnhanceStats');
+    const effectsContainer = document.getElementById('effectsContainer');
+    const jsonOutput = document.getElementById('jsonOutput');
+
+    // Toast helper
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 3500);
+    }
+
+    // Render Effects
+    function renderEffects() {
+      effectsContainer.innerHTML = '';
+      currentEffects.forEach((eff, idx) => {
+        const card = document.createElement('div');
+        card.className = 'effect-row-card';
+        card.innerHTML = `
+          <div class="effect-row-header">
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <input type="text" class="form-input" style="width:75px;padding:0.2rem 0.4rem;font-size:0.75rem;font-weight:700;color:var(--winform-accent);" value="${eff.year}" onchange="updateEffect(${idx}, 'year', this.value)">
+              <select class="form-select" style="width:70px;padding:0.2rem 0.4rem;font-size:0.75rem;" onchange="updateEffect(${idx}, 'star', parseInt(this.value))">
+                <option value="1" ${eff.star === 1 ? 'selected' : ''}>1 ⭐</option>
+                <option value="2" ${eff.star === 2 ? 'selected' : ''}>2 ⭐</option>
+                <option value="3" ${eff.star === 3 ? 'selected' : ''}>3 ⭐</option>
+                <option value="4" ${eff.star === 4 ? 'selected' : ''}>4 ⭐</option>
+                <option value="5" ${eff.star === 5 ? 'selected' : ''}>5 ⭐</option>
+                <option value="6" ${eff.star === 6 ? 'selected' : ''}>6 ⭐</option>
+              </select>
+            </div>
+            <button class="btn-tool" style="padding:0.15rem 0.4rem;font-size:0.7rem;color:#f87171;" onclick="removeEffect(${idx})">✕</button>
+          </div>
+          <textarea class="form-textarea" style="height:38px;font-size:0.75rem;" placeholder="Mô tả hiệu ứng mốc này..." oninput="updateEffect(${idx}, 'desc', this.value)">${eff.desc}</textarea>
+        `;
+        effectsContainer.appendChild(card);
+      });
+      updateJson();
+    }
+
+    window.updateEffect = function(idx, key, val) {
+      if (currentEffects[idx]) {
+        currentEffects[idx][key] = val;
+        updateJson();
+      }
+    };
+
+    window.removeEffect = function(idx) {
+      currentEffects.splice(idx, 1);
+      renderEffects();
+    };
+
+    document.getElementById('btnAddEffectRow').addEventListener('click', () => {
+      const yearLabels = ['1 Vạn', '2.5 Vạn', '5 Vạn', '8 Vạn', '10 Vạn'];
+      const nextYear = yearLabels[currentEffects.length] || `${(currentEffects.length + 1) * 2} Vạn`;
+      currentEffects.push({ year: nextYear, star: Math.min(currentEffects.length + 2, 6), desc: '' });
+      renderEffects();
+    });
+
+    // Compile JSON
+    function compileJson() {
+      return {
+        id: inputId.value.trim() || `honcot_${selectSlot.value}_${Date.now()}`,
+        name: inputName.value.trim(),
+        nameVi: inputNameVi.value.trim(),
+        slot: selectSlot.value,
+        wusoulType: "all",
+        icon: iconPathInput.value.trim(),
+        enhanceStats: inputEnhanceStats.value.trim(),
+        effects: currentEffects
+      };
+    }
+
+    function updateJson() {
+      const obj = compileJson();
+      jsonOutput.value = JSON.stringify(obj, null, 2);
+    }
+
+    // Input event listeners
+    [inputName, inputNameVi, selectSlot, inputId, iconPathInput, inputEnhanceStats].forEach(el => {
+      if (el) el.addEventListener('input', updateJson);
+    });
+
+    // Slot changed -> auto suggest ID prefix
+    selectSlot.addEventListener('change', () => {
+      const nameClean = inputNameVi.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+      inputId.value = `honcot_${selectSlot.value}_${nameClean || 'custom'}`;
+      updateJson();
+    });
+
+    // Smart OCR & Text Parser
+    function parseRawText(text) {
+      if (!text || !text.trim()) return;
+
+      // 1. Detect slot
+      for (const [cn, slotKey] of Object.entries(DICTIONARY.slots)) {
+        if (text.includes(cn)) {
+          selectSlot.value = slotKey;
+          break;
+        }
+      }
+
+      // 2. Detect Name
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length > 0) {
+        let rawTitle = lines[0];
+        // Clean title
+        rawTitle = rawTitle.replace(/^[0-9年\s·]+/, '');
+        inputName.value = rawTitle;
+        
+        // Auto convert to Vietnamese name
+        let vnName = rawTitle;
+        for (const [cn, vn] of Object.entries(DICTIONARY.terms)) {
+          vnName = vnName.replaceAll(cn, vn);
+        }
+        inputNameVi.value = vnName;
+        inputId.value = `honcot_${selectSlot.value}_${vnName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+      }
+
+      // 3. Detect Effects
+      const parsedEffects = [];
+      const effectPatterns = [
+        { regex: /1\s*萬年|1\s*万年|1\s*Vạn/i, year: "1 Vạn", star: 2 },
+        { regex: /2\.5\s*萬年|2\.5\s*万年|2\.5\s*Vạn/i, year: "2.5 Vạn", star: 3 },
+        { regex: /5\s*萬年|5\s*万年|5\s*Vạn/i, year: "5 Vạn", star: 4 },
+        { regex: /8\s*萬年|8\s*万年|8\s*Vạn/i, year: "8 Vạn", star: 5 },
+        { regex: /10\s*萬年|10\s*万年|10\s*Vạn/i, year: "10 Vạn", star: 6 }
+      ];
+
+      effectPatterns.forEach(pat => {
+        const match = text.search(pat.regex);
+        if (match !== -1) {
+          const sub = text.substring(match);
+          const line = sub.split('\n')[0] || '';
+          let desc = line.replace(pat.regex, '').replace(/[:：]/, '').trim();
+          // Translate common terms
+          for (const [cn, vn] of Object.entries(DICTIONARY.terms)) {
+            desc = desc.replaceAll(cn, vn);
+          }
+          parsedEffects.push({ year: pat.year, star: pat.star, desc: desc || `Hiệu ứng ${pat.year}` });
+        }
+      });
+
+      if (parsedEffects.length > 0) {
+        currentEffects = parsedEffects;
+        renderEffects();
+      }
+
+      updateJson();
+      showToast('⚡ Đã bóc tách thông tin từ văn bản!', 'success');
+    }
+
+    document.getElementById('btnAutoScan').addEventListener('click', () => {
+      parseRawText(rawOcrText.value);
+    });
+
+    // Screenshots Gallery Loader
+    async function loadScreenshotsGallery() {
+      const grid = document.getElementById('screenshotsGrid');
+      const countBadge = document.getElementById('screenshotCount');
+      if (!grid) return;
+      try {
+        const res = await fetch('/api/screenshots');
+        const data = await res.json();
+        if (data.success && data.files && data.files.length > 0) {
+          countBadge.textContent = data.files.length;
+          grid.innerHTML = data.files.map((file, i) => `
+            <div class="ss-thumb" data-url="${file.url}" data-name="${file.name}" style="flex:0 0 90px; height:68px; border-radius:6px; overflow:hidden; border:2px solid #233554; cursor:pointer; position:relative; background:#090e17; transition:all 0.2s;">
+              <img src="${file.url}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
+              <span style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.7); font-size:0.6rem; color:#f8fafc; padding:1px 3px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">#${i+1}</span>
+            </div>
+          `).join('');
+
+          // Bind click
+          grid.querySelectorAll('.ss-thumb').forEach(el => {
+            el.addEventListener('click', () => {
+              grid.querySelectorAll('.ss-thumb').forEach(t => t.style.borderColor = '#233554');
+              el.style.borderColor = '#38bdf8';
+              const url = el.dataset.url;
+              const name = el.dataset.name;
+              loadScreenshotUrl(url, name);
+            });
+          });
+
+          // Auto select first file
+          const first = grid.querySelector('.ss-thumb');
+          if (first && !loadedImage) {
+            first.click();
+          }
+        } else {
+          countBadge.textContent = '0';
+          grid.innerHTML = '<span style="color:#64748b; font-size:0.75rem;">Thư mục screenshots/ đang trống. Hãy lưu ảnh chụp vào thư mục này!</span>';
+        }
+      } catch(e) {
+        console.error('Lỗi load screenshots:', e);
+        grid.innerHTML = '<span style="color:#ef4444; font-size:0.75rem;">Không thể kết nối server để tải ảnh</span>';
+      }
+    }
+
+    function loadScreenshotUrl(url, filename = '') {
+      currentScreenshot.src = url;
+      currentScreenshot.style.display = 'block';
+      noImgText.style.display = 'none';
+      document.getElementById('imgInfoText').textContent = filename;
+
+      const img = new Image();
+      img.onload = () => {
+        loadedImage = img;
+        autoCropCenterIcon(img);
+      };
+      img.src = url;
+      showToast(`📸 Đang xem: ${filename || 'ảnh'}`, 'info');
+    }
+
+    document.getElementById('btnRefreshScreenshots').addEventListener('click', loadScreenshotsGallery);
+    loadScreenshotsGallery();
+
+    // Auto Crop Center Icon with Smooth Circular Alpha Mask
+    function autoCropCenterIcon(img) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 160;
+      canvas.height = 160;
+
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+
+      // Coordinate for the circular soul bone avatar
+      const cx = w * 0.298;
+      const cy = h * 0.475;
+      const radius = Math.min(w, h) * 0.090;
+
+      const left = Math.max(0, cx - radius);
+      const top = Math.max(0, cy - radius);
+      const size = radius * 2;
+
+      // Circular clip
+      ctx.beginPath();
+      ctx.arc(80, 80, 80, 0, Math.PI * 2, true);
+      ctx.closePath();
+      ctx.clip();
+
+      ctx.drawImage(img, left, top, size, size, 0, 0, 160, 160);
+      const dataUrl = canvas.toDataURL('image/png');
+      iconPreview.src = dataUrl;
+      showToast('✂️ Đã tự động cắt icon tròn HD từ ảnh!', 'success');
+    }
+
+    document.getElementById('btnAutoCropIcon').addEventListener('click', () => {
+      if (loadedImage) autoCropCenterIcon(loadedImage);
+      else showToast('⚠️ Chưa có ảnh để cắt icon', 'error');
+    });
+
+    // Upload Icon to Server
+    document.getElementById('btnUploadIcon').addEventListener('click', async () => {
+      if (!iconPreview.src || iconPreview.src.startsWith('assets/')) {
+        showToast('⚠️ Icon hiện tại đã sẵn sàng hoặc chưa đổi ảnh', 'info');
+        return;
+      }
+      try {
+        const id = inputId.value.trim() || `icon_${Date.now()}`;
+        const res = await fetch('/api/upload-icon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: id, base64Data: iconPreview.src })
+        });
+        const data = await res.json();
+        if (data.success) {
+          iconPathInput.value = data.iconPath;
+          updateJson();
+          showToast(`☁️ Đã lưu icon vào ${data.iconPath}`, 'success');
+        } else {
+          showToast(`❌ Lỗi lưu icon: ${data.error}`, 'error');
+        }
+      } catch(e) {
+        showToast(`❌ Lỗi kết nối server: ${e.message}`, 'error');
+      }
+    });
+
+    // Save to data/honcot.json
+    async function saveToSystem() {
+      const item = compileJson();
+      try {
+        const res = await fetch('/api/save-honcot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`✅ Đã lưu '${item.nameVi}' vào data/honcot.json! (Tổng: ${data.count} hồn cốt)`, 'success');
+        } else {
+          showToast(`❌ Lỗi khi lưu: ${data.error}`, 'error');
+        }
+      } catch(e) {
+        showToast(`❌ Lỗi server: ${e.message}`, 'error');
+      }
+    }
+
+    document.getElementById('btnSaveToSystem').addEventListener('click', saveToSystem);
+    document.getElementById('btnSaveBottom').addEventListener('click', saveToSystem);
+
+    // Copy JSON
+    document.getElementById('btnCopyJson').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(jsonOutput.value);
+        showToast('📋 Đã copy JSON vào Clipboard!', 'success');
+      } catch(e) {
+        jsonOutput.select();
+        document.execCommand('copy');
+        showToast('📋 Đã copy JSON vào Clipboard!', 'success');
+      }
+    });
+
+    // Paste listener (Ctrl+V)
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          handleImageFile(blob);
+          return;
+        } else if (items[i].type === 'text/plain') {
+          items[i].getAsString(text => {
+            if (!rawOcrText.value) {
+              rawOcrText.value = text;
+            }
+          });
+        }
+      }
+    });
+
+    // Drag & Drop
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) handleImageFile(e.target.files[0]);
+    });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]);
+    });
+
+    document.getElementById('btnTestBuilder').addEventListener('click', () => {
+      window.open('honcot-builder.html', '_blank');
+    });
+
+    document.getElementById('btnResetForm').addEventListener('click', () => {
+      if (confirm('Làm mới toàn bộ form nhập?')) {
+        inputName.value = '';
+        inputNameVi.value = '';
+        inputId.value = '';
+        inputEnhanceStats.value = '';
+        rawOcrText.value = '';
+        currentEffects = [
+          { year: "1 Vạn", star: 2, desc: "" },
+          { year: "2.5 Vạn", star: 3, desc: "" },
+          { year: "5 Vạn", star: 4, desc: "" },
+          { year: "8 Vạn", star: 5, desc: "" },
+          { year: "10 Vạn", star: 6, desc: "" }
+        ];
+        renderEffects();
+        showToast('🔄 Đã làm mới form!', 'info');
+      }
+    });
+
+    // Init with default sample data
+    inputEnhanceStats.value = '<div><span style="color:#f59e0b;font-weight:bold;">Kỹ năng Hồn Cốt (Thiên Quân - Tăng ST Duy Trì):</span></div><div>Triệu hồi Thiên Quân Trấn Nhạc Kiến gây cho kẻ địch ngẫu nhiên 57.93%+12.37% sát thương, khi lượng máu bản thân dưới 30%, sát thương nhân đôi.</div>';
+    renderEffects();
+  </script>
+</body>
+</html>

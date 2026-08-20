@@ -1,6 +1,10 @@
 /**
- * Honcot Module - Douluo MMO Wiki (Soul Bone Viewer Page)
- * Manages rendering the Soul Bone Cards Grid, Search Input, and Slot Filter.
+ * Honcot Module - Douluo MMO Wiki (Compact Grid & Interactive Detail Modal)
+ * Hỗ trợ:
+ * - Xem cùng lúc nhiều Hồn Cốt dạng lưới gọn gàng
+ * - Lọc theo vị trí (Tay Phải, Tay Trái, Chân Phải, Chân Trái, Đầu, Thân)
+ * - Click vào mở Popup chi tiết (Modal)
+ * - Bấm ra ngoài vùng Popup hoặc nhấn ESC để đóng
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -9,21 +13,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   const slotFilterBtns = document.querySelectorAll('#honcotSlotFilterGroup [data-slot]');
   const honcotCount = document.getElementById('honcotCount');
 
-  if (!honcotGrid) return; // Exit if not on honcot page
+  if (!honcotGrid) return;
 
   let honcotList = await DataLayer.getHoncotList();
   let currentSlotFilter = 'all';
   let currentSearchQuery = '';
 
+  const slotMap = {
+    'head': '👑 Xương Đầu',
+    'body': '🛡️ Xương Thân',
+    'left_arm': '🦾 Tay Trái',
+    'right_arm': '🦾 Tay Phải',
+    'left_leg': '🦵 Chân Trái',
+    'right_leg': '🦵 Chân Phải',
+    'all': 'Đa Vị Trí'
+  };
+
   /**
-   * Render Soul Bone Cards into grid
+   * Helper: Lọc chuỗi text sạch bỏ tag html thừa
+   */
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html || '';
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  /**
+   * Render Soul Bone Cards into Compact Grid
    */
   function renderHoncotGrid(list) {
     if (!list || list.length === 0) {
       honcotGrid.innerHTML = `
         <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
           <div style="font-size: 3rem; margin-bottom: 1rem;">🦴</div>
-          <h3>Không tìm thấy Hồn Cốt phù hợp</h3>
+          <h3 style="color:#fff; font-size:1.2rem;">Không tìm thấy Hồn Cốt phù hợp</h3>
           <p>Thử tìm kiếm với từ khóa hoặc vị trí khác!</p>
         </div>
       `;
@@ -33,71 +56,177 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (honcotCount) honcotCount.textContent = `${list.length} Hồn Cốt`;
 
+    honcotGrid.className = 'honcot-compact-grid';
     honcotGrid.innerHTML = list.map(item => {
       const nameDisplay = i18n.translateConcept(item.nameVi || item.name);
-      
-      const slotMap = {
-        'head': 'Xương Đầu',
-        'body': 'Xương Thân',
-        'left_arm': 'Tay Trái',
-        'right_arm': 'Tay Phải',
-        'left_leg': 'Chân Trái',
-        'right_leg': 'Chân Phải',
-        'all': 'Đa Vị Trí'
-      };
       const slotDisplay = slotMap[item.slot] || item.slot;
-
-      let effectsHtml = '';
-      if (item.effects && item.effects.length > 0) {
-        effectsHtml = `<div class="effects-list">` + item.effects.map((eff, idx) => {
-          const starVal = eff.star ? eff.star : (idx + 1);
-          return `
-            <div class="effect-item" style="display:flex; align-items:flex-start; gap:0.75rem; padding:0.6rem 0; border-bottom:1px dotted rgba(255,255,255,0.08);">
-              <div style="display:flex; flex-direction:column; gap:0.25rem; min-width:85px; flex-shrink:0;">
-                <div class="effect-year" style="color:var(--accent-cyan); font-weight:800; font-size:0.9rem;">${eff.year}</div>
-                <div class="hc-star-badge" style="display:inline-flex; align-items:center; gap:0.25rem; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.35); padding:0.1rem 0.4rem; border-radius:12px; font-size:0.75rem; color:#fef08a; font-weight:800; width:fit-content;">
-                  <img src="assets/icons/star_gold.svg" style="width:13px; height:13px; filter:drop-shadow(0 0 3px rgba(245,158,11,0.5));" alt="star">
-                  ${starVal}★
-                </div>
-              </div>
-              <div class="effect-desc" style="color:#e2e8f0; font-size:0.88rem; line-height:1.55; flex:1;">${i18n.translateConcept(eff.desc)}</div>
-            </div>
-          `;
-        }).join('') + `</div>`;
-      } else {
-        effectsHtml = `<div style="color:var(--text-muted); font-size:0.85rem; padding: 0.5rem 0;">Không có hiệu ứng vạn năm</div>`;
-      }
-
       const iconPath = item.icon || 'assets/icons/honcot_head.png';
 
+      // Làm sạch text kỹ năng để preview 2 dòng
+      let rawStats = stripHtml(item.enhanceStats);
+      // Bỏ các tiền tố thừa nếu có
+      rawStats = rawStats.replace(/Kỹ năng Hồn Cốt\s*\([^)]*\):?/i, '').trim();
+
+      // Mini year pills
+      const yearsPills = (item.effects || []).map((eff, idx) => {
+        const star = eff.star || (idx + 2);
+        return `<span class="hc-year-pill-mini">${eff.year} (${star}★)</span>`;
+      }).join('');
+
       return `
-        <div class="honcot-card">
-          <div class="honcot-header">
-            <div class="honcot-icon-box">
-              <img src="${iconPath}" alt="${nameDisplay}" loading="lazy" onerror="this.src='assets/icons/honcot_head.png'">
-            </div>
-            <div class="honcot-title-block">
-              <div class="honcot-name-vi">${nameDisplay}</div>
-              <div style="margin-top: 0.3rem;">
-                <span class="honcot-slot-tag">${slotDisplay}</span>
-                <span class="honcot-wusoul-tag">Hệ: ${item.wusoulType || 'Tất Cả'}</span>
+        <div class="honcot-compact-card" data-id="${item.id}" onclick="window.openHoncotDetailModal('${item.id}')">
+          <div>
+            <div class="hc-card-header">
+              <div class="hc-avatar-circle">
+                <img src="${iconPath}" alt="${nameDisplay}" loading="lazy" onerror="this.src='assets/icons/honcot_head.png'">
+              </div>
+              <div class="hc-title-area">
+                <div class="hc-name-text">${nameDisplay}</div>
+                <span class="hc-slot-badge">${slotDisplay}</span>
               </div>
             </div>
+
+            <div class="hc-skill-preview" style="margin-top:0.75rem;">
+              ${rawStats || 'Kích hoạt hiệu ứng Hồn Cốt tăng cường thuộc tính và sát thương.'}
+            </div>
           </div>
 
-          <div class="honcot-stats">
-            <div class="section-title">✨ Cường Hóa & Thuộc Tính Cơ Bản</div>
-            ${i18n.translateConcept(item.enhanceStats || 'Không có mô tả')}
-          </div>
-
-          <div class="honcot-stats" style="border-color: rgba(6,182,212,0.3);">
-            <div class="section-title" style="color: var(--accent-cyan);">🔥 Hiệu Ứng Vạn Năm</div>
-            ${effectsHtml}
+          <div>
+            <div class="hc-years-mini-row" style="margin-bottom:0.65rem;">
+              ${yearsPills}
+            </div>
+            <div class="hc-card-footer">
+              <span style="font-size:0.72rem; color:var(--text-muted);">${(item.effects || []).length} Mốc Niên Đại</span>
+              <span class="hc-btn-expand">🔍 Xem Chi Tiết ➔</span>
+            </div>
           </div>
         </div>
       `;
     }).join('');
   }
+
+  /**
+   * Modal Chi Tiết Hồn Cốt
+   */
+  window.openHoncotDetailModal = function(id) {
+    const item = honcotList.find(h => h.id === id);
+    if (!item) return;
+
+    let modalBackdrop = document.getElementById('honcotDetailModal');
+    if (!modalBackdrop) {
+      modalBackdrop = document.createElement('div');
+      modalBackdrop.id = 'honcotDetailModal';
+      modalBackdrop.className = 'global-modal-backdrop';
+      document.body.appendChild(modalBackdrop);
+    }
+
+    const nameDisplay = i18n.translateConcept(item.nameVi || item.name);
+    const nameOrigin = item.name ? item.name : '';
+    const slotDisplay = slotMap[item.slot] || item.slot;
+    const iconPath = item.icon || 'assets/icons/honcot_head.png';
+
+    // Effects detailed list
+    let effectsHtml = '';
+    if (item.effects && item.effects.length > 0) {
+      effectsHtml = item.effects.map((eff, idx) => {
+        const starVal = eff.star ? eff.star : (idx + 2);
+        return `
+          <div style="display:flex; align-items:flex-start; gap:0.85rem; padding:0.7rem 0; border-bottom:1px dashed rgba(255,255,255,0.09);">
+            <div style="display:flex; flex-direction:column; gap:0.25rem; min-width:90px; flex-shrink:0;">
+              <div style="color:var(--accent-cyan); font-weight:800; font-size:0.92rem;">${eff.year}</div>
+              <div style="display:inline-flex; align-items:center; gap:0.25rem; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.35); padding:0.12rem 0.45rem; border-radius:12px; font-size:0.75rem; color:#fef08a; font-weight:800; width:fit-content;">
+                ⭐ ${starVal}★ Kích Hoạt
+              </div>
+            </div>
+            <div style="color:#e2e8f0; font-size:0.88rem; line-height:1.55; flex:1;">
+              ${i18n.translateConcept(eff.desc)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      effectsHtml = '<div style="color:var(--text-muted); padding:0.5rem 0;">Chưa có thông tin mốc niên đại</div>';
+    }
+
+    modalBackdrop.innerHTML = `
+      <div class="global-modal-content" onclick="event.stopPropagation();">
+        <button class="global-modal-close" onclick="window.closeHoncotDetailModal()">✕</button>
+        
+        <!-- Header -->
+        <div style="padding:1.5rem 1.5rem 1rem; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; gap:1.25rem; align-items:center;">
+          <div class="hc-avatar-circle" style="width:76px; height:76px; border-width:3px;">
+            <img src="${iconPath}" alt="${nameDisplay}">
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.8rem; color:var(--accent-gold); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">${nameOrigin}</div>
+            <h2 style="font-family:var(--font-heading); font-size:1.45rem; font-weight:900; color:#fff; margin:0.2rem 0 0.4rem;">${nameDisplay}</h2>
+            <span class="hc-slot-badge" style="font-size:0.78rem; padding:0.2rem 0.65rem;">${slotDisplay}</span>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:1.25rem 1.5rem; display:flex; flex-direction:column; gap:1.25rem;">
+          
+          <!-- Kỹ Năng Hồn Cốt Gốc -->
+          <div style="background:rgba(9,14,23,0.7); border:1px solid rgba(251,191,36,0.25); border-radius:10px; padding:1rem 1.25rem;">
+            <div style="font-size:0.82rem; font-weight:800; color:var(--accent-gold); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.4rem;">
+              <span>⚡ KỸ NĂNG HỒN CỐT (2000 NĂM GỐC)</span>
+            </div>
+            <div style="font-size:0.9rem; line-height:1.6; color:#f1f5f9;">
+              ${i18n.translateConcept(item.enhanceStats || 'Kích hoạt hiệu ứng Hồn Cốt.')}
+            </div>
+          </div>
+
+          <!-- Mốc Niên Đại (1v -> 10v) -->
+          <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(6,182,212,0.25); border-radius:10px; padding:1rem 1.25rem;">
+            <div style="font-size:0.82rem; font-weight:800; color:var(--accent-cyan); margin-bottom:0.5rem; display:flex; align-items:center; justify-content:space-between;">
+              <span>🔥 ĐỘT PHÁ MỐC NIÊN ĐẠI (1 VẠN ➔ 10 VẠN NĂM)</span>
+              <span style="font-size:0.72rem; color:#94a3b8;">5 Cấp Sao</span>
+            </div>
+            <div style="display:flex; flex-direction:column;">
+              ${effectsHtml}
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:0.9rem 1.5rem; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.25);">
+          <span style="font-size:0.75rem; color:#64748b;">Nhấn ESC hoặc click ra ngoài để đóng</span>
+          <div style="display:flex; gap:0.5rem;">
+            <a href="honcot-builder.html" class="btn-tool" style="font-size:0.78rem; text-decoration:none; background:rgba(6,182,212,0.15); border-color:var(--accent-cyan); color:#a5f3fc;">⚡ Thử Trong Setup Builder</a>
+            <button class="btn-tool btn-primary" onclick="window.closeHoncotDetailModal()" style="font-size:0.78rem; padding:0.35rem 0.85rem;">Đóng</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    modalBackdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Click outside backdrop to close
+    modalBackdrop.onclick = function(e) {
+      if (e.target === modalBackdrop) {
+        window.closeHoncotDetailModal();
+      }
+    };
+  };
+
+  window.closeHoncotDetailModal = function() {
+    const modalBackdrop = document.getElementById('honcotDetailModal');
+    if (modalBackdrop) {
+      modalBackdrop.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+  };
+
+  // Global ESC Key Listener to Close Modals
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      window.closeHoncotDetailModal();
+      if (window.closeHonhachDetailModal) window.closeHonhachDetailModal();
+    }
+  });
 
   /**
    * Filter and search logic
@@ -133,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (slotFilterBtns) {
     slotFilterBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         slotFilterBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentSlotFilter = btn.getAttribute('data-slot');

@@ -14,6 +14,8 @@ ProjectSpec.md
 # Build & dependencies
 node_modules/
 dist/
+tools/ocr_cli
+screenshots/
 
 # ==============================================================================
 # Wiki Studio Local-Only Editor Files (Hidden 100% from public GitHub repo)
