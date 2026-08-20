@@ -6,7 +6,7 @@
     "slot": "head",
     "wusoulType": "all",
     "icon": "assets/uploads/img_1786681489352.png",
-    "enhanceStats": "<div><span style=\"font-size: 14.08px;\">Sau khi kích hoạt, triệu hồi Hư Thiên Quang Thứu, gây </span><span style=\"font-size: 0.88rem;\">15101+466.2%+37.5% ST Kỹ Năng.</span></div><div>Trong 60 giây tiếp theo, mỗi khi Đánh Thường sẽ gây thêm 1 lần ST Kỹ Năng bằng 11955+373.0%+30.0% Công, tối đa kích hoạt 30 lần. Khi trúng mục tiêu đang ở trạng thái {Chớp Sáng}, ST tăng thêm 50%, CD 150 giây, có thể thi triển khi Hồn Lực Nạp Năng đạt 1500 điểm.</div>",
+    "enhanceStats": "Sau khi kích hoạt, triệu hồi Hư Thiên Quang Thứu, gây 15101+466.2%+37.5% ST Kỹ Năng.<br>Trong 60 giây tiếp theo, mỗi khi Đánh Thường sẽ gây thêm 1 lần ST Kỹ Năng bằng 11955+373.0%+30.0% Công, tối đa kích hoạt 30 lần. Khi trúng mục tiêu đang ở trạng thái {Chớp Sáng}, ST tăng thêm 50%, CD 150 giây, có thể thi triển khi Hồn Lực Nạp Năng đạt 1500 điểm.",
     "effects": [
       {
         "year": "1 Vạn",
@@ -42,7 +42,7 @@
     "slot": "right_arm",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_arm_thi_n_qu_n_ki_n_1.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Thiên Quân - Tăng ST Duy Trì):</span></div><div>Triệu hồi Thiên Quân Trấn Nhạc Kiến gây cho kẻ địch ngẫu nhiên 57.93% + 12.37% sát thương. Khi lượng máu bản thân dưới 30%, sát thương gây ra được nhân đôi.</div>",
+    "enhanceStats": "Triệu hồi Thiên Quân Trấn Nhạc Kiến gây cho kẻ địch ngẫu nhiên 57.93% + 12.37% sát thương. Khi lượng máu bản thân dưới 30%, sát thương gây ra được nhân đôi.",
     "effects": [
       {
         "year": "1 Vạn",
@@ -78,7 +78,7 @@
     "slot": "right_leg",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_leg_thi_n_di_n_b_ng_quy_2.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Thiên Diễn - Tăng ST Duy Trì):</span></div><div>Sau khi Tinh Linh thi triển Tinh Thần Trụy Lạc trúng địch, bản thân nhận hiệu ứng 【Linh Hỏa】 (Hồi chiêu 2 giây).<br><b>【Linh Hỏa】:</b> Đòn đánh Hồn Kỹ kế tiếp khi trúng đích sẽ gây thêm 100% Công kích thành sát thương Chớp Sáng, tối đa 1 tầng, duy trì 30 giây, tiêu hao 1 tầng khi kích hoạt.</div>",
+    "enhanceStats": "Sau khi Tinh Linh thi triển Tinh Thần Trụy Lạc trúng địch, bản thân nhận hiệu ứng 【Linh Hỏa】 (Hồi chiêu 2 giây).<br><b>【Linh Hỏa】:</b> Đòn đánh Hồn Kỹ kế tiếp khi trúng đích sẽ gây thêm 100% Công kích thành sát thương Chớp Sáng, tối đa 1 tầng, duy trì 30 giây, tiêu hao 1 tầng khi kích hoạt.",
     "effects": [
       {
         "year": "1 Vạn",
@@ -114,7 +114,7 @@
     "slot": "left_arm",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_left_arm_u_uy_n_l_nh_ch_a_3.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · U Uyên - Tăng ST Duy Trì):</span></div><div>Triệu hồi U Uyên Quy Khư Chủ phát ra tiếng gầm thịnh nộ, gây 185.4% + 39.6% sát thương cho kẻ địch xung quanh. Nếu bản thân có hiệu ứng 【Lôi Đình】, nhận thêm 10 tầng 【Lang Thú】.<br><b>【Lang Thú】:</b> Mỗi khi gây sát thương Cảm Điện lên mục tiêu, triệu hồi Thiên Lôi giáng xuống gây 46.35% + 9.9% sát thương phạm vi nhỏ và tiêu hao 1 tầng 【Lang Thú】 (CD kích hoạt 1 giây).</div>",
+    "enhanceStats": "Triệu hồi U Uyên Quy Khư Chủ phát ra tiếng gầm thịnh nộ, gây 185.4% + 39.6% sát thương cho kẻ địch xung quanh. Nếu bản thân có hiệu ứng 【Lôi Đình】, nhận thêm 10 tầng 【Lang Thú】.<br><b>【Lang Thú】:</b> Mỗi khi gây sát thương Cảm Điện lên mục tiêu, triệu hồi Thiên Lôi giáng xuống gây 46.35% + 9.9% sát thương phạm vi nhỏ và tiêu hao 1 tầng 【Lang Thú】 (CD kích hoạt 1 giây).",
     "effects": [
       {
         "year": "1 Vạn",
@@ -150,7 +150,7 @@
     "slot": "left_leg",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_left_leg_tam_nh_n_ma_v_n_4.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Tam Nhãn - Tăng ST Duy Trì):</span></div><div>Võ hồn Cường Công khi dùng kỹ năng Chuyển Đổi sẽ triệu hồi Tam Nhãn Tà Ma Vượn bắn tia Laze cực mạnh ra phía trước, khi trúng mục tiêu gây 927.0% + 198.0% sát thương. Nếu mục tiêu đang có trạng thái 【Thánh Diễm】, sát thương tăng thêm 50% (Hồi chiêu 60 giây).</div>",
+    "enhanceStats": "Võ hồn Cường Công khi dùng kỹ năng Chuyển Đổi sẽ triệu hồi Tam Nhãn Tà Ma Vượn bắn tia Laze cực mạnh ra phía trước, khi trúng mục tiêu gây 927.0% + 198.0% sát thương. Nếu mục tiêu đang có trạng thái 【Thánh Diễm】, sát thương tăng thêm 50% (Hồi chiêu 60 giây).",
     "effects": [
       {
         "year": "1 Vạn",
@@ -186,7 +186,7 @@
     "slot": "right_arm",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_arm_cu_ng_tri_t_l_i_h_ng_5.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Tịch Diệt Lôi Đình - Sát Thương Duy Trì):</span></div><div>Triệu hồi Cuồng Triệt Oanh Lôi Hùng giáng 1 tia sét phía trước gây 1028 + 463.5% + 99.0% sát thương kỹ năng, sau đó phóng ra 5 luồng sét xung quanh, mỗi luồng sét gây 170 + 77.25% + 16.5% sát thương kỹ năng (CD 90 giây).<br>Nếu mục tiêu đang có hiệu ứng 【Cảm Điện】, bản thân nhận 1 tầng 【Quá Tải】 giúp lần thi triển Tịch Diệt Lôi Đình tiếp theo tạo thêm 5 tia sét (Quá Tải duy trì 120 giây).</div>",
+    "enhanceStats": "Triệu hồi Cuồng Triệt Oanh Lôi Hùng giáng 1 tia sét phía trước gây 1028 + 463.5% + 99.0% sát thương kỹ năng, sau đó phóng ra 5 luồng sét xung quanh, mỗi luồng sét gây 170 + 77.25% + 16.5% sát thương kỹ năng (CD 90 giây).<br>Nếu mục tiêu đang có hiệu ứng 【Cảm Điện】, bản thân nhận 1 tầng 【Quá Tải】 giúp lần thi triển Tịch Diệt Lôi Đình tiếp theo tạo thêm 5 tia sét (Quá Tải duy trì 120 giây).",
     "effects": [
       {
         "year": "1 Vạn",
@@ -222,7 +222,7 @@
     "slot": "right_leg",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_leg_cu_ng_tri_t_l_i_h_ng_6.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Tập Vân Bôn Lôi - Tăng ST Duy Trì):</span></div><div>Mỗi khi tung kỹ năng Tiên Phát sẽ cộng dồn 1 tầng 【Uẩn Lôi】 (vô hạn thời gian, tối đa 20 tầng, xóa khi rời giao tranh). Mỗi tầng 【Uẩn Lôi】 tăng 3.0% sát thương Tiên Phát. Kỹ năng Tiên Phát khi trúng mục tiêu có 【Cảm Điện】 sẽ nhận thêm 1 tầng 【Uẩn Lôi】.</div>",
+    "enhanceStats": "Mỗi khi tung kỹ năng Tiên Phát sẽ cộng dồn 1 tầng 【Uẩn Lôi】 (vô hạn thời gian, tối đa 20 tầng, xóa khi rời giao tranh). Mỗi tầng 【Uẩn Lôi】 tăng 3.0% sát thương Tiên Phát. Kỹ năng Tiên Phát khi trúng mục tiêu có 【Cảm Điện】 sẽ nhận thêm 1 tầng 【Uẩn Lôi】.",
     "effects": [
       {
         "year": "1 Vạn",
@@ -258,7 +258,7 @@
     "slot": "right_arm",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_arm_ng_h_n_linh_long_7.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Đãng Chước Thất Phách - Bộc Phát Sát Thương):</span></div><div>Triệu hồi Đãng Hồn Ác Linh Long phát ra tiếng gầm thịnh nộ, bản thân nhận 5 tầng 【Chước Phách】 duy trì 20 giây (CD 90 giây). Mỗi đòn Đánh Thường sẽ bắn ra 2 chùm tia 【Phục Thỉ】 và tiêu hao 1 tầng 【Chước Phách】, mỗi tia Phục Thỉ gây 170 + 77.25% + 16.5% sát thương kỹ năng.<br>Mỗi khi gây 1 lần sát thương 【Thiêu Đốt】 hoặc 【Chớp Sáng】, CD kỹ năng Hồn Cốt giảm 3 giây (kích hoạt tối đa 10 lần mỗi 60 giây).</div>",
+    "enhanceStats": "Triệu hồi Đãng Hồn Ác Linh Long phát ra tiếng gầm thịnh nộ, bản thân nhận 5 tầng 【Chước Phách】 duy trì 20 giây (CD 90 giây). Mỗi đòn Đánh Thường sẽ bắn ra 2 chùm tia 【Phục Thỉ】 và tiêu hao 1 tầng 【Chước Phách】, mỗi tia Phục Thỉ gây 170 + 77.25% + 16.5% sát thương kỹ năng.<br>Mỗi khi gây 1 lần sát thương 【Thiêu Đốt】 hoặc 【Chớp Sáng】, CD kỹ năng Hồn Cốt giảm 3 giây (kích hoạt tối đa 10 lần mỗi 60 giây).",
     "effects": [
       {
         "year": "1 Vạn",
@@ -294,7 +294,7 @@
     "slot": "right_leg",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_leg_ng_h_n_linh_long_8.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Nhiễm Hồn Xâm Thực - Tăng ST Duy Trì):</span></div><div>Khi vào trận đấu nhận 1 tầng 【Nhiễm Hồn】, sau đó mỗi 8 giây nhận thêm 1 tầng (duy trì vĩnh viễn, tối đa 5 tầng, xóa khi rời trận). Khi có 【Nhiễm Hồn】 mà tấn công trúng mục tiêu có hiệu ứng 【Thiêu Đốt】 hoặc 【Chớp Sáng】 sẽ gây thêm 203 + 92.7% + 19.8% sát thương kỹ năng và tiêu hao 1 tầng 【Nhiễm Hồn】.</div>",
+    "enhanceStats": "Khi vào trận đấu nhận 1 tầng 【Nhiễm Hồn】, sau đó mỗi 8 giây nhận thêm 1 tầng (duy trì vĩnh viễn, tối đa 5 tầng, xóa khi rời trận). Khi có 【Nhiễm Hồn】 mà tấn công trúng mục tiêu có hiệu ứng 【Thiêu Đốt】 hoặc 【Chớp Sáng】 sẽ gây thêm 203 + 92.7% + 19.8% sát thương kỹ năng và tiêu hao 1 tầng 【Nhiễm Hồn】.",
     "effects": [
       {
         "year": "1 Vạn",
@@ -330,7 +330,7 @@
     "slot": "left_arm",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_left_arm_p_tinh_lang_v_ng_9.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Tinh Thể Chấn Đãng - Tăng ST Duy Trì):</span></div><div>Triệu hồi Hư Giới Phệ Tinh Lang tung đòn càn quét tạo sóng xung kích gây 1028 + 463.5% + 99.0% sát thương lên mục tiêu và gán 1 tầng 【Phệ Tinh】; nếu mục tiêu có 【Yên Diệt】 sẽ chuyển hóa toàn bộ thành tầng 【Phệ Tinh】 (CD 90 giây).<br>Gây sát thương 【Rách Vết Thương】 hoặc 【Trọng Thương】 lên mục tiêu có 【Phệ Tinh】 sẽ tiêu hao 1 tầng để tạo Chấn Động Tinh Thể dưới chân mục tiêu, gây 541 + 241.2% + 52.8% sát thương kỹ năng và gán 1 tầng 【Yên Diệt】 (duy trì 100 giây, tối đa 2 tầng).</div>",
+    "enhanceStats": "Triệu hồi Hư Giới Phệ Tinh Lang tung đòn càn quét tạo sóng xung kích gây 1028 + 463.5% + 99.0% sát thương lên mục tiêu và gán 1 tầng 【Phệ Tinh】; nếu mục tiêu có 【Yên Diệt】 sẽ chuyển hóa toàn bộ thành tầng 【Phệ Tinh】 (CD 90 giây).<br>Gây sát thương 【Rách Vết Thương】 hoặc 【Trọng Thương】 lên mục tiêu có 【Phệ Tinh】 sẽ tiêu hao 1 tầng để tạo Chấn Động Tinh Thể dưới chân mục tiêu, gây 541 + 241.2% + 52.8% sát thương kỹ năng và gán 1 tầng 【Yên Diệt】 (duy trì 100 giây, tối đa 2 tầng).",
     "effects": [
       {
         "year": "1 Vạn",
@@ -366,7 +366,7 @@
     "slot": "left_leg",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_left_leg_p_tinh_lang_v_ng_10.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Kết Tinh Tinh Thuẫn - Lá Chắn Phòng Hộ):</span></div><div>Mỗi khi kích hoạt sát thương 【Rách Vết Thương】 hoặc 【Trọng Thương】 sẽ tạo cho bản thân một lá chắn bằng 3.09% Máu tối đa duy trì 15 giây (kích hoạt tối đa 1 lần mỗi 10 giây). Lá chắn không cộng dồn, kích hoạt lại sẽ làm mới lượng lá chắn.</div>",
+    "enhanceStats": "Mỗi khi kích hoạt sát thương 【Rách Vết Thương】 hoặc 【Trọng Thương】 sẽ tạo cho bản thân một lá chắn bằng 3.09% Máu tối đa duy trì 15 giây (kích hoạt tối đa 1 lần mỗi 10 giây). Lá chắn không cộng dồn, kích hoạt lại sẽ làm mới lượng lá chắn.",
     "effects": [
       {
         "year": "1 Vạn",
@@ -402,7 +402,7 @@
     "slot": "left_arm",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_left_arm_l_u_c_long_t_ch_11.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Lưu Lân Độc Vĩ - Bộc Phát Sát Thương):</span></div><div>Triệu hồi Lưu Độc Bích Long Tích tụ lực rồi quật đuôi xoay vòng, đánh trúng mục tiêu gây 1028 + 463.5% + 99.0% sát thương kỹ năng (CD 90 giây).<br>Trong 10 giây sau khi xuất chiêu, mỗi khi người chơi kích hoạt sát thương 【Chấn Đãng】 hoặc 【Trúng Độc】, tại vị trí mục tiêu sẽ tạo Vụ Nổ Độc Tố gây 340 + 154.5% + 33.0% sát thương kỹ năng (kích hoạt tối đa 3 lần).</div>",
+    "enhanceStats": "Triệu hồi Lưu Độc Bích Long Tích tụ lực rồi quật đuôi xoay vòng, đánh trúng mục tiêu gây 1028 + 463.5% + 99.0% sát thương kỹ năng (CD 90 giây).<br>Trong 10 giây sau khi xuất chiêu, mỗi khi người chơi kích hoạt sát thương 【Chấn Đãng】 hoặc 【Trúng Độc】, tại vị trí mục tiêu sẽ tạo Vụ Nổ Độc Tố gây 340 + 154.5% + 33.0% sát thương kỹ năng (kích hoạt tối đa 3 lần).",
     "effects": [
       {
         "year": "1 Vạn",
@@ -438,7 +438,7 @@
     "slot": "left_leg",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_left_leg_l_u_c_long_t_ch_12.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Lưu Lân Kịch Độc - Khống Chế Mục Tiêu):</span></div><div>Trong vòng 15 giây sau khi gán 【Chấn Đãng】/【Trúng Độc】 lên mục tiêu, mỗi khi gán tiếp 【Xung Kích】/【Trúng Độc】 sẽ gây 170 + 77.25% + 16.5% sát thương kỹ năng và làm Choáng mục tiêu trong 0.5 giây (hiệu ứng này chỉ kích hoạt 1 lần mỗi 180 giây).</div>",
+    "enhanceStats": "Trong vòng 15 giây sau khi gán 【Chấn Đãng】/【Trúng Độc】 lên mục tiêu, mỗi khi gán tiếp 【Xung Kích】/【Trúng Độc】 sẽ gây 170 + 77.25% + 16.5% sát thương kỹ năng và làm Choáng mục tiêu trong 0.5 giây (hiệu ứng này chỉ kích hoạt 1 lần mỗi 180 giây).",
     "effects": [
       {
         "year": "1 Vạn",
@@ -474,7 +474,7 @@
     "slot": "right_arm",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_arm_b_ng_b_ch_ho_ng_h_p_13.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Băng Hoàng Yên Diệt - Sát Thương Bộc Phá):</span></div><div>Triệu hồi Băng Bích Đế Hoàng Hạp bắn tia năng lượng cực mạnh về phía mục tiêu, gây 600 + 270.37% + 57.75% sát thương kỹ năng. Sau thoáng chốc sẽ phát nổ năng lượng, gây thêm 684 + 309.0% + 66.0% sát thương kỹ năng (CD 90 giây).<br>Nếu mục tiêu đang có 【Rách Vết Thương】 hoặc 【Trọng Thương】, sát thương từ vụ nổ năng lượng tăng thêm 30%.</div>",
+    "enhanceStats": "Triệu hồi Băng Bích Đế Hoàng Hạp bắn tia năng lượng cực mạnh về phía mục tiêu, gây 600 + 270.37% + 57.75% sát thương kỹ năng. Sau thoáng chốc sẽ phát nổ năng lượng, gây thêm 684 + 309.0% + 66.0% sát thương kỹ năng (CD 90 giây).<br>Nếu mục tiêu đang có 【Rách Vết Thương】 hoặc 【Trọng Thương】, sát thương từ vụ nổ năng lượng tăng thêm 30%.",
     "effects": [
       {
         "year": "1 Vạn",
@@ -510,7 +510,7 @@
     "slot": "right_leg",
     "wusoulType": "all",
     "icon": "assets/uploads/honcot_right_leg_b_ng_b_ch_ho_ng_h_p_14.png",
-    "enhanceStats": "<div><span style=\"color:#f59e0b;font-weight:bold;\">Kỹ năng Hồn Cốt (2000 Năm · Lịch Chiến Sương Hàn - Cường Hóa Đánh Thường):</span></div><div>Mỗi khi kích hoạt sát thương 【Rách Vết Thương】 hoặc 【Trọng Thương】 sẽ cộng dồn 1 tầng 【Lịch Hàn】. Mỗi tầng Lịch Hàn tăng 3.6% sát thương Đánh Thường, duy trì 10 giây, tối đa cộng dồn 10 tầng.</div>",
+    "enhanceStats": "Mỗi khi kích hoạt sát thương 【Rách Vết Thương】 hoặc 【Trọng Thương】 sẽ cộng dồn 1 tầng 【Lịch Hàn】. Mỗi tầng Lịch Hàn tăng 3.6% sát thương Đánh Thường, duy trì 10 giây, tối đa cộng dồn 10 tầng.",
     "effects": [
       {
         "year": "1 Vạn",

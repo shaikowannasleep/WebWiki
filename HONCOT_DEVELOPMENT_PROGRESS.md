@@ -40,14 +40,15 @@
 ## ⚡ 2. CÁC ĐIỂM ĐÃ TỐI ƯU HÓA (OPTIMIZED)
 
 ### A. Tối Ưu Hóa Giao Diện Bách Khoa Hồn Cốt (`honcot.html` & `js/honcot.js`):
-- **Compact Card Grid:** Thu gọn thẻ bài từ dạng dài cồng kềnh sang dạng lưới hiện đại, giúp người dùng nhìn thấy cùng lúc **8 - 12 Hồn Cốt** trên một màn hình mà không cần cuộn trang liên tục.
+- **Full Skill Display & Equal-Height Grid:** Mở rộng chiều dọc khung kỹ năng, cho phép người dùng đọc hết 100% nội dung kỹ năng ngay trên mặt thẻ ngoài mà không bị cắt cụt dấu `...`. Các thẻ được kéo dãn đồng đều theo thẻ dài nhất bằng CSS Flexbox/Grid Stretch.
+- **Tối Giản Hóa Mặt Thẻ Ngoài:** Ẩn các mốc chi tiết `1 Vạn`, `2.5 Vạn`... ở mặt ngoài thẻ, thay vào đó hiển thị cột chỉ báo `✦ 5 Mốc Niên Đại (1v ➔ 10v)` và nút nổi bật `🔍 Xem Mốc Niên Đại ➔`.
 - **Loại bỏ thông tin thừa:**
   - Bỏ hoàn toàn thẻ `Hệ: Tất Cả` không cần thiết.
   - Bỏ tiêu đề thừa `✨ Cường Hóa & Thuộc Tính Cơ Bản`.
 - **Bộ lọc Vị Trí Slot siêu tốc:** Lọc theo `👑 Xương Đầu`, `🛡️ Xương Thân`, `🦾 Tay Trái`, `🦾 Tay Phải`, `🦵 Chân Trái`, `🦵 Chân Phải` hiển thị tức thì danh sách Hồn Cốt tương ứng.
 
 ### B. Universal Modal System (Áp dụng toàn dự án):
-- **Modal Popup Trung Tâm:** Click vào bất kỳ thẻ nào sẽ mở Popup chi tiết với hiệu ứng làm mờ nền (Backdrop Blur 10px), hiển thị chi tiết từ gốc đến mốc 10 vạn năm.
+- **Modal Popup Trung Tâm:** Click vào bất kỳ thẻ nào hoặc bấm nút `Xem Mốc Niên Đại` sẽ mở Popup chi tiết với hiệu ứng làm mờ nền (Backdrop Blur 10px), hiển thị chi tiết từ gốc đến mốc 10 vạn năm kèm số sao ⭐ vàng.
 - **Cơ chế Đóng Đa Kênh Thông Minh:**
   - 🖱️ **Click-Outside:** Bấm ra ngoài vùng Popup để đóng ngay lập tức.
   - ⌨️ **Phím ESC:** Nhấn phím `Escape` trên bàn phím để đóng.

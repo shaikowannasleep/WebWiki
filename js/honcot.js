@@ -1,9 +1,10 @@
 /**
  * Honcot Module - Douluo MMO Wiki (Compact Grid & Interactive Detail Modal)
  * Hỗ trợ:
- * - Xem cùng lúc nhiều Hồn Cốt dạng lưới gọn gàng
- * - Lọc theo vị trí (Tay Phải, Tay Trái, Chân Phải, Chân Trái, Đầu, Thân)
- * - Click vào mở Popup chi tiết (Modal)
+ * - Xem toàn bộ kỹ năng ngay từ bên ngoài card
+ * - Chiều cao các thẻ đồng đều theo item dài nhất (Grid stretch & Flex 1)
+ * - Ẩn các mốc chi tiết ở ngoài thẻ, hiển thị cột 5 mốc niên đại
+ * - Bấm vào thẻ để mở Popup xem chi tiết các mốc niên đại (1v -> 10v)
  * - Bấm ra ngoài vùng Popup hoặc nhấn ESC để đóng
  */
 
@@ -32,14 +33,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   /**
    * Helper: Lọc chuỗi text sạch bỏ tag html thừa
    */
-  function stripHtml(html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html || '';
-    return tmp.textContent || tmp.innerText || '';
+  function cleanSkillText(html) {
+    if (!html) return '';
+    let text = html;
+    // Bỏ các thẻ div, span thừa
+    text = text.replace(/<span style="color:#f59e0b;font-weight:bold;">Kỹ năng Hồn Cốt\s*\([^)]*\):?<\/span>/gi, '');
+    text = text.replace(/Kỹ năng Hồn Cốt\s*\([^)]*\):?/gi, '');
+    return text.trim();
   }
 
   /**
-   * Render Soul Bone Cards into Compact Grid
+   * Render Soul Bone Cards into Grid (Đồng đều chiều cao & hiển thị full kỹ năng)
    */
   function renderHoncotGrid(list) {
     if (!list || list.length === 0) {
@@ -62,16 +66,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const slotDisplay = slotMap[item.slot] || item.slot;
       const iconPath = item.icon || 'assets/icons/honcot_head.png';
 
-      // Làm sạch text kỹ năng để preview 2 dòng
-      let rawStats = stripHtml(item.enhanceStats);
-      // Bỏ các tiền tố thừa nếu có
-      rawStats = rawStats.replace(/Kỹ năng Hồn Cốt\s*\([^)]*\):?/i, '').trim();
-
-      // Mini year pills
-      const yearsPills = (item.effects || []).map((eff, idx) => {
-        const star = eff.star || (idx + 2);
-        return `<span class="hc-year-pill-mini">${eff.year} (${star}★)</span>`;
-      }).join('');
+      const fullSkillHtml = cleanSkillText(item.enhanceStats);
+      const effectsCount = (item.effects || []).length || 5;
 
       return `
         <div class="honcot-compact-card" data-id="${item.id}" onclick="window.openHoncotDetailModal('${item.id}')">
@@ -86,19 +82,21 @@ document.addEventListener('DOMContentLoaded', async () => {
               </div>
             </div>
 
-            <div class="hc-skill-preview" style="margin-top:0.75rem;">
-              ${rawStats || 'Kích hoạt hiệu ứng Hồn Cốt tăng cường thuộc tính và sát thương.'}
+            <!-- Khung kỹ năng hiển thị đầy đủ, không bị cắt dấu ... -->
+            <div class="hc-skill-full-box">
+              <div class="hc-skill-tag-header">
+                <span>⚡ KỸ NĂNG HỒN CỐT (2000 NĂM)</span>
+              </div>
+              <div class="hc-skill-text-content">
+                ${i18n.translateConcept(fullSkillHtml || 'Kích hoạt hiệu ứng Hồn Cốt tăng cường thuộc tính và sát thương.')}
+              </div>
             </div>
           </div>
 
-          <div>
-            <div class="hc-years-mini-row" style="margin-bottom:0.65rem;">
-              ${yearsPills}
-            </div>
-            <div class="hc-card-footer">
-              <span style="font-size:0.72rem; color:var(--text-muted);">${(item.effects || []).length} Mốc Niên Đại</span>
-              <span class="hc-btn-expand">🔍 Xem Chi Tiết ➔</span>
-            </div>
+          <!-- Footer gọn gàng với chỉ báo 5 mốc niên đại và nút xem chi tiết -->
+          <div class="hc-card-footer">
+            <span class="hc-milestone-indicator">✦ ${effectsCount} Mốc Niên Đại (1v ➔ 10v)</span>
+            <span class="hc-btn-expand">🔍 Xem Mốc Niên Đại ➔</span>
           </div>
         </div>
       `;
@@ -106,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /**
-   * Modal Chi Tiết Hồn Cốt
+   * Modal Chi Tiết Hồn Cốt (Hiển thị đầy đủ kỹ năng & toàn bộ 5 mốc niên đại 1v - 10v)
    */
   window.openHoncotDetailModal = function(id) {
     const item = honcotList.find(h => h.id === id);
@@ -131,14 +129,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       effectsHtml = item.effects.map((eff, idx) => {
         const starVal = eff.star ? eff.star : (idx + 2);
         return `
-          <div style="display:flex; align-items:flex-start; gap:0.85rem; padding:0.7rem 0; border-bottom:1px dashed rgba(255,255,255,0.09);">
-            <div style="display:flex; flex-direction:column; gap:0.25rem; min-width:90px; flex-shrink:0;">
+          <div style="display:flex; align-items:flex-start; gap:0.85rem; padding:0.75rem 0; border-bottom:1px dashed rgba(255,255,255,0.09);">
+            <div style="display:flex; flex-direction:column; gap:0.25rem; min-width:95px; flex-shrink:0;">
               <div style="color:var(--accent-cyan); font-weight:800; font-size:0.92rem;">${eff.year}</div>
               <div style="display:inline-flex; align-items:center; gap:0.25rem; background:rgba(251,191,36,0.15); border:1px solid rgba(251,191,36,0.35); padding:0.12rem 0.45rem; border-radius:12px; font-size:0.75rem; color:#fef08a; font-weight:800; width:fit-content;">
                 ⭐ ${starVal}★ Kích Hoạt
               </div>
             </div>
-            <div style="color:#e2e8f0; font-size:0.88rem; line-height:1.55; flex:1;">
+            <div style="color:#e2e8f0; font-size:0.9rem; line-height:1.6; flex:1;">
               ${i18n.translateConcept(eff.desc)}
             </div>
           </div>
@@ -172,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="font-size:0.82rem; font-weight:800; color:var(--accent-gold); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.4rem;">
               <span>⚡ KỸ NĂNG HỒN CỐT (2000 NĂM GỐC)</span>
             </div>
-            <div style="font-size:0.9rem; line-height:1.6; color:#f1f5f9;">
+            <div style="font-size:0.92rem; line-height:1.65; color:#f1f5f9;">
               ${i18n.translateConcept(item.enhanceStats || 'Kích hoạt hiệu ứng Hồn Cốt.')}
             </div>
           </div>
@@ -181,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(6,182,212,0.25); border-radius:10px; padding:1rem 1.25rem;">
             <div style="font-size:0.82rem; font-weight:800; color:var(--accent-cyan); margin-bottom:0.5rem; display:flex; align-items:center; justify-content:space-between;">
               <span>🔥 ĐỘT PHÁ MỐC NIÊN ĐẠI (1 VẠN ➔ 10 VẠN NĂM)</span>
-              <span style="font-size:0.72rem; color:#94a3b8;">5 Cấp Sao</span>
+              <span style="font-size:0.75rem; color:#94a3b8;">5 Cấp Sao</span>
             </div>
             <div style="display:flex; flex-direction:column;">
               ${effectsHtml}
